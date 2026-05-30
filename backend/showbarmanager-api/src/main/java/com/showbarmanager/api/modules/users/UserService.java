@@ -1,12 +1,16 @@
 package com.showbarmanager.api.modules.users;
 
+import com.showbarmanager.api.exceptions.BusinessException;
+import com.showbarmanager.api.exceptions.ResourceNotFoundException;
 import com.showbarmanager.api.modules.tenants.Tenant;
 import com.showbarmanager.api.modules.tenants.TenantRepository;
 import com.showbarmanager.api.modules.users.dto.CreateUserRequest;
+import com.showbarmanager.api.modules.users.dto.UpdateUserRequest;
 import com.showbarmanager.api.modules.users.dto.UserResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -34,29 +38,24 @@ public class UserService {
 
     public UserResponse create(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Já existe um usuário com este e-mail.");
+            throw new BusinessException("Já existe um usuário com este e-mail.");
         }
 
         Tenant tenant = tenantRepository.findById(request.getTenantId())
-                .orElseThrow(() -> new RuntimeException("Tenant não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant não encontrado."));
 
         Role role = roleRepository.findByName(request.getRole())
-                .orElseThrow(() -> new RuntimeException("Role não encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("Role não encontrada."));
 
         User user = new User();
         user.setTenant(tenant);
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(Set.of(role));
+        user.setRoles(new HashSet<>(Set.of(role)));
+        user.setActive(true);
 
-        if ("ADMIN_MASTER".equals(role.getName())) {
-            user.setMasterUser(true);
-        }
-
-        if ("DEVELOPER_MASTER".equals(role.getName())) {
-            user.setDeveloperUser(true);
-        }
+        applySpecialUserFlags(user, role);
 
         User savedUser = userRepository.save(user);
 
@@ -72,9 +71,57 @@ public class UserService {
 
     public UserResponse findById(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
 
         return toResponse(user);
+    }
+
+    public UserResponse update(UUID id, UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+
+        boolean emailChanged = !user.getEmail().equalsIgnoreCase(request.getEmail());
+
+        if (emailChanged && userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Já existe outro usuário com este e-mail.");
+        }
+
+        Role role = roleRepository.findByName(request.getRole())
+                .orElseThrow(() -> new ResourceNotFoundException("Role não encontrada."));
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setRoles(new HashSet<>(Set.of(role)));
+
+        if (request.getActive() != null) {
+            user.setActive(request.getActive());
+        }
+
+        user.setMasterUser(false);
+        user.setDeveloperUser(false);
+
+        applySpecialUserFlags(user, role);
+
+        User savedUser = userRepository.save(user);
+
+        return toResponse(savedUser);
+    }
+
+    public void delete(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+
+        userRepository.delete(user);
+    }
+
+    private void applySpecialUserFlags(User user, Role role) {
+        if ("ADMIN_MASTER".equals(role.getName())) {
+            user.setMasterUser(true);
+        }
+
+        if ("DEVELOPER_MASTER".equals(role.getName())) {
+            user.setDeveloperUser(true);
+        }
     }
 
     private UserResponse toResponse(User user) {

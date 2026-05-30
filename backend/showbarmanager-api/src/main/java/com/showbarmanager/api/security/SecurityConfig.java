@@ -2,6 +2,7 @@ package com.showbarmanager.api.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -41,7 +42,9 @@ public class SecurityConfig {
                 .accessDeniedHandler(customAccessDeniedHandler)
             )
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
+                    "/error",
                     "/api/v1/health",
                     "/api/v1/auth/**",
                     "/actuator/health",
@@ -52,6 +55,15 @@ public class SecurityConfig {
                     "/v3/docs-api",
                     "/v3/docs-api/**"
                 ).permitAll()
+
+                .requestMatchers(
+                    "/api/v1/settings",
+                    "/api/v1/settings/**"
+                ).hasAnyAuthority(
+                    "ROLE_ADMIN_MASTER",
+                    "ROLE_DEVELOPER_MASTER"
+                )
+
                 .requestMatchers(
                     "/api/v1/tenants",
                     "/api/v1/tenants/**"
@@ -60,6 +72,7 @@ public class SecurityConfig {
                     "ROLE_DEVELOPER_MASTER",
                     "ROLE_TENANT_ADMIN"
                 )
+
                 .requestMatchers(
                     "/api/v1/users",
                     "/api/v1/users/**"
@@ -68,6 +81,7 @@ public class SecurityConfig {
                     "ROLE_DEVELOPER_MASTER",
                     "ROLE_TENANT_ADMIN"
                 )
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

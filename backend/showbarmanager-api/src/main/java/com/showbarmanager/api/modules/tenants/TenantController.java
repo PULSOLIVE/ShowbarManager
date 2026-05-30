@@ -44,4 +44,27 @@ public class TenantController {
                 tenantService.findById(id)
         );
     }
+
+    @PutMapping("/{id}")
+    public ApiResponse<Tenant> update(
+            @PathVariable UUID id,
+            @RequestBody UpdateTenantRequest request
+    ) {
+        return new ApiResponse<>(
+                true,
+                "Tenant atualizado com sucesso",
+                tenantService.update(id, request)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable UUID id) {
+        tenantService.delete(id);
+
+        return new ApiResponse<>(
+                true,
+                "Tenant excluído com sucesso",
+                null
+        );
+    }
 }
