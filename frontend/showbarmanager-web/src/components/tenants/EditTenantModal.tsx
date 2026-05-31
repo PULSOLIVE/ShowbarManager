@@ -1,6 +1,12 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { X } from "lucide-react"
+import {
+  countryOptions,
+  generateSlug,
+  languageOptions,
+  timezoneOptions,
+} from "../../constants/tenantOptions"
 import { TenantService } from "../../services/tenant.service"
 import type { Tenant, UpdateTenantRequest } from "../../types/tenant.types"
 
@@ -51,6 +57,23 @@ function EditTenantModalContent({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  function handleNameChange(value: string) {
+    setName(value)
+    setSlug(generateSlug(value))
+  }
+
+  function handleCountryChange(value: string) {
+    const selectedCountry = countryOptions.find((item) => item.value === value)
+
+    setCountry(value)
+
+    if (selectedCountry) {
+      setCurrency(selectedCountry.currency)
+      setLanguage(selectedCountry.language)
+      setTimezone(selectedCountry.timezone)
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
@@ -72,7 +95,7 @@ function EditTenantModalContent({
       onUpdated()
       onClose()
     } catch {
-      setError("Não foi possível atualizar o tenant. Verifique os dados e tente novamente.")
+      setError("Não foi possível atualizar o ambiente. Verifique os dados e tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -80,7 +103,7 @@ function EditTenantModalContent({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[560px] bg-card border border-border rounded-2xl p-6 shadow-neon">
+      <div className="w-full max-w-[620px] bg-card border border-border rounded-2xl p-6 shadow-neon">
         <div className="flex items-start justify-between mb-6">
           <div>
             <span className="text-sm text-neon font-medium">
@@ -88,11 +111,11 @@ function EditTenantModalContent({
             </span>
 
             <h2 className="text-2xl font-bold">
-              Alterar tenant
+              Alterar ambiente
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Atualize os dados do ambiente multi-tenant.
+              Atualize os dados do ambiente multiempresa.
             </p>
           </div>
 
@@ -105,58 +128,115 @@ function EditTenantModalContent({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            placeholder="Nome do tenant"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            placeholder="Slug ex: empresa-demo"
-            value={slug}
-            onChange={(event) => setSlug(event.target.value)}
-            required
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              className="bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-              placeholder="País"
-              value={country}
-              onChange={(event) => setCountry(event.target.value)}
-              required
-            />
+          <div>
+            <label className="block text-xs text-muted mb-2">
+              Nome do ambiente
+            </label>
 
             <input
-              className="bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-              placeholder="Moeda"
-              value={currency}
-              onChange={(event) => setCurrency(event.target.value)}
-              required
-            />
-
-            <input
-              className="bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-              placeholder="Idioma"
-              value={language}
-              onChange={(event) => setLanguage(event.target.value)}
-              required
-            />
-
-            <input
-              className="bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-              placeholder="Timezone"
-              value={timezone}
-              onChange={(event) => setTimezone(event.target.value)}
+              className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+              placeholder="Ex: Empresa Demo Portugal"
+              value={name}
+              onChange={(event) => handleNameChange(event.target.value)}
               required
             />
           </div>
 
+          <div>
+            <label className="block text-xs text-muted mb-2">
+              Slug automático
+            </label>
+
+            <input
+              className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+              placeholder="empresa-demo-portugal"
+              value={slug}
+              onChange={(event) => setSlug(generateSlug(event.target.value))}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-muted mb-2">
+                País
+              </label>
+
+              <select
+                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                value={country}
+                onChange={(event) => handleCountryChange(event.target.value)}
+                required
+              >
+                {countryOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label} ({item.value})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted mb-2">
+                Moeda
+              </label>
+
+              <input
+                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                placeholder="EUR"
+                value={currency}
+                onChange={(event) => setCurrency(event.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted mb-2">
+                Idioma
+              </label>
+
+              <select
+                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                value={language}
+                onChange={(event) => setLanguage(event.target.value)}
+                required
+              >
+                {languageOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted mb-2">
+                Fuso horário
+              </label>
+
+              <select
+                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                value={timezone}
+                onChange={(event) => setTimezone(event.target.value)}
+                required
+              >
+                {timezoneOptions.map((group) => (
+                  <optgroup key={group.group} label={group.group}>
+                    {group.items.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">
-            <span className="text-sm text-muted">Tenant ativo</span>
+            <span className="text-sm text-muted">
+              Ambiente ativo
+            </span>
 
             <button
               type="button"

@@ -34,57 +34,60 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(customAuthenticationEntryPoint)
-                .accessDeniedHandler(customAccessDeniedHandler)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(
-                    "/error",
-                    "/api/v1/health",
-                    "/api/v1/auth/**",
-                    "/actuator/health",
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs",
-                    "/v3/api-docs/**",
-                    "/v3/docs-api",
-                    "/v3/docs-api/**"
-                ).permitAll()
-
-                .requestMatchers(
-                    "/api/v1/settings",
-                    "/api/v1/settings/**"
-                ).hasAnyAuthority(
-                    "ROLE_ADMIN_MASTER",
-                    "ROLE_DEVELOPER_MASTER"
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                .requestMatchers(
-                    "/api/v1/tenants",
-                    "/api/v1/tenants/**"
-                ).hasAnyAuthority(
-                    "ROLE_ADMIN_MASTER",
-                    "ROLE_DEVELOPER_MASTER",
-                    "ROLE_TENANT_ADMIN"
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                .requestMatchers(
-                    "/api/v1/users",
-                    "/api/v1/users/**"
-                ).hasAnyAuthority(
-                    "ROLE_ADMIN_MASTER",
-                    "ROLE_DEVELOPER_MASTER",
-                    "ROLE_TENANT_ADMIN"
+                        .requestMatchers(
+                                "/error",
+                                "/api/v1/health",
+                                "/api/v1/auth/**",
+                                "/actuator/health",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/docs-api",
+                                "/v3/docs-api/**"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/settings",
+                                "/api/v1/settings/**"
+                        ).hasAnyAuthority(
+                                "ROLE_ADMIN_MASTER",
+                                "ROLE_DEVELOPER_MASTER"
+                        )
+
+                        .requestMatchers(
+                                "/api/v1/tenants",
+                                "/api/v1/tenants/**"
+                        ).hasAnyAuthority(
+                                "ROLE_ADMIN_MASTER",
+                                "ROLE_DEVELOPER_MASTER",
+                                "ROLE_TENANT_ADMIN"
+                        )
+
+                        .requestMatchers(
+                                "/api/v1/users",
+                                "/api/v1/users/**"
+                        ).hasAnyAuthority(
+                                "ROLE_ADMIN_MASTER",
+                                "ROLE_DEVELOPER_MASTER",
+                                "ROLE_TENANT_ADMIN"
+                        )
+
+                        .anyRequest().authenticated()
                 )
-
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

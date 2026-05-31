@@ -12,6 +12,10 @@ import {
 } from "lucide-react"
 import { CreateTenantModal } from "../../components/tenants/CreateTenantModal"
 import { EditTenantModal } from "../../components/tenants/EditTenantModal"
+import {
+  getLanguageLabel,
+  getTimezoneLabel,
+} from "../../constants/tenantOptions"
 import { TenantService } from "../../services/tenant.service"
 import { useAuthStore } from "../../store/auth.store"
 import type { Tenant } from "../../types/tenant.types"
@@ -39,10 +43,15 @@ export function TenantsPage() {
 
   const filteredTenants = useMemo(() => {
     return data.filter((tenant) => {
+      const searchTerm = search.toLowerCase()
+
       const matchesSearch =
-        tenant.name.toLowerCase().includes(search.toLowerCase()) ||
-        tenant.slug.toLowerCase().includes(search.toLowerCase()) ||
-        tenant.country.toLowerCase().includes(search.toLowerCase())
+        tenant.name.toLowerCase().includes(searchTerm) ||
+        tenant.slug.toLowerCase().includes(searchTerm) ||
+        tenant.country.toLowerCase().includes(searchTerm) ||
+        tenant.currency.toLowerCase().includes(searchTerm) ||
+        tenant.language.toLowerCase().includes(searchTerm) ||
+        tenant.timezone.toLowerCase().includes(searchTerm)
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -60,7 +69,7 @@ export function TenantsPage() {
 
   async function handleDelete(tenant: Tenant) {
     const confirmed = window.confirm(
-      `Deseja realmente excluir o tenant ${tenant.name}?`
+      `Deseja realmente excluir o ambiente ${tenant.name}?`
     )
 
     if (!confirmed) {
@@ -71,6 +80,8 @@ export function TenantsPage() {
       setDeleteLoadingId(tenant.id)
       await TenantService.delete(tenant.id)
       await refetch()
+    } catch {
+      alert("Não foi possível excluir este ambiente.")
     } finally {
       setDeleteLoadingId(null)
     }
@@ -82,11 +93,11 @@ export function TenantsPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
             <Building2 size={16} />
-            Multi-Tenant
+            Multiempresa
           </span>
 
           <h2 className="text-3xl xl:text-4xl font-bold mt-1">
-            Inquilinos
+            Ambientes
           </h2>
 
           <p className="text-muted mt-2 text-sm xl:text-base">
@@ -99,7 +110,7 @@ export function TenantsPage() {
             onClick={() => setCreateModalOpen(true)}
             className="bg-neon text-black font-semibold px-5 py-3 rounded-full hover:shadow-neon transition w-full sm:w-auto"
           >
-            Novo tenant
+            Novo ambiente
           </button>
         )}
       </section>
@@ -109,13 +120,17 @@ export function TenantsPage() {
           <p className="text-xs uppercase tracking-wide text-muted">
             Total
           </p>
-          <strong className="text-3xl text-neon">{data.length}</strong>
+
+          <strong className="text-3xl text-neon">
+            {data.length}
+          </strong>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4">
           <p className="text-xs uppercase tracking-wide text-muted">
             Ativos
           </p>
+
           <strong className="text-3xl text-neon">
             {data.filter((tenant) => tenant.active).length}
           </strong>
@@ -125,6 +140,7 @@ export function TenantsPage() {
           <p className="text-xs uppercase tracking-wide text-muted">
             Filtrados
           </p>
+
           <strong className="text-3xl text-neon">
             {filteredTenants.length}
           </strong>
@@ -134,9 +150,10 @@ export function TenantsPage() {
       <section className="bg-card border border-border rounded-2xl p-4 flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
         <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-3 w-full xl:max-w-md">
           <Search size={16} className="text-muted" />
+
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Buscar por nome, slug ou país..."
+            placeholder="Buscar por nome, slug, país, idioma ou fuso..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -154,7 +171,11 @@ export function TenantsPage() {
           </select>
 
           <button
-            onClick={() => refetch()}
+            onClick={() => {
+              refetch().catch(() => {
+                alert("Não foi possível atualizar os ambientes.")
+              })
+            }}
             className="bg-background border border-border px-4 py-3 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
           >
             <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
@@ -165,13 +186,13 @@ export function TenantsPage() {
 
       {isLoading && (
         <div className="bg-card border border-border rounded-2xl p-5 text-muted">
-          Carregando tenants...
+          Carregando ambientes...
         </div>
       )}
 
       {isError && (
         <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-5">
-          Não foi possível carregar os tenants. Verifique se a API está online e se a sessão está ativa.
+          Não foi possível carregar os ambientes. Verifique se a API está online e se a sessão está ativa.
         </div>
       )}
 
@@ -216,23 +237,47 @@ export function TenantsPage() {
 
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 text-sm mb-4">
                 <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">País</p>
-                  <strong>{tenant.country}</strong>
+                  <p className="text-xs text-muted">
+                    País
+                  </p>
+
+                  <strong>
+                    {tenant.country}
+                  </strong>
                 </div>
 
                 <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">Moeda</p>
-                  <strong>{tenant.currency}</strong>
+                  <p className="text-xs text-muted">
+                    Moeda
+                  </p>
+
+                  <strong>
+                    {tenant.currency}
+                  </strong>
                 </div>
 
                 <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">Idioma</p>
-                  <strong>{tenant.language}</strong>
+                  <p className="text-xs text-muted">
+                    Idioma
+                  </p>
+
+                  <strong>
+                    {getLanguageLabel(tenant.language)}
+                  </strong>
                 </div>
 
-                <div className="bg-background border border-border rounded-2xl p-3 flex items-center gap-2">
-                  <Globe2 size={15} className="text-neon" />
-                  <strong className="truncate">{tenant.timezone}</strong>
+                <div className="bg-background border border-border rounded-2xl p-3">
+                  <p className="text-xs text-muted">
+                    Fuso horário
+                  </p>
+
+                  <div className="flex items-center gap-2 mt-1">
+                    <Globe2 size={15} className="text-neon" />
+
+                    <strong className="truncate">
+                      {getTimezoneLabel(tenant.timezone)}
+                    </strong>
+                  </div>
                 </div>
               </div>
 
@@ -252,7 +297,11 @@ export function TenantsPage() {
                     </button>
 
                     <button
-                      onClick={() => handleDelete(tenant)}
+                      onClick={() => {
+                        handleDelete(tenant).catch(() => {
+                          alert("Erro inesperado ao excluir ambiente.")
+                        })
+                      }}
                       disabled={deleteLoadingId === tenant.id}
                       className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Excluir"
@@ -267,7 +316,7 @@ export function TenantsPage() {
 
           {filteredTenants.length === 0 && (
             <div className="2xl:col-span-2 bg-card border border-border rounded-2xl p-8 text-center text-muted">
-              Nenhum tenant encontrado com os filtros atuais.
+              Nenhum ambiente encontrado com os filtros atuais.
             </div>
           )}
         </div>
@@ -276,7 +325,11 @@ export function TenantsPage() {
       <CreateTenantModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onCreated={() => refetch()}
+        onCreated={() => {
+          refetch().catch(() => {
+            alert("Ambiente criado, mas não foi possível atualizar a lista.")
+          })
+        }}
       />
 
       <EditTenantModal
@@ -286,7 +339,11 @@ export function TenantsPage() {
           setEditModalOpen(false)
           setSelectedTenant(null)
         }}
-        onUpdated={() => refetch()}
+        onUpdated={() => {
+          refetch().catch(() => {
+            alert("Ambiente atualizado, mas não foi possível atualizar a lista.")
+          })
+        }}
       />
     </div>
   )

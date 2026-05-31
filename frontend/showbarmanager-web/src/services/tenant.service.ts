@@ -9,15 +9,29 @@ import type {
 export const TenantService = {
   async list(): Promise<Tenant[]> {
     const response = await apiClient.get<ApiResponse<Tenant[]>>("/tenants")
+
+    return response.data.data
+  },
+
+  async findById(id: string): Promise<Tenant> {
+    const response = await apiClient.get<ApiResponse<Tenant>>(`/tenants/${id}`)
+
     return response.data.data
   },
 
   async create(payload: CreateTenantRequest): Promise<Tenant> {
-    const response = await apiClient.post<ApiResponse<Tenant>>("/tenants", payload)
+    const response = await apiClient.post<ApiResponse<Tenant>>(
+      "/tenants",
+      payload
+    )
+
     return response.data.data
   },
 
-  async update(id: string, payload: UpdateTenantRequest): Promise<Tenant> {
+  async update(
+    id: string,
+    payload: UpdateTenantRequest
+  ): Promise<Tenant> {
     const response = await apiClient.put<ApiResponse<Tenant>>(
       `/tenants/${id}`,
       payload

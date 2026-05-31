@@ -1,13 +1,30 @@
-package com.showbarmanager.api.modules.tenants;
+package com.showbarmanager.api.modules.tenants.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class UpdateTenantRequest {
 
+    @NotBlank(message = "O nome do tenant é obrigatório.")
+    @Size(max = 150, message = "O nome deve ter no máximo 150 caracteres.")
     private String name;
+
+    @NotBlank(message = "O slug do tenant é obrigatório.")
+    @Size(max = 100, message = "O slug deve ter no máximo 100 caracteres.")
     private String slug;
+
+    @Size(max = 2, message = "O país deve ter no máximo 2 caracteres.")
     private String country;
+
+    @Size(max = 3, message = "A moeda deve ter no máximo 3 caracteres.")
     private String currency;
+
+    @Size(max = 10, message = "O idioma deve ter no máximo 10 caracteres.")
     private String language;
+
+    @Size(max = 80, message = "O timezone deve ter no máximo 80 caracteres.")
     private String timezone;
+
     private Boolean active;
 
     public String getName() {

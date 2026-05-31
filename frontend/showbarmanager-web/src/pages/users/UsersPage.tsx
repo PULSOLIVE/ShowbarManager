@@ -41,9 +41,11 @@ export function UsersPage() {
 
   const filteredUsers = useMemo(() => {
     return data.filter((user) => {
+      const searchTerm = search.toLowerCase()
+
       const matchesSearch =
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase())
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -53,6 +55,12 @@ export function UsersPage() {
       return matchesSearch && matchesStatus
     })
   }, [data, search, statusFilter])
+
+  function handleRefresh() {
+    refetch().catch(() => {
+      alert("Não foi possível atualizar os usuários.")
+    })
+  }
 
   function handleEdit(user: User) {
     setSelectedUser(user)
@@ -72,6 +80,8 @@ export function UsersPage() {
       setDeleteLoadingId(user.id)
       await UserService.delete(user.id)
       await refetch()
+    } catch {
+      alert("Não foi possível excluir este usuário.")
     } finally {
       setDeleteLoadingId(null)
     }
@@ -110,13 +120,17 @@ export function UsersPage() {
           <p className="text-xs uppercase tracking-wide text-muted">
             Total
           </p>
-          <strong className="text-3xl text-neon">{data.length}</strong>
+
+          <strong className="text-3xl text-neon">
+            {data.length}
+          </strong>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4">
           <p className="text-xs uppercase tracking-wide text-muted">
             Ativos
           </p>
+
           <strong className="text-3xl text-neon">
             {data.filter((user) => user.active).length}
           </strong>
@@ -126,6 +140,7 @@ export function UsersPage() {
           <p className="text-xs uppercase tracking-wide text-muted">
             Filtrados
           </p>
+
           <strong className="text-3xl text-neon">
             {filteredUsers.length}
           </strong>
@@ -135,6 +150,7 @@ export function UsersPage() {
       <section className="bg-card border border-border rounded-2xl p-4 flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
         <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-3 w-full xl:max-w-md">
           <Search size={16} className="text-muted" />
+
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
             placeholder="Buscar por nome ou e-mail..."
@@ -155,7 +171,7 @@ export function UsersPage() {
           </select>
 
           <button
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             className="bg-background border border-border px-4 py-3 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
           >
             <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
@@ -265,7 +281,11 @@ export function UsersPage() {
                     </button>
 
                     <button
-                      onClick={() => handleDelete(user)}
+                      onClick={() => {
+                        handleDelete(user).catch(() => {
+                          alert("Erro inesperado ao excluir usuário.")
+                        })
+                      }}
                       disabled={deleteLoadingId === user.id}
                       className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Excluir"
@@ -290,7 +310,11 @@ export function UsersPage() {
         open={modalOpen}
         tenantId={currentUser?.tenantId || ""}
         onClose={() => setModalOpen(false)}
-        onCreated={() => refetch()}
+        onCreated={() => {
+          refetch().catch(() => {
+            alert("Usuário criado, mas não foi possível atualizar a lista.")
+          })
+        }}
       />
 
       <EditUserModal
@@ -300,7 +324,11 @@ export function UsersPage() {
           setEditModalOpen(false)
           setSelectedUser(null)
         }}
-        onUpdated={() => refetch()}
+        onUpdated={() => {
+          refetch().catch(() => {
+            alert("Usuário atualizado, mas não foi possível atualizar a lista.")
+          })
+        }}
       />
     </div>
   )

@@ -17,6 +17,7 @@ import {
   Settings,
   ShieldCheck,
   SlidersHorizontal,
+  UserCog,
   Users,
 } from "lucide-react"
 
@@ -49,9 +50,16 @@ const settingsSections: SettingsSection[] = [
   },
   {
     key: "users",
-    title: "Usuários e Perfis",
-    description: "Usuários, grupos, hierarquias, perfis e acessos.",
+    title: "Usuários",
+    description: "Gestão de usuários, acessos, status e vínculos.",
     icon: Users,
+    path: "/settings/users",
+  },
+  {
+    key: "profiles",
+    title: "Perfis e Grupos",
+    description: "Perfis, grupos, hierarquias e níveis de acesso.",
+    icon: UserCog,
     path: "/settings/profiles",
   },
   {
@@ -197,9 +205,9 @@ export function SettingsPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm xl:text-base max-w-4xl">
-            Painel central de parametrização, segurança, permissões, tenants,
-            branding, compliance, integrações, infraestrutura local, auditoria
-            e políticas enterprise.
+            Painel central de parametrização, segurança, permissões, usuários,
+            tenants, branding, compliance, integrações, infraestrutura local,
+            auditoria e políticas enterprise.
           </p>
         </div>
 
@@ -220,7 +228,7 @@ export function SettingsPage() {
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-        <SummaryCard title="Governança" value="13 seções" icon={Settings} />
+        <SummaryCard title="Governança" value="14 seções" icon={Settings} />
         <SummaryCard title="Segurança" value="JWT + ACL" icon={ShieldCheck} />
         <SummaryCard title="Compliance" value="LGPD/RGPD" icon={FileText} />
         <SummaryCard title="Ambiente" value="Enterprise SaaS" icon={CheckCircle2} />
@@ -310,6 +318,7 @@ export function SettingsPage() {
             )}
 
             {activeSection === "users" && <SettingsUsersSection />}
+            {activeSection === "profiles" && <SettingsProfilesSection />}
             {activeSection === "permissions" && <SettingsPermissionsSection />}
             {activeSection === "security" && <SettingsSecuritySection />}
             {activeSection === "tenant" && <SettingsTenantSection />}
@@ -340,9 +349,9 @@ function SettingsOverviewSection({
         title="Governança e Acesso"
         description="Controle de usuários, grupos, perfis, hierarquias e permissões."
         actions={[
+          { label: "Gerenciar usuários", path: "/settings/users" },
           { label: "Gerenciar perfis", path: "/settings/profiles" },
           { label: "Mapear permissões", path: "/settings/permissions" },
-          { label: "Revisar acessos", section: "users" },
         ]}
         navigate={navigate}
         setActiveSection={setActiveSection}
@@ -388,17 +397,56 @@ function SettingsOverviewSection({
 }
 
 function SettingsUsersSection() {
+  const users = [
+    "Usuário comum",
+    "Usuário operacional",
+    "Usuário financeiro",
+    "Usuário técnico",
+    "Usuário administrativo",
+    "Usuário auditoria",
+    "Usuário expositor",
+    "Usuário fornecedor",
+    "Usuário imprensa",
+    "Usuário parceiro",
+    "Usuário segurança",
+    "Usuário saúde",
+    "Usuário bilheteria",
+    "Usuário logística",
+    "Usuário desenvolvedor",
+    "Usuário master",
+  ]
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {users.map((user) => (
+        <SettingPill key={user} label={user} />
+      ))}
+    </div>
+  )
+}
+
+function SettingsProfilesSection() {
   const profiles = [
     "Administrador Global",
     "Super Usuário Master",
     "Usuário Desenvolvedor Master",
+    "Auditoria Interna",
+    "Compliance Officer",
+    "Suporte Nível 1",
+    "Suporte Nível 2",
+    "Suporte Nível 3",
+    "Customer Success",
+    "Financeiro Global",
+    "DevOps",
+    "SRE",
     "Administrador do Tenant",
     "Administrador do Evento",
     "Gestor de Bilheteria",
     "Gestor de Segurança",
+    "Gestor de Saúde",
+    "Gestor de Logística",
     "Gestor de Bar",
     "Gestor Técnico",
-    "Auditoria Interna",
   ]
 
   return (
@@ -415,11 +463,20 @@ function SettingsPermissionsSection() {
     "Permissão por módulo",
     "Permissão por ação",
     "Permissão por campo",
+    "Permissão por empresa",
     "Permissão por tenant",
     "Permissão por evento",
+    "Permissão por setor",
+    "Permissão por operação",
+    "Permissão por ambiente",
+    "Permissão por país",
+    "Permissão por tipo de produtor",
     "Permissão temporária",
     "Permissão por horário",
     "Permissão por dispositivo",
+    "Permissão geográfica",
+    "Permissão por IP",
+    "Permissão contextual",
     "Aprovação de ações críticas",
     "Workflow de aprovação",
   ]
@@ -508,9 +565,15 @@ function SettingsIntegrationsSection() {
     "Stripe",
     "MBWay",
     "Multibanco",
+    "Catracas",
     "POS",
     "RFID",
-    "API Externa",
+    "Hardware",
+    "API externa",
+    "Agente local",
+    "Servidor local",
+    "Monitoramento técnico",
+    "Observabilidade",
     "Prometheus",
     "Grafana",
   ]
@@ -543,7 +606,7 @@ function SettingsHardwareSection() {
     "Catracas",
     "Impressoras térmicas",
     "Leitores QR Code",
-    "RFID",
+    "Leitores RFID",
     "NFC",
     "Balanças",
     "Totens",
@@ -551,7 +614,10 @@ function SettingsHardwareSection() {
     "Smartphones",
     "Roteadores",
     "Switches",
-    "IoT",
+    "Servidor local",
+    "Agente local",
+    "Câmeras futuramente",
+    "IoT futuramente",
   ]
 
   return (
@@ -587,6 +653,8 @@ function SettingsPoliciesSection() {
     "Políticas financeiras",
     "Políticas fiscais",
     "Políticas de rede",
+    "Políticas de segurança operacional",
+    "Políticas de auditoria",
     "Políticas de backup",
   ]
 

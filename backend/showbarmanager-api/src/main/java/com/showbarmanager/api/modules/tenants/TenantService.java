@@ -2,6 +2,9 @@ package com.showbarmanager.api.modules.tenants;
 
 import com.showbarmanager.api.exceptions.BusinessException;
 import com.showbarmanager.api.exceptions.ResourceNotFoundException;
+import com.showbarmanager.api.modules.tenants.dto.CreateTenantRequest;
+import com.showbarmanager.api.modules.tenants.dto.TenantResponse;
+import com.showbarmanager.api.modules.tenants.dto.UpdateTenantRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,73 +19,137 @@ public class TenantService {
         this.tenantRepository = tenantRepository;
     }
 
-    public Tenant create(Tenant tenant) {
-        if (tenantRepository.existsBySlug(tenant.getSlug())) {
+    public TenantResponse create(CreateTenantRequest request) {
+        String normalizedSlug = normalizeSlug(request.getSlug());
+
+        if (tenantRepository.existsBySlug(normalizedSlug)) {
             throw new BusinessException("Já existe um tenant com este slug.");
         }
 
-        if (tenant.getActive() == null) {
-            tenant.setActive(true);
-        }
+        Tenant tenant = new Tenant();
+        tenant.setName(normalizeText(request.getName()));
+        tenant.setSlug(normalizedSlug);
+        tenant.setCountry(normalizeCountry(request.getCountry()));
+        tenant.setCurrency(normalizeCurrency(request.getCurrency()));
+        tenant.setLanguage(normalizeLanguage(request.getLanguage()));
+        tenant.setTimezone(normalizeTimezone(request.getTimezone()));
+        tenant.setActive(request.getActive() != null ? request.getActive() : true);
 
-        return tenantRepository.save(tenant);
+        Tenant savedTenant = tenantRepository.save(tenant);
+
+        return toResponse(savedTenant);
     }
 
-    public List<Tenant> findAll() {
-        return tenantRepository.findAll();
+    public List<TenantResponse> findAll() {
+        return tenantRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Tenant findById(UUID id) {
-        return tenantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tenant não encontrado."));
+    public TenantResponse findById(UUID id) {
+        Tenant tenant = findTenantById(id);
+
+        return toResponse(tenant);
     }
 
-    public Tenant update(UUID id, UpdateTenantRequest request) {
-        Tenant tenant = tenantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tenant não encontrado."));
+    public TenantResponse update(UUID id, UpdateTenantRequest request) {
+        Tenant tenant = findTenantById(id);
 
-        boolean slugChanged = request.getSlug() != null
-                && !request.getSlug().equalsIgnoreCase(tenant.getSlug());
+        String normalizedSlug = normalizeSlug(request.getSlug());
 
-        if (slugChanged && tenantRepository.existsBySlug(request.getSlug())) {
+        boolean slugChanged = normalizedSlug != null
+                && !normalizedSlug.equalsIgnoreCase(tenant.getSlug());
+
+        if (slugChanged && tenantRepository.existsBySlug(normalizedSlug)) {
             throw new BusinessException("Já existe outro tenant com este slug.");
         }
 
-        if (request.getName() != null) {
-            tenant.setName(request.getName());
-        }
-
-        if (request.getSlug() != null) {
-            tenant.setSlug(request.getSlug());
-        }
-
-        if (request.getCountry() != null) {
-            tenant.setCountry(request.getCountry());
-        }
-
-        if (request.getCurrency() != null) {
-            tenant.setCurrency(request.getCurrency());
-        }
-
-        if (request.getLanguage() != null) {
-            tenant.setLanguage(request.getLanguage());
-        }
-
-        if (request.getTimezone() != null) {
-            tenant.setTimezone(request.getTimezone());
-        }
+        tenant.setName(normalizeText(request.getName()));
+        tenant.setSlug(normalizedSlug);
+        tenant.setCountry(normalizeCountry(request.getCountry()));
+        tenant.setCurrency(normalizeCurrency(request.getCurrency()));
+        tenant.setLanguage(normalizeLanguage(request.getLanguage()));
+        tenant.setTimezone(normalizeTimezone(request.getTimezone()));
 
         if (request.getActive() != null) {
             tenant.setActive(request.getActive());
         }
 
-        return tenantRepository.save(tenant);
+        Tenant savedTenant = tenantRepository.save(tenant);
+
+        return toResponse(savedTenant);
     }
 
     public void delete(UUID id) {
-        Tenant tenant = tenantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tenant não encontrado."));
+        Tenant tenant = findTenantById(id);
 
         tenantRepository.delete(tenant);
+    }
+
+    private Tenant findTenantById(UUID id) {
+        return tenantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant não encontrado."));
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private String normalizeSlug(String slug) {
+        if (slug == null) {
+            return null;
+        }
+
+        return slug.trim().toLowerCase();
+    }
+
+    private String normalizeCountry(String country) {
+        if (country == null || country.isBlank()) {
+            return "PT";
+        }
+
+        return country.trim().toUpperCase();
+    }
+
+    private String normalizeCurrency(String currency) {
+        if (currency == null || currency.isBlank()) {
+            return "EUR";
+        }
+
+        return currency.trim().toUpperCase();
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) {
+            return "pt-PT";
+        }
+
+        return language.trim();
+    }
+
+    private String normalizeTimezone(String timezone) {
+        if (timezone == null || timezone.isBlank()) {
+            return "Europe/Lisbon";
+        }
+
+        return timezone.trim();
+    }
+
+    private TenantResponse toResponse(Tenant tenant) {
+        TenantResponse response = new TenantResponse();
+
+        response.setId(tenant.getId());
+        response.setName(tenant.getName());
+        response.setSlug(tenant.getSlug());
+        response.setCountry(tenant.getCountry());
+        response.setCurrency(tenant.getCurrency());
+        response.setLanguage(tenant.getLanguage());
+        response.setTimezone(tenant.getTimezone());
+        response.setActive(tenant.getActive());
+        response.setCreatedAt(tenant.getCreatedAt());
+        response.setUpdatedAt(tenant.getUpdatedAt());
+
+        return response;
     }
 }

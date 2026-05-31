@@ -1,77 +1,20 @@
-package com.showbarmanager.api.modules.tenants;
-
-import jakarta.persistence.*;
+package com.showbarmanager.api.modules.tenants.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "tenants")
-public class Tenant {
+public class TenantResponse {
 
-    @Id
     private UUID id;
-
-    @Column(nullable = false, length = 150)
     private String name;
-
-    @Column(nullable = false, unique = true, length = 100)
     private String slug;
-
-    @Column(nullable = false, length = 2)
-    private String country = "PT";
-
-    @Column(nullable = false, length = 3)
-    private String currency = "EUR";
-
-    @Column(nullable = false, length = 10)
-    private String language = "pt-PT";
-
-    @Column(nullable = false, length = 80)
-    private String timezone = "Europe/Lisbon";
-
-    @Column(nullable = false)
-    private Boolean active = true;
-
-    @Column(name = "created_at", nullable = false)
+    private String country;
+    private String currency;
+    private String language;
+    private String timezone;
+    private Boolean active;
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public Tenant() {
-    }
-
-    @PrePersist
-    public void prePersist() {
-        this.id = UUID.randomUUID();
-        this.createdAt = LocalDateTime.now();
-
-        if (this.active == null) {
-            this.active = true;
-        }
-
-        if (this.country == null || this.country.isBlank()) {
-            this.country = "PT";
-        }
-
-        if (this.currency == null || this.currency.isBlank()) {
-            this.currency = "EUR";
-        }
-
-        if (this.language == null || this.language.isBlank()) {
-            this.language = "pt-PT";
-        }
-
-        if (this.timezone == null || this.timezone.isBlank()) {
-            this.timezone = "Europe/Lisbon";
-        }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public UUID getId() {
         return id;

@@ -17,6 +17,7 @@ import { SettingsIntegrationsPage } from "../pages/settings/SettingsIntegrations
 import { SettingsNetworkPage } from "../pages/settings/SettingsNetworkPage"
 import { SettingsHardwarePage } from "../pages/settings/SettingsHardwarePage"
 import { SettingsPoliciesPage } from "../pages/settings/SettingsPoliciesPage"
+import { SettingsUsersPage } from "../pages/settings/SettingsUsersPage"
 import { ProtectedRoute } from "./ProtectedRoute"
 
 export function AppRoutes() {
@@ -35,6 +36,7 @@ export function AppRoutes() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/profiles" element={<SettingsProfilesPage />} />
             <Route path="settings/permissions" element={<SettingsPermissionsPage />} />
+            <Route path="settings/users" element={<SettingsUsersPage />} />
             <Route path="settings/security" element={<SettingsSecurityPage />} />
             <Route path="settings/sessions" element={<SettingsSessionsPage />} />
             <Route path="settings/audit" element={<SettingsAuditPage />} />

@@ -11,6 +11,26 @@ interface EditUserModalProps {
   onUpdated: () => void
 }
 
+const userRoles = [
+  "ADMIN_MASTER",
+  "DEVELOPER_MASTER",
+  "SUPPORT_N1",
+  "SUPPORT_N2",
+  "SUPPORT_N3",
+  "COMPLIANCE",
+  "AUDITOR",
+  "TENANT_ADMIN",
+  "EVENT_ADMIN",
+  "FINANCIAL_MANAGER",
+  "TICKET_MANAGER",
+  "SECURITY_MANAGER",
+  "HEALTH_MANAGER",
+  "LOGISTICS_MANAGER",
+  "BAR_MANAGER",
+  "TECHNICAL_MANAGER",
+  "OPERATOR",
+]
+
 export function EditUserModal({
   open,
   user,
@@ -44,7 +64,7 @@ function EditUserModalContent({
   const [name, setName] = useState<string>(user.name)
   const [email, setEmail] = useState<string>(user.email)
   const [role, setRole] = useState<string>(
-    user.roles.length > 0 ? user.roles[0] : "TENANT_ADMIN"
+    user.roles.length > 0 ? user.roles[0] : "OPERATOR"
   )
   const [active, setActive] = useState<boolean>(user.active)
   const [loading, setLoading] = useState<boolean>(false)
@@ -123,10 +143,11 @@ function EditUserModalContent({
             value={role}
             onChange={(event) => setRole(event.target.value)}
           >
-            <option value="TENANT_ADMIN">TENANT_ADMIN</option>
-            <option value="OPERATOR">OPERATOR</option>
-            <option value="FINANCIAL">FINANCIAL</option>
-            <option value="PRODUCER">PRODUCER</option>
+            {userRoles.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
           </select>
 
           <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">

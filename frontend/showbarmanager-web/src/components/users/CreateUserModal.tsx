@@ -11,6 +11,26 @@ interface CreateUserModalProps {
   onCreated: () => void
 }
 
+const userRoles = [
+  "ADMIN_MASTER",
+  "DEVELOPER_MASTER",
+  "SUPPORT_N1",
+  "SUPPORT_N2",
+  "SUPPORT_N3",
+  "COMPLIANCE",
+  "AUDITOR",
+  "TENANT_ADMIN",
+  "EVENT_ADMIN",
+  "FINANCIAL_MANAGER",
+  "TICKET_MANAGER",
+  "SECURITY_MANAGER",
+  "HEALTH_MANAGER",
+  "LOGISTICS_MANAGER",
+  "BAR_MANAGER",
+  "TECHNICAL_MANAGER",
+  "OPERATOR",
+]
+
 export function CreateUserModal({
   open,
   tenantId,
@@ -20,7 +40,7 @@ export function CreateUserModal({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("123456")
-  const [role, setRole] = useState("TENANT_ADMIN")
+  const [role, setRole] = useState("OPERATOR")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,6 +52,12 @@ export function CreateUserModal({
     event.preventDefault()
     setLoading(true)
     setError(null)
+
+    if (!tenantId) {
+      setError("Tenant não identificado. Faça login novamente.")
+      setLoading(false)
+      return
+    }
 
     try {
       const payload: CreateUserRequest = {
@@ -47,7 +73,7 @@ export function CreateUserModal({
       setName("")
       setEmail("")
       setPassword("123456")
-      setRole("TENANT_ADMIN")
+      setRole("OPERATOR")
 
       onCreated()
       onClose()
@@ -116,10 +142,11 @@ export function CreateUserModal({
             value={role}
             onChange={(event) => setRole(event.target.value)}
           >
-            <option value="TENANT_ADMIN">TENANT_ADMIN</option>
-            <option value="OPERATOR">OPERATOR</option>
-            <option value="FINANCIAL">FINANCIAL</option>
-            <option value="PRODUCER">PRODUCER</option>
+            {userRoles.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
           </select>
 
           {error && (
