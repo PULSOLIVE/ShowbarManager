@@ -4,6 +4,8 @@ import type { LoginResponse } from "../types/auth.types"
 interface AuthState {
   user: LoginResponse | null
   token: string | null
+  tenantId: string | null
+  userId: string | null
   isAuthenticated: boolean
   roles: string[]
   isMaster: boolean
@@ -35,9 +37,18 @@ function buildPermissions(user: LoginResponse | null) {
   }
 }
 
+function clearStorage() {
+  localStorage.removeItem("showbar_token")
+  localStorage.removeItem("showbar_tenant_id")
+  localStorage.removeItem("showbar_user_id")
+  localStorage.removeItem("showbar_user")
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: localStorage.getItem("showbar_token"),
+  tenantId: localStorage.getItem("showbar_tenant_id"),
+  userId: localStorage.getItem("showbar_user_id"),
   isAuthenticated: !!localStorage.getItem("showbar_token"),
   roles: [],
   isMaster: false,
@@ -55,7 +66,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
 
   canViewSettings: () =>
-    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER"]),
+    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
 
   canCreate: () =>
     get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
@@ -71,11 +82,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     localStorage.setItem("showbar_token", data.token)
     localStorage.setItem("showbar_tenant_id", data.tenantId)
+    localStorage.setItem("showbar_user_id", data.userId)
     localStorage.setItem("showbar_user", JSON.stringify(data))
 
     set({
       user: data,
       token: data.token,
+      tenantId: data.tenantId,
+      userId: data.userId,
       isAuthenticated: true,
       ...permissions,
     })
@@ -85,38 +99,59 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = localStorage.getItem("showbar_token")
     const storedUser = localStorage.getItem("showbar_user")
 
-    if (token && storedUser) {
+    if (!token || !storedUser) {
+      clearStorage()
+
+      set({
+        user: null,
+        token: null,
+        tenantId: null,
+        userId: null,
+        isAuthenticated: false,
+        roles: [],
+        isMaster: false,
+        isDeveloper: false,
+      })
+
+      return
+    }
+
+    try {
       const user = JSON.parse(storedUser) as LoginResponse
       const permissions = buildPermissions(user)
 
       set({
         token,
         user,
+        tenantId: user.tenantId,
+        userId: user.userId,
         isAuthenticated: true,
         ...permissions,
       })
+    } catch {
+      clearStorage()
 
-      return
+      set({
+        user: null,
+        token: null,
+        tenantId: null,
+        userId: null,
+        isAuthenticated: false,
+        roles: [],
+        isMaster: false,
+        isDeveloper: false,
+      })
     }
-
-    set({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      roles: [],
-      isMaster: false,
-      isDeveloper: false,
-    })
   },
 
   logout: () => {
-    localStorage.removeItem("showbar_token")
-    localStorage.removeItem("showbar_tenant_id")
-    localStorage.removeItem("showbar_user")
+    clearStorage()
 
     set({
       user: null,
       token: null,
+      tenantId: null,
+      userId: null,
       isAuthenticated: false,
       roles: [],
       isMaster: false,
