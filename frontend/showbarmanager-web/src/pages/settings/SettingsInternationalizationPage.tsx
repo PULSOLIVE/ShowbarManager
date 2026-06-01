@@ -86,9 +86,9 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "dd/MM/yyyy",
     timeFormat: "HH:mm",
     timezones: [
-      { value: "Europe/Lisbon", label: "Europa/Lisboa" },
-      { value: "Atlantic/Azores", label: "Atlântico/Açores" },
-      { value: "UTC", label: "UTC" },
+      { value: "Europe/Lisbon", label: "(UTC+00/+01) Europa/Lisboa" },
+      { value: "Atlantic/Madeira", label: "(UTC+00/+01) Atlântico/Madeira" },
+      { value: "Atlantic/Azores", label: "(UTC-01/+00) Atlântico/Açores" },
     ],
   },
   {
@@ -102,12 +102,12 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "dd/MM/yyyy",
     timeFormat: "HH:mm",
     timezones: [
-      { value: "America/Sao_Paulo", label: "América/São Paulo" },
-      { value: "America/Manaus", label: "América/Manaus" },
-      { value: "America/Cuiaba", label: "América/Cuiabá" },
-      { value: "America/Rio_Branco", label: "América/Rio Branco" },
-      { value: "America/Noronha", label: "América/Noronha" },
-      { value: "UTC", label: "UTC" },
+      { value: "America/Noronha", label: "(UTC-02) América/Noronha" },
+      { value: "America/Sao_Paulo", label: "(UTC-03) América/São Paulo" },
+      { value: "America/Fortaleza", label: "(UTC-03) América/Fortaleza" },
+      { value: "America/Cuiaba", label: "(UTC-04) América/Cuiabá" },
+      { value: "America/Manaus", label: "(UTC-04) América/Manaus" },
+      { value: "America/Rio_Branco", label: "(UTC-05) América/Rio Branco" },
     ],
   },
   {
@@ -121,9 +121,8 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "dd/MM/yyyy",
     timeFormat: "HH:mm",
     timezones: [
-      { value: "Europe/Madrid", label: "Europa/Madrid" },
-      { value: "Atlantic/Canary", label: "Atlântico/Canárias" },
-      { value: "UTC", label: "UTC" },
+      { value: "Europe/Madrid", label: "(UTC+01/+02) Europa/Madrid" },
+      { value: "Atlantic/Canary", label: "(UTC+00/+01) Atlântico/Canárias" },
     ],
   },
   {
@@ -137,13 +136,12 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "MM/dd/yyyy",
     timeFormat: "hh:mm a",
     timezones: [
-      { value: "America/New_York", label: "América/Nova Iorque" },
-      { value: "America/Chicago", label: "América/Chicago" },
-      { value: "America/Denver", label: "América/Denver" },
-      { value: "America/Los_Angeles", label: "América/Los Angeles" },
-      { value: "America/Anchorage", label: "América/Anchorage" },
-      { value: "Pacific/Honolulu", label: "Pacífico/Honolulu" },
-      { value: "UTC", label: "UTC" },
+      { value: "America/New_York", label: "(UTC-05/-04) América/Nova Iorque" },
+      { value: "America/Chicago", label: "(UTC-06/-05) América/Chicago" },
+      { value: "America/Denver", label: "(UTC-07/-06) América/Denver" },
+      { value: "America/Los_Angeles", label: "(UTC-08/-07) América/Los Angeles" },
+      { value: "America/Anchorage", label: "(UTC-09/-08) América/Anchorage" },
+      { value: "Pacific/Honolulu", label: "(UTC-10) Pacífico/Honolulu" },
     ],
   },
   {
@@ -157,8 +155,7 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "dd/MM/yyyy",
     timeFormat: "HH:mm",
     timezones: [
-      { value: "Europe/Paris", label: "Europa/Paris" },
-      { value: "UTC", label: "UTC" },
+      { value: "Europe/Paris", label: "(UTC+01/+02) Europa/Paris" },
     ],
   },
   {
@@ -172,8 +169,7 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "dd.MM.yyyy",
     timeFormat: "HH:mm",
     timezones: [
-      { value: "Europe/Berlin", label: "Europa/Berlim" },
-      { value: "UTC", label: "UTC" },
+      { value: "Europe/Berlin", label: "(UTC+01/+02) Europa/Berlim" },
     ],
   },
   {
@@ -187,40 +183,9 @@ const countryPresets: CountryPreset[] = [
     dateFormat: "dd/MM/yyyy",
     timeFormat: "HH:mm",
     timezones: [
-      { value: "Europe/London", label: "Europa/Londres" },
-      { value: "UTC", label: "UTC" },
+      { value: "Europe/London", label: "(UTC+00/+01) Europa/Londres" },
     ],
   },
-]
-
-const utcTimezoneOptions = [
-  { value: "Etc/GMT+12", label: "UTC-12" },
-  { value: "Etc/GMT+11", label: "UTC-11" },
-  { value: "Etc/GMT+10", label: "UTC-10" },
-  { value: "Etc/GMT+9", label: "UTC-9" },
-  { value: "Etc/GMT+8", label: "UTC-8" },
-  { value: "Etc/GMT+7", label: "UTC-7" },
-  { value: "Etc/GMT+6", label: "UTC-6" },
-  { value: "Etc/GMT+5", label: "UTC-5" },
-  { value: "Etc/GMT+4", label: "UTC-4" },
-  { value: "Etc/GMT+3", label: "UTC-3" },
-  { value: "Etc/GMT+2", label: "UTC-2" },
-  { value: "Etc/GMT+1", label: "UTC-1" },
-  { value: "UTC", label: "UTC" },
-  { value: "Etc/GMT-1", label: "UTC+1" },
-  { value: "Etc/GMT-2", label: "UTC+2" },
-  { value: "Etc/GMT-3", label: "UTC+3" },
-  { value: "Etc/GMT-4", label: "UTC+4" },
-  { value: "Etc/GMT-5", label: "UTC+5" },
-  { value: "Etc/GMT-6", label: "UTC+6" },
-  { value: "Etc/GMT-7", label: "UTC+7" },
-  { value: "Etc/GMT-8", label: "UTC+8" },
-  { value: "Etc/GMT-9", label: "UTC+9" },
-  { value: "Etc/GMT-10", label: "UTC+10" },
-  { value: "Etc/GMT-11", label: "UTC+11" },
-  { value: "Etc/GMT-12", label: "UTC+12" },
-  { value: "Etc/GMT-13", label: "UTC+13" },
-  { value: "Etc/GMT-14", label: "UTC+14" },
 ]
 
 const InternationalizationService = {
@@ -313,17 +278,9 @@ function getCountryPreset(countryCode: string) {
 function getTimezoneLabel(countryCode: string, timezone: string) {
   const preset = getCountryPreset(countryCode)
 
-  const countryTimezone = preset?.timezones.find(
-    (item) => item.value === timezone
-  )
+  const found = preset?.timezones.find((item) => item.value === timezone)
 
-  if (countryTimezone) {
-    return countryTimezone.label
-  }
-
-  const utcTimezone = utcTimezoneOptions.find((item) => item.value === timezone)
-
-  return utcTimezone?.label || timezone
+  return found?.label || timezone
 }
 
 function makeCode(countryCode: string, languageCode: string) {
@@ -687,13 +644,29 @@ function InternationalizationModal({
 
   const selectedCountryPreset = getCountryPreset(form.countryCode)
 
-  const timezoneOptions = [
-    ...(selectedCountryPreset?.timezones || []),
-    ...utcTimezoneOptions,
-  ].filter(
-    (item, index, list) =>
-      list.findIndex((option) => option.value === item.value) === index
-  )
+  const timezoneOptions = useMemo(() => {
+    const baseOptions = selectedCountryPreset?.timezones || []
+
+    if (!form.timezone) {
+      return baseOptions
+    }
+
+    const timezoneExists = baseOptions.some(
+      (item) => item.value === form.timezone
+    )
+
+    if (timezoneExists) {
+      return baseOptions
+    }
+
+    return [
+      ...baseOptions,
+      {
+        value: form.timezone,
+        label: form.timezoneLabel || form.timezone,
+      },
+    ]
+  }, [form.timezone, form.timezoneLabel, selectedCountryPreset])
 
   useEffect(() => {
     if (open) {
@@ -889,7 +862,7 @@ function InternationalizationModal({
 
             <TextField
               label="Nome do timezone"
-              placeholder="Europa/Lisboa"
+              placeholder="(UTC-03) América/São Paulo"
               value={form.timezoneLabel}
               onChange={(value) => updateField("timezoneLabel", value)}
               required
