@@ -1,25 +1,94 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { X } from "lucide-react"
-import {
-  countryOptions,
-  generateSlug,
-  languageOptions,
-  timezoneOptions,
-} from "../../constants/tenantOptions"
 import { TenantService } from "../../services/tenant.service"
+import type { Internationalization } from "../../types/internationalization.types"
 import type { Tenant, UpdateTenantRequest } from "../../types/tenant.types"
 
 interface EditTenantModalProps {
   open: boolean
   tenant: Tenant | null
+  internationalizationOptions: Internationalization[]
   onClose: () => void
   onUpdated: () => void
+}
+
+interface TimezoneOption {
+  value: string
+  label: string
+}
+
+const countryTimezoneOptions: Record<string, TimezoneOption[]> = {
+  PT: [
+    { value: "Europe/Lisbon", label: "(UTC+00/+01) Europa/Lisboa" },
+    { value: "Atlantic/Madeira", label: "(UTC+00/+01) Atlântico/Madeira" },
+    { value: "Atlantic/Azores", label: "(UTC-01/+00) Atlântico/Açores" },
+  ],
+  BR: [
+    { value: "America/Noronha", label: "(UTC-02) América/Noronha" },
+    { value: "America/Sao_Paulo", label: "(UTC-03) América/São Paulo" },
+    { value: "America/Fortaleza", label: "(UTC-03) América/Fortaleza" },
+    { value: "America/Cuiaba", label: "(UTC-04) América/Cuiabá" },
+    { value: "America/Manaus", label: "(UTC-04) América/Manaus" },
+    { value: "America/Rio_Branco", label: "(UTC-05) América/Rio Branco" },
+  ],
+  ES: [
+    { value: "Europe/Madrid", label: "(UTC+01/+02) Europa/Madrid" },
+    { value: "Atlantic/Canary", label: "(UTC+00/+01) Atlântico/Canárias" },
+  ],
+  US: [
+    { value: "America/New_York", label: "(UTC-05/-04) América/Nova Iorque" },
+    { value: "America/Chicago", label: "(UTC-06/-05) América/Chicago" },
+    { value: "America/Denver", label: "(UTC-07/-06) América/Denver" },
+    { value: "America/Los_Angeles", label: "(UTC-08/-07) América/Los Angeles" },
+    { value: "America/Anchorage", label: "(UTC-09/-08) América/Anchorage" },
+    { value: "Pacific/Honolulu", label: "(UTC-10) Pacífico/Honolulu" },
+  ],
+  FR: [
+    { value: "Europe/Paris", label: "(UTC+01/+02) Europa/Paris" },
+  ],
+  DE: [
+    { value: "Europe/Berlin", label: "(UTC+01/+02) Europa/Berlim" },
+  ],
+  GB: [
+    { value: "Europe/London", label: "(UTC+00/+01) Europa/Londres" },
+  ],
+}
+
+function generateSlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+}
+
+function getCountryOptions(options: Internationalization[]) {
+  return Array.from(
+    new Map(
+      options.map((item) => [
+        item.countryCode,
+        {
+          value: item.countryCode,
+          label: item.countryName,
+          flag: item.flagEmoji || "🌐",
+        },
+      ])
+    ).values()
+  )
+}
+
+function getTimezoneOptionsByCountry(country: string) {
+  return countryTimezoneOptions[country] || []
 }
 
 export function EditTenantModal({
   open,
   tenant,
+  internationalizationOptions,
   onClose,
   onUpdated,
 }: EditTenantModalProps) {
@@ -30,6 +99,7 @@ export function EditTenantModal({
   return (
     <EditTenantModalContent
       tenant={tenant}
+      internationalizationOptions={internationalizationOptions}
       onClose={onClose}
       onUpdated={onUpdated}
     />
@@ -38,12 +108,14 @@ export function EditTenantModal({
 
 interface EditTenantModalContentProps {
   tenant: Tenant
+  internationalizationOptions: Internationalization[]
   onClose: () => void
   onUpdated: () => void
 }
 
 function EditTenantModalContent({
   tenant,
+  internationalizationOptions,
   onClose,
   onUpdated,
 }: EditTenantModalContentProps) {
@@ -57,20 +129,80 @@ function EditTenantModalContent({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const countryOptions = useMemo(
+    () => getCountryOptions(internationalizationOptions),
+    [internationalizationOptions]
+  )
+
+  const availableLanguageOptions = useMemo(() => {
+    return internationalizationOptions.filter((item) => item.countryCode === country)
+  }, [country, internationalizationOptions])
+
+  const availableTimezoneOptions = useMemo(() => {
+    const countryTimezones = getTimezoneOptionsByCountry(country)
+
+    if (!timezone) {
+      return countryTimezones
+    }
+
+    const timezoneExists = countryTimezones.some((item) => item.value === timezone)
+
+    if (timezoneExists) {
+      return countryTimezones
+    }
+
+    return [
+      ...countryTimezones,
+      {
+        value: timezone,
+        label: timezone,
+      },
+    ]
+  }, [country, timezone])
+
+  useEffect(() => {
+    setName(tenant.name)
+    setSlug(tenant.slug)
+    setCountry(tenant.country)
+    setCurrency(tenant.currency)
+    setLanguage(tenant.language)
+    setTimezone(tenant.timezone)
+    setActive(tenant.active)
+    setLoading(false)
+    setError(null)
+  }, [tenant])
+
   function handleNameChange(value: string) {
     setName(value)
     setSlug(generateSlug(value))
   }
 
   function handleCountryChange(value: string) {
-    const selectedCountry = countryOptions.find((item) => item.value === value)
+    const selectedConfig = internationalizationOptions.find(
+      (item) => item.countryCode === value
+    )
+
+    const selectedTimezones = getTimezoneOptionsByCountry(value)
+    const selectedTimezone = selectedTimezones[0]?.value || selectedConfig?.timezone || ""
 
     setCountry(value)
 
-    if (selectedCountry) {
-      setCurrency(selectedCountry.currency)
-      setLanguage(selectedCountry.language)
-      setTimezone(selectedCountry.timezone)
+    if (selectedConfig) {
+      setCurrency(selectedConfig.currencyCode)
+      setLanguage(selectedConfig.languageCode)
+      setTimezone(selectedTimezone)
+    }
+  }
+
+  function handleLanguageChange(value: string) {
+    const selectedConfig = internationalizationOptions.find(
+      (item) => item.countryCode === country && item.languageCode === value
+    )
+
+    setLanguage(value)
+
+    if (selectedConfig) {
+      setCurrency(selectedConfig.currencyCode)
     }
   }
 
@@ -103,14 +235,14 @@ function EditTenantModalContent({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[620px] bg-card border border-border rounded-2xl p-6 shadow-neon">
-        <div className="flex items-start justify-between mb-6">
+      <div className="w-full max-w-[620px] bg-card border border-border rounded-2xl p-5 shadow-neon">
+        <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <span className="text-sm text-neon font-medium">
               Editar ambiente
             </span>
 
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-xl font-bold mt-1">
               Alterar ambiente
             </h2>
 
@@ -121,20 +253,20 @@ function EditTenantModalContent({
 
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition"
+            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition shrink-0"
           >
-            <X size={18} />
+            <X size={17} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs text-muted mb-2">
+            <label className="block text-xs text-muted mb-1.5">
               Nome do ambiente
             </label>
 
             <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
               placeholder="Ex: Empresa Demo Portugal"
               value={name}
               onChange={(event) => handleNameChange(event.target.value)}
@@ -143,12 +275,12 @@ function EditTenantModalContent({
           </div>
 
           <div>
-            <label className="block text-xs text-muted mb-2">
+            <label className="block text-xs text-muted mb-1.5">
               Slug automático
             </label>
 
             <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
               placeholder="empresa-demo-portugal"
               value={slug}
               onChange={(event) => setSlug(generateSlug(event.target.value))}
@@ -156,33 +288,39 @@ function EditTenantModalContent({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-muted mb-2">
+              <label className="block text-xs text-muted mb-1.5">
                 País
               </label>
 
               <select
-                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
                 value={country}
                 onChange={(event) => handleCountryChange(event.target.value)}
                 required
               >
+                {!countryOptions.some((item) => item.value === country) && (
+                  <option value={country}>
+                    {country}
+                  </option>
+                )}
+
                 {countryOptions.map((item) => (
                   <option key={item.value} value={item.value}>
-                    {item.label} ({item.value})
+                    {item.flag} {item.label} ({item.value})
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs text-muted mb-2">
+              <label className="block text-xs text-muted mb-1.5">
                 Moeda
               </label>
 
               <input
-                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
                 placeholder="EUR"
                 value={currency}
                 onChange={(event) => setCurrency(event.target.value)}
@@ -191,49 +329,67 @@ function EditTenantModalContent({
             </div>
 
             <div>
-              <label className="block text-xs text-muted mb-2">
+              <label className="block text-xs text-muted mb-1.5">
                 Idioma
               </label>
 
               <select
-                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
                 value={language}
-                onChange={(event) => setLanguage(event.target.value)}
+                onChange={(event) => handleLanguageChange(event.target.value)}
                 required
               >
-                {languageOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
+                {!availableLanguageOptions.some(
+                  (item) => item.languageCode === language
+                ) && (
+                  <option value={language}>
+                    {language}
+                  </option>
+                )}
+
+                {availableLanguageOptions.map((item) => (
+                  <option
+                    key={`${item.id}-language`}
+                    value={item.languageCode}
+                  >
+                    {item.languageName}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs text-muted mb-2">
+              <label className="block text-xs text-muted mb-1.5">
                 Fuso horário
               </label>
 
               <select
-                className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
+                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
                 value={timezone}
                 onChange={(event) => setTimezone(event.target.value)}
                 required
               >
-                {timezoneOptions.map((group) => (
-                  <optgroup key={group.group} label={group.group}>
-                    {group.items.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </optgroup>
+                {!availableTimezoneOptions.some(
+                  (item) => item.value === timezone
+                ) && (
+                  <option value={timezone}>
+                    {timezone}
+                  </option>
+                )}
+
+                {availableTimezoneOptions.map((item) => (
+                  <option
+                    key={item.value}
+                    value={item.value}
+                  >
+                    {item.label}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">
+          <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-2.5">
             <span className="text-sm text-muted">
               Ambiente ativo
             </span>
@@ -242,14 +398,14 @@ function EditTenantModalContent({
               type="button"
               onClick={() => setActive((value) => !value)}
               className={[
-                "relative w-14 h-8 rounded-full transition-all",
+                "relative w-12 h-7 rounded-full transition-all",
                 active ? "bg-neon" : "bg-zinc-700",
               ].join(" ")}
             >
               <span
                 className={[
-                  "absolute top-1 w-6 h-6 rounded-full bg-white transition-all",
-                  active ? "left-7" : "left-1",
+                  "absolute top-1 w-5 h-5 rounded-full bg-white transition-all",
+                  active ? "left-6" : "left-1",
                 ].join(" ")}
               />
             </button>
@@ -263,7 +419,7 @@ function EditTenantModalContent({
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || internationalizationOptions.length === 0}
             className="w-full bg-neon text-black font-semibold py-3 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Salvando alterações..." : "Salvar alterações"}

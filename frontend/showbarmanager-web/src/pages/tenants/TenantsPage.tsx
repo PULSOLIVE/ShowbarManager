@@ -12,13 +12,30 @@ import {
 } from "lucide-react"
 import { CreateTenantModal } from "../../components/tenants/CreateTenantModal"
 import { EditTenantModal } from "../../components/tenants/EditTenantModal"
-import {
-  getLanguageLabel,
-  getTimezoneLabel,
-} from "../../constants/tenantOptions"
+import { InternationalizationService } from "../../services/internationalization.service"
 import { TenantService } from "../../services/tenant.service"
 import { useAuthStore } from "../../store/auth.store"
+import type { Internationalization } from "../../types/internationalization.types"
 import type { Tenant } from "../../types/tenant.types"
+
+function getInternationalizationLabel(
+  options: Internationalization[],
+  value: string,
+  field: "country" | "language" | "timezone"
+) {
+  if (field === "country") {
+    const found = options.find((item) => item.countryCode === value)
+    return found ? `${found.flagEmoji || "🌐"} ${found.countryName}` : value
+  }
+
+  if (field === "language") {
+    const found = options.find((item) => item.languageCode === value)
+    return found ? found.languageName : value
+  }
+
+  const found = options.find((item) => item.timezone === value)
+  return found ? found.timezoneLabel : value
+}
 
 export function TenantsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false)
@@ -41,9 +58,34 @@ export function TenantsPage() {
     queryFn: TenantService.list,
   })
 
+  const {
+    data: internationalizationOptions = [],
+  } = useQuery({
+    queryKey: ["internationalization-active"],
+    queryFn: InternationalizationService.listActive,
+  })
+
   const filteredTenants = useMemo(() => {
     return data.filter((tenant) => {
       const searchTerm = search.toLowerCase()
+
+      const countryLabel = getInternationalizationLabel(
+        internationalizationOptions,
+        tenant.country,
+        "country"
+      ).toLowerCase()
+
+      const languageLabel = getInternationalizationLabel(
+        internationalizationOptions,
+        tenant.language,
+        "language"
+      ).toLowerCase()
+
+      const timezoneLabel = getInternationalizationLabel(
+        internationalizationOptions,
+        tenant.timezone,
+        "timezone"
+      ).toLowerCase()
 
       const matchesSearch =
         tenant.name.toLowerCase().includes(searchTerm) ||
@@ -51,7 +93,10 @@ export function TenantsPage() {
         tenant.country.toLowerCase().includes(searchTerm) ||
         tenant.currency.toLowerCase().includes(searchTerm) ||
         tenant.language.toLowerCase().includes(searchTerm) ||
-        tenant.timezone.toLowerCase().includes(searchTerm)
+        tenant.timezone.toLowerCase().includes(searchTerm) ||
+        countryLabel.includes(searchTerm) ||
+        languageLabel.includes(searchTerm) ||
+        timezoneLabel.includes(searchTerm)
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -60,7 +105,7 @@ export function TenantsPage() {
 
       return matchesSearch && matchesStatus
     })
-  }, [data, search, statusFilter])
+  }, [data, internationalizationOptions, search, statusFilter])
 
   function handleEdit(tenant: Tenant) {
     setSelectedTenant(tenant)
@@ -88,7 +133,7 @@ export function TenantsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
@@ -96,11 +141,11 @@ export function TenantsPage() {
             Multiempresa
           </span>
 
-          <h2 className="text-3xl xl:text-4xl font-bold mt-1">
+          <h2 className="text-2xl xl:text-3xl font-bold mt-1">
             Ambientes
           </h2>
 
-          <p className="text-muted mt-2 text-sm xl:text-base">
+          <p className="text-muted mt-2 text-sm max-w-4xl">
             Gestão de empresas, clientes e ambientes isolados do ecossistema.
           </p>
         </div>
@@ -108,48 +153,25 @@ export function TenantsPage() {
         {canManageTenants() && (
           <button
             onClick={() => setCreateModalOpen(true)}
-            className="bg-neon text-black font-semibold px-5 py-3 rounded-full hover:shadow-neon transition w-full sm:w-auto"
+            className="bg-neon text-black font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
           >
             Novo ambiente
           </button>
         )}
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card border border-border rounded-2xl p-4">
-          <p className="text-xs uppercase tracking-wide text-muted">
-            Total
-          </p>
-
-          <strong className="text-3xl text-neon">
-            {data.length}
-          </strong>
-        </div>
-
-        <div className="bg-card border border-border rounded-2xl p-4">
-          <p className="text-xs uppercase tracking-wide text-muted">
-            Ativos
-          </p>
-
-          <strong className="text-3xl text-neon">
-            {data.filter((tenant) => tenant.active).length}
-          </strong>
-        </div>
-
-        <div className="bg-card border border-border rounded-2xl p-4">
-          <p className="text-xs uppercase tracking-wide text-muted">
-            Filtrados
-          </p>
-
-          <strong className="text-3xl text-neon">
-            {filteredTenants.length}
-          </strong>
-        </div>
+      <section className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+        <SummaryCard title="Total" value={String(data.length)} />
+        <SummaryCard
+          title="Ativos"
+          value={String(data.filter((tenant) => tenant.active).length)}
+        />
+        <SummaryCard title="Filtrados" value={String(filteredTenants.length)} />
       </section>
 
-      <section className="bg-card border border-border rounded-2xl p-4 flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
-        <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-3 w-full xl:max-w-md">
-          <Search size={16} className="text-muted" />
+      <section className="bg-card border border-border rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
+        <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
+          <Search size={15} className="text-muted shrink-0" />
 
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
@@ -159,9 +181,9 @@ export function TenantsPage() {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <select
-            className="bg-background border border-border rounded-full px-4 py-3 outline-none text-sm"
+            className="bg-background border border-border rounded-full px-4 py-2.5 outline-none text-sm"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
@@ -176,124 +198,108 @@ export function TenantsPage() {
                 alert("Não foi possível atualizar os ambientes.")
               })
             }}
-            className="bg-background border border-border px-4 py-3 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
+            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
           >
-            <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
+            <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
             Atualizar
           </button>
         </div>
       </section>
 
       {isLoading && (
-        <div className="bg-card border border-border rounded-2xl p-5 text-muted">
+        <div className="bg-card border border-border rounded-2xl p-4 text-muted text-sm">
           Carregando ambientes...
         </div>
       )}
 
       {isError && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-5">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-sm">
           Não foi possível carregar os ambientes. Verifique se a API está online e se a sessão está ativa.
         </div>
       )}
 
       {!isLoading && !isError && (
-        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
+        <section className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
           {filteredTenants.map((tenant) => (
-            <div
+            <article
               key={tenant.id}
-              className="bg-card border border-border rounded-2xl p-5 hover:border-neon/70 hover:-translate-y-0.5 transition-all duration-300"
+              className="bg-card border border-border rounded-2xl p-4 hover:border-neon/60 transition"
             >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-white/5 border border-border flex items-center justify-center shrink-0">
-                    <Building2 className="text-neon" size={21} />
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-background border border-border flex items-center justify-center shrink-0">
+                    <Building2 className="text-neon" size={20} />
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold truncate">
                       {tenant.name}
                     </h3>
 
-                    <p className="text-sm text-muted">
+                    <p className="text-xs text-muted mt-1 truncate">
                       {tenant.slug}
                     </p>
                   </div>
                 </div>
 
-                <div>
-                  {tenant.active ? (
-                    <span className="inline-flex items-center gap-2 text-neon text-sm">
-                      <CheckCircle2 size={16} />
-                      Ativo
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 text-red-300 text-sm">
-                      <XCircle size={16} />
-                      Inativo
-                    </span>
+                {tenant.active ? (
+                  <span className="inline-flex items-center gap-1 text-neon text-xs shrink-0">
+                    <CheckCircle2 size={14} />
+                    Ativo
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-300 text-xs shrink-0">
+                    <XCircle size={14} />
+                    Inativo
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <InfoBox
+                  label="País"
+                  value={getInternationalizationLabel(
+                    internationalizationOptions,
+                    tenant.country,
+                    "country"
                   )}
-                </div>
+                />
+
+                <InfoBox label="Moeda" value={tenant.currency} />
+
+                <InfoBox
+                  label="Idioma"
+                  value={getInternationalizationLabel(
+                    internationalizationOptions,
+                    tenant.language,
+                    "language"
+                  )}
+                />
+
+                <InfoBox
+                  label="Fuso horário"
+                  value={getInternationalizationLabel(
+                    internationalizationOptions,
+                    tenant.timezone,
+                    "timezone"
+                  )}
+                  icon={<Globe2 size={14} className="text-neon" />}
+                />
               </div>
 
-              <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 text-sm mb-4">
-                <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">
-                    País
-                  </p>
-
-                  <strong>
-                    {tenant.country}
-                  </strong>
-                </div>
-
-                <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">
-                    Moeda
-                  </p>
-
-                  <strong>
-                    {tenant.currency}
-                  </strong>
-                </div>
-
-                <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">
-                    Idioma
-                  </p>
-
-                  <strong>
-                    {getLanguageLabel(tenant.language)}
-                  </strong>
-                </div>
-
-                <div className="bg-background border border-border rounded-2xl p-3">
-                  <p className="text-xs text-muted">
-                    Fuso horário
-                  </p>
-
-                  <div className="flex items-center gap-2 mt-1">
-                    <Globe2 size={15} className="text-neon" />
-
-                    <strong className="truncate">
-                      {getTimezoneLabel(tenant.timezone)}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-border">
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                 <p className="text-xs text-muted">
                   ID: {tenant.id.slice(0, 8)}
                 </p>
 
                 {canManageTenants() && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleEdit(tenant)}
-                      className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
                       title="Alterar"
                     >
-                      <Edit size={15} />
+                      <Edit size={14} />
                     </button>
 
                     <button
@@ -303,27 +309,28 @@ export function TenantsPage() {
                         })
                       }}
                       disabled={deleteLoadingId === tenant.id}
-                      className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Excluir"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 )}
               </div>
-            </div>
+            </article>
           ))}
 
           {filteredTenants.length === 0 && (
-            <div className="2xl:col-span-2 bg-card border border-border rounded-2xl p-8 text-center text-muted">
+            <div className="xl:col-span-2 2xl:col-span-3 bg-card border border-border rounded-2xl p-8 text-center text-muted">
               Nenhum ambiente encontrado com os filtros atuais.
             </div>
           )}
-        </div>
+        </section>
       )}
 
       <CreateTenantModal
         open={createModalOpen}
+        internationalizationOptions={internationalizationOptions}
         onClose={() => setCreateModalOpen(false)}
         onCreated={() => {
           refetch().catch(() => {
@@ -335,6 +342,7 @@ export function TenantsPage() {
       <EditTenantModal
         open={editModalOpen}
         tenant={selectedTenant}
+        internationalizationOptions={internationalizationOptions}
         onClose={() => {
           setEditModalOpen(false)
           setSelectedTenant(null)
@@ -345,6 +353,51 @@ export function TenantsPage() {
           })
         }}
       />
+    </div>
+  )
+}
+
+function SummaryCard({
+  title,
+  value,
+}: {
+  title: string
+  value: string
+}) {
+  return (
+    <div className="bg-card border border-border rounded-2xl p-3 hover:border-neon/70 transition">
+      <p className="text-[11px] uppercase tracking-wide text-muted">
+        {title}
+      </p>
+
+      <strong className="text-xl text-neon block mt-1 truncate">
+        {value}
+      </strong>
+    </div>
+  )
+}
+
+function InfoBox({
+  label,
+  value,
+  icon,
+}: {
+  label: string
+  value: string
+  icon?: React.ReactNode
+}) {
+  return (
+    <div className="bg-background border border-border rounded-2xl p-3 min-w-0">
+      <p className="text-[11px] uppercase tracking-wide text-muted">
+        {label}
+      </p>
+
+      <div className="flex items-center gap-2 mt-1 min-w-0">
+        {icon}
+        <strong className="text-sm block truncate">
+          {value}
+        </strong>
+      </div>
     </div>
   )
 }
