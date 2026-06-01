@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import type { FormEvent } from "react"
+import type { FormEvent, ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   CheckCircle2,
@@ -57,6 +57,171 @@ interface InternationalizationPayload {
   systemDefault: boolean
   priority: number
 }
+
+interface CountryPreset {
+  code: string
+  name: string
+  flagEmoji: string
+  languageCode: string
+  languageName: string
+  currencyCode: string
+  currencySymbol: string
+  dateFormat: string
+  timeFormat: string
+  timezones: {
+    value: string
+    label: string
+  }[]
+}
+
+const countryPresets: CountryPreset[] = [
+  {
+    code: "PT",
+    name: "Portugal",
+    flagEmoji: "🇵🇹",
+    languageCode: "pt-PT",
+    languageName: "Português (Portugal)",
+    currencyCode: "EUR",
+    currencySymbol: "€",
+    dateFormat: "dd/MM/yyyy",
+    timeFormat: "HH:mm",
+    timezones: [
+      { value: "Europe/Lisbon", label: "Europa/Lisboa" },
+      { value: "Atlantic/Azores", label: "Atlântico/Açores" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+  {
+    code: "BR",
+    name: "Brasil",
+    flagEmoji: "🇧🇷",
+    languageCode: "pt-BR",
+    languageName: "Português (Brasil)",
+    currencyCode: "BRL",
+    currencySymbol: "R$",
+    dateFormat: "dd/MM/yyyy",
+    timeFormat: "HH:mm",
+    timezones: [
+      { value: "America/Sao_Paulo", label: "América/São Paulo" },
+      { value: "America/Manaus", label: "América/Manaus" },
+      { value: "America/Cuiaba", label: "América/Cuiabá" },
+      { value: "America/Rio_Branco", label: "América/Rio Branco" },
+      { value: "America/Noronha", label: "América/Noronha" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+  {
+    code: "ES",
+    name: "Espanha",
+    flagEmoji: "🇪🇸",
+    languageCode: "es-ES",
+    languageName: "Español (España)",
+    currencyCode: "EUR",
+    currencySymbol: "€",
+    dateFormat: "dd/MM/yyyy",
+    timeFormat: "HH:mm",
+    timezones: [
+      { value: "Europe/Madrid", label: "Europa/Madrid" },
+      { value: "Atlantic/Canary", label: "Atlântico/Canárias" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+  {
+    code: "US",
+    name: "Estados Unidos",
+    flagEmoji: "🇺🇸",
+    languageCode: "en-US",
+    languageName: "English (United States)",
+    currencyCode: "USD",
+    currencySymbol: "$",
+    dateFormat: "MM/dd/yyyy",
+    timeFormat: "hh:mm a",
+    timezones: [
+      { value: "America/New_York", label: "América/Nova Iorque" },
+      { value: "America/Chicago", label: "América/Chicago" },
+      { value: "America/Denver", label: "América/Denver" },
+      { value: "America/Los_Angeles", label: "América/Los Angeles" },
+      { value: "America/Anchorage", label: "América/Anchorage" },
+      { value: "Pacific/Honolulu", label: "Pacífico/Honolulu" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+  {
+    code: "FR",
+    name: "França",
+    flagEmoji: "🇫🇷",
+    languageCode: "fr-FR",
+    languageName: "Français",
+    currencyCode: "EUR",
+    currencySymbol: "€",
+    dateFormat: "dd/MM/yyyy",
+    timeFormat: "HH:mm",
+    timezones: [
+      { value: "Europe/Paris", label: "Europa/Paris" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+  {
+    code: "DE",
+    name: "Alemanha",
+    flagEmoji: "🇩🇪",
+    languageCode: "de-DE",
+    languageName: "Deutsch (Deutschland)",
+    currencyCode: "EUR",
+    currencySymbol: "€",
+    dateFormat: "dd.MM.yyyy",
+    timeFormat: "HH:mm",
+    timezones: [
+      { value: "Europe/Berlin", label: "Europa/Berlim" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+  {
+    code: "GB",
+    name: "Reino Unido",
+    flagEmoji: "🇬🇧",
+    languageCode: "en-GB",
+    languageName: "English (United Kingdom)",
+    currencyCode: "GBP",
+    currencySymbol: "£",
+    dateFormat: "dd/MM/yyyy",
+    timeFormat: "HH:mm",
+    timezones: [
+      { value: "Europe/London", label: "Europa/Londres" },
+      { value: "UTC", label: "UTC" },
+    ],
+  },
+]
+
+const utcTimezoneOptions = [
+  { value: "Etc/GMT+12", label: "UTC-12" },
+  { value: "Etc/GMT+11", label: "UTC-11" },
+  { value: "Etc/GMT+10", label: "UTC-10" },
+  { value: "Etc/GMT+9", label: "UTC-9" },
+  { value: "Etc/GMT+8", label: "UTC-8" },
+  { value: "Etc/GMT+7", label: "UTC-7" },
+  { value: "Etc/GMT+6", label: "UTC-6" },
+  { value: "Etc/GMT+5", label: "UTC-5" },
+  { value: "Etc/GMT+4", label: "UTC-4" },
+  { value: "Etc/GMT+3", label: "UTC-3" },
+  { value: "Etc/GMT+2", label: "UTC-2" },
+  { value: "Etc/GMT+1", label: "UTC-1" },
+  { value: "UTC", label: "UTC" },
+  { value: "Etc/GMT-1", label: "UTC+1" },
+  { value: "Etc/GMT-2", label: "UTC+2" },
+  { value: "Etc/GMT-3", label: "UTC+3" },
+  { value: "Etc/GMT-4", label: "UTC+4" },
+  { value: "Etc/GMT-5", label: "UTC+5" },
+  { value: "Etc/GMT-6", label: "UTC+6" },
+  { value: "Etc/GMT-7", label: "UTC+7" },
+  { value: "Etc/GMT-8", label: "UTC+8" },
+  { value: "Etc/GMT-9", label: "UTC+9" },
+  { value: "Etc/GMT-10", label: "UTC+10" },
+  { value: "Etc/GMT-11", label: "UTC+11" },
+  { value: "Etc/GMT-12", label: "UTC+12" },
+  { value: "Etc/GMT-13", label: "UTC+13" },
+  { value: "Etc/GMT-14", label: "UTC+14" },
+]
 
 const InternationalizationService = {
   async list(): Promise<Internationalization[]> {
@@ -137,6 +302,33 @@ function toPayload(item: Internationalization): InternationalizationPayload {
 
 function normalizeCode(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, "_")
+}
+
+function getCountryPreset(countryCode: string) {
+  return countryPresets.find(
+    (preset) => preset.code.toLowerCase() === countryCode.toLowerCase()
+  )
+}
+
+function getTimezoneLabel(countryCode: string, timezone: string) {
+  const preset = getCountryPreset(countryCode)
+
+  const countryTimezone = preset?.timezones.find(
+    (item) => item.value === timezone
+  )
+
+  if (countryTimezone) {
+    return countryTimezone.label
+  }
+
+  const utcTimezone = utcTimezoneOptions.find((item) => item.value === timezone)
+
+  return utcTimezone?.label || timezone
+}
+
+function makeCode(countryCode: string, languageCode: string) {
+  const languagePart = languageCode.split("-")[0] || languageCode
+  return normalizeCode(`${countryCode}_${languagePart}`)
 }
 
 export function SettingsInternationalizationPage() {
@@ -493,6 +685,16 @@ function InternationalizationModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const selectedCountryPreset = getCountryPreset(form.countryCode)
+
+  const timezoneOptions = [
+    ...(selectedCountryPreset?.timezones || []),
+    ...utcTimezoneOptions,
+  ].filter(
+    (item, index, list) =>
+      list.findIndex((option) => option.value === item.value) === index
+  )
+
   useEffect(() => {
     if (open) {
       setForm(initialData)
@@ -510,6 +712,41 @@ function InternationalizationModal({
     setForm((current) => ({
       ...current,
       [field]: value,
+    }))
+  }
+
+  function handleCountryChange(countryCode: string) {
+    const preset = getCountryPreset(countryCode)
+
+    if (!preset) {
+      updateField("countryCode", countryCode)
+      return
+    }
+
+    const firstTimezone = preset.timezones[0]
+
+    setForm((current) => ({
+      ...current,
+      code: makeCode(preset.code, preset.languageCode),
+      countryCode: preset.code,
+      countryName: preset.name,
+      languageCode: preset.languageCode,
+      languageName: preset.languageName,
+      currencyCode: preset.currencyCode,
+      currencySymbol: preset.currencySymbol,
+      timezone: firstTimezone.value,
+      timezoneLabel: firstTimezone.label,
+      dateFormat: preset.dateFormat,
+      timeFormat: preset.timeFormat,
+      flagEmoji: preset.flagEmoji,
+    }))
+  }
+
+  function handleTimezoneChange(timezone: string) {
+    setForm((current) => ({
+      ...current,
+      timezone,
+      timezoneLabel: getTimezoneLabel(current.countryCode, timezone),
     }))
   }
 
@@ -561,7 +798,21 @@ function InternationalizationModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <FormGroup title="Identificação">
+          <FormGroup title="País e identificação">
+            <SelectField
+              label="País cadastrado"
+              value={form.countryCode}
+              onChange={handleCountryChange}
+              options={[
+                { label: "Selecione um país", value: "" },
+                ...countryPresets.map((preset) => ({
+                  label: `${preset.flagEmoji} ${preset.name} (${preset.code})`,
+                  value: preset.code,
+                })),
+              ]}
+              required
+            />
+
             <TextField
               label="Código"
               placeholder="PT_PT"
@@ -622,11 +873,17 @@ function InternationalizationModal({
           </FormGroup>
 
           <FormGroup title="Fuso e formatos">
-            <TextField
-              label="Timezone técnico"
-              placeholder="Europe/Lisbon"
+            <SelectField
+              label="Timezone"
               value={form.timezone}
-              onChange={(value) => updateField("timezone", value)}
+              onChange={handleTimezoneChange}
+              options={[
+                { label: "Selecione um timezone", value: "" },
+                ...timezoneOptions.map((timezone) => ({
+                  label: `${timezone.label} · ${timezone.value}`,
+                  value: timezone.value,
+                })),
+              ]}
               required
             />
 
@@ -718,7 +975,7 @@ function FormGroup({
   children,
 }: {
   title: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <fieldset className="bg-background border border-border rounded-2xl p-4">
@@ -762,6 +1019,44 @@ function TextField({
         onChange={(event) => onChange(event.target.value)}
         required={required}
       />
+    </label>
+  )
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  required = false,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: {
+    label: string
+    value: string
+  }[]
+  required?: boolean
+}) {
+  return (
+    <label className="space-y-1.5">
+      <span className="text-xs text-muted">
+        {label}
+      </span>
+
+      <select
+        className="w-full bg-card border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required={required}
+      >
+        {options.map((option) => (
+          <option key={`${label}-${option.value}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </label>
   )
 }
