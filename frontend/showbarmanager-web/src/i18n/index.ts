@@ -4,11 +4,11 @@ import enUS from "./en-US"
 import esES from "./es-ES"
 
 export const availableLanguages = [
-  { label: "Português (Portugal)", value: "pt-PT" },
-  { label: "Português (Brasil)", value: "pt-BR" },
-  { label: "English (United States)", value: "en-US" },
-  { label: "Español (España)", value: "es-ES" },
-]
+  { label: "Português (Portugal)", value: "pt-PT", flag: "🇵🇹" },
+  { label: "Português (Brasil)", value: "pt-BR", flag: "🇧🇷" },
+  { label: "English (United States)", value: "en-US", flag: "🇺🇸" },
+  { label: "Español (España)", value: "es-ES", flag: "🇪🇸" },
+] as const
 
 export const dictionaries = {
   "pt-PT": ptPT,

@@ -10,6 +10,7 @@ import {
   Globe2,
   HardDrive,
   KeyRound,
+  Languages,
   Network,
   Palette,
   PlugZap,
@@ -68,6 +69,13 @@ const settingsSections: SettingsSection[] = [
     description: "Permissões por módulo, ação, campo, evento, país e ambiente.",
     icon: KeyRound,
     path: "/settings/permissions",
+  },
+  {
+    key: "internationalization",
+    title: "Internacionalização",
+    description: "Países, idiomas, moedas, fusos horários, formatos regionais e bandeiras.",
+    icon: Languages,
+    path: "/settings/internationalization",
   },
   {
     key: "security",
@@ -206,8 +214,8 @@ export function SettingsPage() {
 
           <p className="text-muted mt-2 text-sm xl:text-base max-w-4xl">
             Painel central de parametrização, segurança, permissões, usuários,
-            tenants, branding, compliance, integrações, infraestrutura local,
-            auditoria e políticas enterprise.
+            tenants, idiomas, branding, compliance, integrações, infraestrutura
+            local, auditoria e políticas enterprise.
           </p>
         </div>
 
@@ -228,7 +236,7 @@ export function SettingsPage() {
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-        <SummaryCard title="Governança" value="14 seções" icon={Settings} />
+        <SummaryCard title="Governança" value="15 seções" icon={Settings} />
         <SummaryCard title="Segurança" value="JWT + ACL" icon={ShieldCheck} />
         <SummaryCard title="Compliance" value="LGPD/RGPD" icon={FileText} />
         <SummaryCard title="Ambiente" value="Enterprise SaaS" icon={CheckCircle2} />
@@ -352,6 +360,7 @@ function SettingsOverviewSection({
           { label: "Gerenciar usuários", path: "/settings/users" },
           { label: "Gerenciar perfis", path: "/settings/profiles" },
           { label: "Mapear permissões", path: "/settings/permissions" },
+          { label: "Internacionalização", path: "/settings/internationalization" },
         ]}
         navigate={navigate}
         setActiveSection={setActiveSection}
@@ -383,8 +392,9 @@ function SettingsOverviewSection({
 
       <ActionPanel
         title="Compliance e Países"
-        description="LGPD, RGPD, campos obrigatórios por país e regras fiscais."
+        description="LGPD, RGPD, campos obrigatórios por país, moedas, fusos e regras fiscais."
         actions={[
+          { label: "Internacionalização", path: "/settings/internationalization" },
           { label: "Portugal", path: "/settings/countries" },
           { label: "Brasil", path: "/settings/countries" },
           { label: "Políticas globais", path: "/settings/policies" },
