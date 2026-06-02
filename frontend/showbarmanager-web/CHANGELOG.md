@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.3](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.2...v0.4.3) (2026-06-02)
+
+
+### Bug Fixes
+
+* improve profiles UI and form handling ([cc5eea4](https://github.com/PULSOLIVE/ShowbarManager/commit/cc5eea41be7520c344d4a4a1302798871d4f4b60))
+
 ### [0.4.2](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.1...v0.4.2) (2026-06-01)
 
 
