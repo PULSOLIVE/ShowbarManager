@@ -50,6 +50,6 @@ export const ProfileService = {
   },
 
   async delete(id: string): Promise<void> {
-    await api.delete(`/settings/profiles/${id}`)
+    await api.delete<ApiResponse<null>>(`/settings/profiles/${id}`)
   },
 }

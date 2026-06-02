@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { X } from "lucide-react"
 import { ProfileService } from "../../services/profile.service"
@@ -8,6 +8,18 @@ interface CreateProfileModalProps {
   open: boolean
   onClose: () => void
   onCreated: () => void
+}
+
+function normalizeProfileCode(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\s_-]/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_")
+    .replace(/_+/g, "_")
+    .toUpperCase()
 }
 
 export function CreateProfileModal({
@@ -24,6 +36,11 @@ export function CreateProfileModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!open) return
+    resetForm()
+  }, [open])
+
   if (!open) {
     return null
   }
@@ -35,6 +52,7 @@ export function CreateProfileModal({
     setPriority(0)
     setActive(true)
     setSystemProfile(false)
+    setLoading(false)
     setError(null)
   }
 
@@ -48,17 +66,26 @@ export function CreateProfileModal({
     setLoading(true)
     setError(null)
 
+    const normalizedCode = normalizeProfileCode(code)
+
+    if (!normalizedCode) {
+      setError("Informe um código válido para o perfil.")
+      setLoading(false)
+      return
+    }
+
     try {
       const payload: CreateProfileRequest = {
-        code,
-        name,
-        description,
+        code: normalizedCode,
+        name: name.trim(),
+        description: description.trim(),
         active,
         systemProfile,
         priority,
       }
 
       await ProfileService.create(payload)
+
       onCreated()
       handleClose()
     } catch {
@@ -70,14 +97,14 @@ export function CreateProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[560px] bg-card border border-border rounded-2xl p-6 shadow-neon">
-        <div className="flex items-start justify-between mb-6">
+      <div className="w-full max-w-[560px] bg-card border border-border rounded-2xl p-5 shadow-neon">
+        <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <span className="text-sm text-neon font-medium">
               Novo perfil
             </span>
 
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-xl font-bold mt-1">
               Criar perfil
             </h2>
 
@@ -88,43 +115,67 @@ export function CreateProfileModal({
 
           <button
             onClick={handleClose}
-            className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition"
+            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition shrink-0"
           >
-            <X size={18} />
+            <X size={17} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            placeholder="Código. Ex: SUPPORT_N1"
-            value={code}
-            onChange={(event) => setCode(event.target.value.toUpperCase())}
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Código
+            </span>
 
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            placeholder="Nome do perfil"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
+            <input
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              placeholder="Ex: SUPPORT_N1"
+              value={code}
+              onChange={(event) => setCode(normalizeProfileCode(event.target.value))}
+              required
+            />
+          </label>
 
-          <textarea
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon min-h-28"
-            placeholder="Descrição"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          />
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Nome do perfil
+            </span>
 
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            type="number"
-            placeholder="Prioridade"
-            value={priority}
-            onChange={(event) => setPriority(Number(event.target.value))}
-          />
+            <input
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              placeholder="Ex: Suporte Nível 1"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Descrição
+            </span>
+
+            <textarea
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon min-h-24 text-sm resize-none"
+              placeholder="Descrição do perfil"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Prioridade
+            </span>
+
+            <input
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              type="number"
+              placeholder="0"
+              value={priority}
+              onChange={(event) => setPriority(Number(event.target.value))}
+            />
+          </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
@@ -139,6 +190,12 @@ export function CreateProfileModal({
               onToggle={() => setSystemProfile((value) => !value)}
             />
           </div>
+
+          {systemProfile && (
+            <div className="bg-neon/10 border border-neon/20 text-neon rounded-2xl px-4 py-3 text-sm">
+              Perfis de sistema devem ser usados apenas para regras estruturais do ERP.
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl px-4 py-3 text-sm">
@@ -169,7 +226,7 @@ function ToggleField({
   onToggle: () => void
 }) {
   return (
-    <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">
+    <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-2.5">
       <span className="text-sm text-muted">
         {label}
       </span>
@@ -178,14 +235,14 @@ function ToggleField({
         type="button"
         onClick={onToggle}
         className={[
-          "relative w-14 h-8 rounded-full transition-all",
+          "relative w-12 h-7 rounded-full transition-all",
           active ? "bg-neon" : "bg-zinc-700",
         ].join(" ")}
       >
         <span
           className={[
-            "absolute top-1 w-6 h-6 rounded-full bg-white transition-all",
-            active ? "left-7" : "left-1",
+            "absolute top-1 w-5 h-5 rounded-full bg-white transition-all",
+            active ? "left-6" : "left-1",
           ].join(" ")}
         />
       </button>
