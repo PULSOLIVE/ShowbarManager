@@ -50,6 +50,6 @@ export const PermissionService = {
   },
 
   async delete(id: string): Promise<void> {
-    await api.delete(`/settings/permissions/${id}`)
+    await api.delete<ApiResponse<null>>(`/settings/permissions/${id}`)
   },
 }

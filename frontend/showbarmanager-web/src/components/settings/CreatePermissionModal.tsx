@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { X } from "lucide-react"
 import { PermissionService } from "../../services/permission.service"
@@ -8,6 +8,18 @@ interface CreatePermissionModalProps {
   open: boolean
   onClose: () => void
   onCreated: () => void
+}
+
+function normalizePermissionCode(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\s_-]/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_")
+    .replace(/_+/g, "_")
+    .toUpperCase()
 }
 
 export function CreatePermissionModal({
@@ -26,6 +38,11 @@ export function CreatePermissionModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!open) return
+    resetForm()
+  }, [open])
+
   if (!open) {
     return null
   }
@@ -39,6 +56,7 @@ export function CreatePermissionModal({
     setPriority(0)
     setActive(true)
     setSystemPermission(false)
+    setLoading(false)
     setError(null)
   }
 
@@ -47,24 +65,55 @@ export function CreatePermissionModal({
     onClose()
   }
 
+  function handleModuleChange(value: string) {
+    const normalizedModule = normalizePermissionCode(value)
+
+    setModule(normalizedModule)
+
+    if (normalizedModule && action) {
+      setCode(`${normalizedModule}_${action}`)
+    }
+  }
+
+  function handleActionChange(value: string) {
+    const normalizedAction = normalizePermissionCode(value)
+
+    setAction(normalizedAction)
+
+    if (module && normalizedAction) {
+      setCode(`${module}_${normalizedAction}`)
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError(null)
 
+    const normalizedCode = normalizePermissionCode(code)
+    const normalizedModule = normalizePermissionCode(module)
+    const normalizedAction = normalizePermissionCode(action)
+
+    if (!normalizedCode || !normalizedModule || !normalizedAction) {
+      setError("Informe código, módulo e ação válidos.")
+      setLoading(false)
+      return
+    }
+
     try {
       const payload: CreatePermissionRequest = {
-        code,
-        name,
-        module,
-        action,
-        description,
+        code: normalizedCode,
+        name: name.trim(),
+        module: normalizedModule,
+        action: normalizedAction,
+        description: description.trim(),
         active,
         systemPermission,
         priority,
       }
 
       await PermissionService.create(payload)
+
       onCreated()
       handleClose()
     } catch {
@@ -76,14 +125,14 @@ export function CreatePermissionModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[620px] bg-card border border-border rounded-2xl p-6 shadow-neon">
-        <div className="flex items-start justify-between mb-6">
+      <div className="w-full max-w-[620px] bg-card border border-border rounded-2xl p-5 shadow-neon">
+        <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <span className="text-sm text-neon font-medium">
               Nova permissão
             </span>
 
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-xl font-bold mt-1">
               Criar permissão
             </h2>
 
@@ -94,61 +143,97 @@ export function CreatePermissionModal({
 
           <button
             onClick={handleClose}
-            className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition"
+            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition shrink-0"
           >
-            <X size={18} />
+            <X size={17} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            placeholder="Código. Ex: USERS_CREATE"
-            value={code}
-            onChange={(event) => setCode(event.target.value.toUpperCase())}
-            required
-          />
-
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            placeholder="Nome. Ex: Criar usuários"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-              placeholder="Módulo. Ex: USERS"
-              value={module}
-              onChange={(event) => setModule(event.target.value.toUpperCase())}
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Código
+            </span>
 
             <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-              placeholder="Ação. Ex: CREATE"
-              value={action}
-              onChange={(event) => setAction(event.target.value.toUpperCase())}
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              placeholder="Ex: USERS_CREATE"
+              value={code}
+              onChange={(event) => setCode(normalizePermissionCode(event.target.value))}
               required
             />
+          </label>
+
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Nome
+            </span>
+
+            <input
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              placeholder="Ex: Criar usuários"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs text-muted mb-1.5">
+                Módulo
+              </span>
+
+              <input
+                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+                placeholder="Ex: USERS"
+                value={module}
+                onChange={(event) => handleModuleChange(event.target.value)}
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="block text-xs text-muted mb-1.5">
+                Ação
+              </span>
+
+              <input
+                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+                placeholder="Ex: CREATE"
+                value={action}
+                onChange={(event) => handleActionChange(event.target.value)}
+                required
+              />
+            </label>
           </div>
 
-          <textarea
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon min-h-28"
-            placeholder="Descrição"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          />
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Descrição
+            </span>
 
-          <input
-            className="w-full bg-background border border-border rounded-2xl px-4 py-3 outline-none focus:border-neon"
-            type="number"
-            placeholder="Prioridade"
-            value={priority}
-            onChange={(event) => setPriority(Number(event.target.value))}
-          />
+            <textarea
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon min-h-24 text-sm resize-none"
+              placeholder="Descrição da permissão"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
+              Prioridade
+            </span>
+
+            <input
+              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              type="number"
+              placeholder="0"
+              value={priority}
+              onChange={(event) => setPriority(Number(event.target.value))}
+            />
+          </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
@@ -163,6 +248,12 @@ export function CreatePermissionModal({
               onToggle={() => setSystemPermission((value) => !value)}
             />
           </div>
+
+          {systemPermission && (
+            <div className="bg-neon/10 border border-neon/20 text-neon rounded-2xl px-4 py-3 text-sm">
+              Permissões de sistema devem ser usadas apenas para regras estruturais do ERP.
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl px-4 py-3 text-sm">
@@ -193,7 +284,7 @@ function ToggleField({
   onToggle: () => void
 }) {
   return (
-    <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">
+    <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-2.5">
       <span className="text-sm text-muted">
         {label}
       </span>
@@ -202,14 +293,14 @@ function ToggleField({
         type="button"
         onClick={onToggle}
         className={[
-          "relative w-14 h-8 rounded-full transition-all",
+          "relative w-12 h-7 rounded-full transition-all",
           active ? "bg-neon" : "bg-zinc-700",
         ].join(" ")}
       >
         <span
           className={[
-            "absolute top-1 w-6 h-6 rounded-full bg-white transition-all",
-            active ? "left-7" : "left-1",
+            "absolute top-1 w-5 h-5 rounded-full bg-white transition-all",
+            active ? "left-6" : "left-1",
           ].join(" ")}
         />
       </button>
