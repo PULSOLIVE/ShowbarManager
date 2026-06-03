@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.5](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.4...v0.4.5) (2026-06-03)
+
+
+### Features
+
+* add branding assets and improve theme layout ([8b65822](https://github.com/PULSOLIVE/ShowbarManager/commit/8b6582243a498680c09aa70d535b9a478a4d5420))
+
 ### [0.4.4](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.3...v0.4.4) (2026-06-02)
 
 
