@@ -7,18 +7,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#050816",
-        card: "#0B1120",
-        neon: "#39FF14",
-        border: "#1E293B",
-        text: "#E2E8F0",
-        muted: "#94A3B8",
+        background: "var(--color-background)",
+        card: "var(--color-card)",
+        cardSoft: "var(--color-card-soft)",
+        neon: "var(--color-neon)",
+        border: "var(--color-border)",
+        text: "var(--color-text)",
+        muted: "var(--color-muted)",
       },
       borderRadius: {
         xl2: "20px",
       },
       boxShadow: {
-        neon: "0 0 20px rgba(57,255,20,0.35)",
+        neon: "var(--shadow-neon)",
       },
     },
   },

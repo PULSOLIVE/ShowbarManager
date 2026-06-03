@@ -1,101 +1,164 @@
 import {
   Bell,
-  FileSearch,
+  ChevronDown,
+  Languages,
   LogOut,
+  Moon,
   Search,
   Settings,
-  ShieldCheck,
+  Sun,
   UserCircle,
-  Users,
 } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
+import { availableLanguages } from "../../i18n"
 import { useAuthStore } from "../../store/auth.store"
+import { useLanguageStore } from "../../store/language.store"
+import { useThemeStore } from "../../store/theme.store"
+import type { LanguageCode } from "../../i18n"
+
+const pageTitles: Record<string, string> = {
+  "/dashboard": "Painel",
+  "/tenants": "Ambientes",
+  "/users": "Usuários",
+  "/settings": "Configurações",
+  "/settings/profiles": "Perfis",
+  "/settings/permissions": "Permissões",
+  "/settings/internationalization": "Internacionalização",
+  "/settings/security": "Segurança",
+  "/settings/sessions": "Sessões",
+  "/settings/audit": "Auditoria",
+  "/settings/tenants": "Multi-tenant",
+  "/settings/branding": "Branding",
+  "/settings/countries": "Países e Fiscal",
+  "/settings/integrations": "Integrações",
+  "/settings/network": "Rede Local",
+  "/settings/hardware": "Hardware",
+  "/settings/policies": "Políticas",
+}
 
 export function Topbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const canViewSettings = useAuthStore((state) => state.canViewSettings)
+  const language = useLanguageStore((state) => state.language)
+  const setLanguage = useLanguageStore((state) => state.setLanguage)
+  const theme = useThemeStore((state) => state.theme)
+  const toggleTheme = useThemeStore((state) => state.toggleTheme)
+  const [languageOpen, setLanguageOpen] = useState(false)
+
+  const pageTitle = pageTitles[location.pathname] || "ShowbarManager"
 
   function handleLogout() {
     logout()
     navigate("/login")
   }
 
+  function getLanguageShortLabel(value: string) {
+    if (value === "pt-PT") return "PT"
+    if (value === "pt-BR") return "BR"
+    if (value === "en-US") return "EN"
+    if (value === "es-ES") return "ES"
+
+    return value.slice(0, 2).toUpperCase()
+  }
+
   return (
-    <header className="h-20 border-b border-border bg-background/80 backdrop-blur-xl flex items-center justify-between px-6">
-      <div>
-        <h1 className="text-xl font-semibold">
-          Painel Administrativo
+    <header className="h-16 shrink-0 border-b border-border bg-background/90 backdrop-blur-xl flex items-center justify-between px-3 sm:px-4 lg:px-5">
+      <div className="min-w-0">
+        <h1 className="text-base lg:text-lg font-semibold truncate">
+          {pageTitle}
         </h1>
 
-        <p className="text-sm text-muted">
-          Ambiente enterprise do ShowbarManager
+        <p className="hidden sm:block text-xs text-muted truncate">
+          ShowbarManager Enterprise
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2 w-72">
-          <Search size={16} className="text-muted" />
+      <div className="flex items-center gap-2">
+        <div className="hidden 2xl:flex items-center gap-2 bg-card border border-border rounded-full px-3 py-2 w-64">
+          <Search size={15} className="text-muted shrink-0" />
 
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Buscar no sistema..."
+            placeholder="Busca global..."
           />
         </div>
 
+        <div className="relative">
+          <button
+            onClick={() => setLanguageOpen((value) => !value)}
+            className="h-9 rounded-full bg-card border border-border flex items-center gap-2 px-3 hover:border-neon hover:text-neon transition"
+            title="Idioma"
+          >
+            <Languages size={16} />
+
+            <span className="text-xs font-semibold">
+              {getLanguageShortLabel(language)}
+            </span>
+
+            <ChevronDown size={14} />
+          </button>
+
+          {languageOpen && (
+            <div className="absolute right-0 top-11 w-56 bg-card border border-border rounded-2xl shadow-neon p-2 z-50">
+              {availableLanguages.map((item) => (
+                <button
+                  key={item.value}
+                  onClick={() => {
+                    setLanguage(item.value as LanguageCode)
+                    setLanguageOpen(false)
+                  }}
+                  className={[
+                    "w-full text-left rounded-xl px-3 py-2 text-sm transition",
+                    item.value === language
+                      ? "bg-neon text-black font-semibold"
+                      : "text-muted hover:text-text hover:bg-background",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button
-          className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+          onClick={toggleTheme}
+          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+          title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+        >
+          {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+        </button>
+
+        <button
+          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
           title="Notificações"
         >
-          <Bell size={18} />
+          <Bell size={17} />
         </button>
 
         {canViewSettings() && (
-          <>
-            <button
-              onClick={() => navigate("/settings")}
-              className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
-              title="Configurações"
-            >
-              <Settings size={18} />
-            </button>
-
-            <button
-              onClick={() => navigate("/settings/profiles")}
-              className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
-              title="Perfis e Grupos"
-            >
-              <Users size={18} />
-            </button>
-
-            <button
-              onClick={() => navigate("/settings/permissions")}
-              className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
-              title="Permissões"
-            >
-              <ShieldCheck size={18} />
-            </button>
-
-            <button
-              onClick={() => navigate("/settings/audit")}
-              className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
-              title="Auditoria"
-            >
-              <FileSearch size={18} />
-            </button>
-          </>
+          <button
+            onClick={() => navigate("/settings")}
+            className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+            title="Configurações"
+          >
+            <Settings size={17} />
+          </button>
         )}
 
-        <div className="hidden lg:flex items-center gap-3 bg-card border border-border rounded-full px-4 py-2">
-          <UserCircle size={22} className="text-neon" />
+        <div className="hidden lg:flex items-center gap-2 bg-card border border-border rounded-full px-3 py-2 max-w-[260px]">
+          <UserCircle size={20} className="text-neon shrink-0" />
 
-          <div className="leading-tight">
-            <p className="text-sm font-medium">
+          <div className="leading-tight min-w-0">
+            <p className="text-sm font-medium truncate">
               {user?.name || "Usuário"}
             </p>
 
-            <p className="text-xs text-muted">
+            <p className="text-[11px] text-muted truncate">
               {user?.email || "sessão ativa"}
             </p>
           </div>
@@ -103,10 +166,10 @@ export function Topbar() {
 
         <button
           onClick={handleLogout}
-          className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition"
+          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition"
           title="Sair"
         >
-          <LogOut size={18} />
+          <LogOut size={17} />
         </button>
       </div>
     </header>
