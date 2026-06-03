@@ -44,7 +44,7 @@ export function DashboardPage() {
       : "success"
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
@@ -52,45 +52,43 @@ export function DashboardPage() {
             Visão Geral Enterprise
           </span>
 
-          <h2 className="text-3xl xl:text-4xl font-bold mt-1">
+          <h2 className="text-2xl xl:text-3xl font-bold mt-1">
             Painel Operacional
           </h2>
 
-          <p className="text-muted max-w-4xl mt-2 text-sm xl:text-base leading-relaxed">
-            Monitoramento operacional do ecossistema ShowbarManager ERP,
-            incluindo infraestrutura, inquilinos, usuários, autenticação,
-            disponibilidade e operação SaaS multiempresa.
+          <p className="text-muted max-w-4xl mt-2 text-sm leading-relaxed">
+            Monitoramento executivo do ecossistema ShowbarManager ERP:
+            infraestrutura, ambientes, usuários, autenticação, disponibilidade
+            e operação SaaS multiempresa.
           </p>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl px-5 py-4 min-w-[260px]">
-          <span className="text-xs text-muted uppercase tracking-wide">
+        <div className="bg-card border border-border rounded-2xl px-4 py-3 min-w-[240px]">
+          <span className="text-[11px] text-muted uppercase tracking-wide">
             Ambiente
           </span>
 
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-3 h-3 rounded-full bg-neon shadow-neon" />
+            <div className="w-2.5 h-2.5 rounded-full bg-neon shadow-neon" />
 
-            <strong className="text-neon leading-tight">
+            <strong className="text-neon text-sm leading-tight">
               Produção Empresarial Local
             </strong>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
         <MetricCard
           title="Status da API"
           value={apiStatus}
-          description={
-            healthData || "Monitorando disponibilidade do backend"
-          }
+          description={healthData || "Monitorando disponibilidade do backend"}
           icon={Wifi}
           status={apiStatusType}
         />
 
         <MetricCard
-          title="Inquilinos"
+          title="Ambientes"
           value={statsLoading ? "..." : String(stats?.totalTenants || 0)}
           description={`${stats?.activeTenants || 0} ambientes ativos`}
           icon={Building2}
@@ -114,153 +112,126 @@ export function DashboardPage() {
         />
       </section>
 
-      <section className="grid grid-cols-1 2xl:grid-cols-3 gap-4">
-        <div className="2xl:col-span-2 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-5">
+      <section className="grid grid-cols-1 2xl:grid-cols-3 gap-3">
+        <div className="2xl:col-span-2 bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
                 <Activity size={16} />
                 Resumo operacional
               </span>
 
-              <h3 className="text-2xl font-bold mt-1">
+              <h3 className="text-xl font-bold mt-1">
                 Infraestrutura SaaS
               </h3>
             </div>
 
-            <div className="w-11 h-11 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
-              <Layers3 className="text-neon" size={22} />
+            <div className="w-10 h-10 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
+              <Layers3 className="text-neon" size={20} />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <div className="bg-background border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted">
-                  Backend Enterprise
-                </p>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            <StatusBox
+              title="Backend Enterprise"
+              value="Spring Boot + JWT"
+              status="Online"
+            />
 
-                <strong className="text-base">
-                  Spring Boot + JWT
-                </strong>
-              </div>
+            <StatusBox
+              title="Banco de Dados"
+              value="PostgreSQL 16"
+              status="Operacional"
+            />
 
-              <span className="text-neon font-semibold text-sm">
-                Online
-              </span>
-            </div>
+            <StatusBox
+              title="Cache e Storage"
+              value="Redis + MinIO"
+              status="Sincronizado"
+            />
 
-            <div className="bg-background border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted">
-                  Banco de Dados
-                </p>
-
-                <strong className="text-base">
-                  PostgreSQL 16
-                </strong>
-              </div>
-
-              <span className="text-neon font-semibold text-sm">
-                Operacional
-              </span>
-            </div>
-
-            <div className="bg-background border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted">
-                  Cache e Storage
-                </p>
-
-                <strong className="text-base">
-                  Redis + MinIO
-                </strong>
-              </div>
-
-              <span className="text-neon font-semibold text-sm">
-                Sincronizado
-              </span>
-            </div>
-
-            <div className="bg-background border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted">
-                  Frontend Enterprise
-                </p>
-
-                <strong className="text-base">
-                  React + TypeScript
-                </strong>
-              </div>
-
-              <span className="text-neon font-semibold text-sm">
-                Ativo
-              </span>
-            </div>
+            <StatusBox
+              title="Frontend Enterprise"
+              value="React + TypeScript"
+              status="Ativo"
+            />
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
                 <Crown size={16} />
                 Sistema
               </span>
 
-              <h3 className="text-2xl font-bold mt-1">
+              <h3 className="text-xl font-bold mt-1">
                 Núcleo ERP
               </h3>
             </div>
 
-            <div className="w-11 h-11 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
-              <Crown className="text-neon" size={22} />
+            <div className="w-10 h-10 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
+              <Crown className="text-neon" size={20} />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-1 gap-4">
-            <div className="bg-background border border-border rounded-2xl p-4">
-              <p className="text-xs uppercase tracking-wide text-muted">
-                Multi-tenant
-              </p>
-
-              <strong className="text-base text-neon">
-                Ativado
-              </strong>
-            </div>
-
-            <div className="bg-background border border-border rounded-2xl p-4">
-              <p className="text-xs uppercase tracking-wide text-muted">
-                Segurança
-              </p>
-
-              <strong className="text-base text-neon">
-                JWT + ACL
-              </strong>
-            </div>
-
-            <div className="bg-background border border-border rounded-2xl p-4">
-              <p className="text-xs uppercase tracking-wide text-muted">
-                Arquitetura
-              </p>
-
-              <strong className="text-base text-neon">
-                Enterprise SaaS
-              </strong>
-            </div>
-
-            <div className="bg-background border border-border rounded-2xl p-4">
-              <p className="text-xs uppercase tracking-wide text-muted">
-                UX/UI
-              </p>
-
-              <strong className="text-base text-neon">
-                Premium Dark Neon
-              </strong>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-1 gap-3">
+            <SmallBox title="Multi-tenant" value="Ativado" />
+            <SmallBox title="Segurança" value="JWT + ACL" />
+            <SmallBox title="Arquitetura" value="Enterprise SaaS" />
+            <SmallBox title="UX/UI" value="Premium ERP" />
           </div>
         </div>
       </section>
+    </div>
+  )
+}
+
+function StatusBox({
+  title,
+  value,
+  status,
+}: {
+  title: string
+  value: string
+  status: string
+}) {
+  return (
+    <div className="bg-background border border-border rounded-2xl p-3 flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-xs text-muted">
+          {title}
+        </p>
+
+        <strong className="text-sm block mt-1 truncate">
+          {value}
+        </strong>
+      </div>
+
+      <span className="text-neon font-semibold text-xs shrink-0">
+        {status}
+      </span>
+    </div>
+  )
+}
+
+function SmallBox({
+  title,
+  value,
+}: {
+  title: string
+  value: string
+}) {
+  return (
+    <div className="bg-background border border-border rounded-2xl p-3">
+      <p className="text-[11px] uppercase tracking-wide text-muted">
+        {title}
+      </p>
+
+      <strong className="text-sm text-neon block mt-1">
+        {value}
+      </strong>
     </div>
   )
 }
