@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.6](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.5...v0.4.6) (2026-06-03)
+
+
+### Features
+
+* add theme system and dashboard refinements ([d4e6712](https://github.com/PULSOLIVE/ShowbarManager/commit/d4e6712db3161a424189ae2d45694de0b6d9b622))
+
 ### [0.4.5](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.4...v0.4.5) (2026-06-03)
 
 
