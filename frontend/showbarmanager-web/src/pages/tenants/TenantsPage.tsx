@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import type { ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   Building2,
@@ -58,17 +59,19 @@ export function TenantsPage() {
     queryFn: TenantService.list,
   })
 
-  const {
-    data: internationalizationOptions = [],
-  } = useQuery({
+  const { data: internationalizationOptions = [] } = useQuery({
     queryKey: ["internationalization-active"],
     queryFn: InternationalizationService.listActive,
   })
 
-  const filteredTenants = useMemo(() => {
-    return data.filter((tenant) => {
-      const searchTerm = search.toLowerCase()
+  const activeTenantsCount = useMemo(() => {
+    return data.filter((tenant) => tenant.active).length
+  }, [data])
 
+  const filteredTenants = useMemo(() => {
+    const searchTerm = search.trim().toLowerCase()
+
+    return data.filter((tenant) => {
       const countryLabel = getInternationalizationLabel(
         internationalizationOptions,
         tenant.country,
@@ -88,6 +91,7 @@ export function TenantsPage() {
       ).toLowerCase()
 
       const matchesSearch =
+        !searchTerm ||
         tenant.name.toLowerCase().includes(searchTerm) ||
         tenant.slug.toLowerCase().includes(searchTerm) ||
         tenant.country.toLowerCase().includes(searchTerm) ||
@@ -106,6 +110,12 @@ export function TenantsPage() {
       return matchesSearch && matchesStatus
     })
   }, [data, internationalizationOptions, search, statusFilter])
+
+  function handleRefresh() {
+    refetch().catch(() => {
+      alert("Não foi possível atualizar os ambientes.")
+    })
+  }
 
   function handleEdit(tenant: Tenant) {
     setSelectedTenant(tenant)
@@ -136,7 +146,7 @@ export function TenantsPage() {
     <div className="space-y-4">
       <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
+          <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <Building2 size={16} />
             Multiempresa
           </span>
@@ -153,7 +163,7 @@ export function TenantsPage() {
         {canManageTenants() && (
           <button
             onClick={() => setCreateModalOpen(true)}
-            className="bg-neon text-black font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
+            className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
           >
             Novo ambiente
           </button>
@@ -161,15 +171,12 @@ export function TenantsPage() {
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-        <SummaryCard title="Total" value={String(data.length)} />
-        <SummaryCard
-          title="Ativos"
-          value={String(data.filter((tenant) => tenant.active).length)}
-        />
-        <SummaryCard title="Filtrados" value={String(filteredTenants.length)} />
+        <SummaryCard title="Total" value={String(data.length)} icon={<Building2 size={18} />} />
+        <SummaryCard title="Ativos" value={String(activeTenantsCount)} icon={<CheckCircle2 size={18} />} />
+        <SummaryCard title="Filtrados" value={String(filteredTenants.length)} icon={<Search size={18} />} />
       </section>
 
-      <section className="bg-card border border-border rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
+      <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
         <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
           <Search size={15} className="text-muted shrink-0" />
 
@@ -193,12 +200,8 @@ export function TenantsPage() {
           </select>
 
           <button
-            onClick={() => {
-              refetch().catch(() => {
-                alert("Não foi possível atualizar os ambientes.")
-              })
-            }}
-            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
+            onClick={handleRefresh}
+            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
             Atualizar
@@ -207,13 +210,13 @@ export function TenantsPage() {
       </section>
 
       {isLoading && (
-        <div className="bg-card border border-border rounded-2xl p-4 text-muted text-sm">
+        <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
           Carregando ambientes...
         </div>
       )}
 
       {isError && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-sm">
+        <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
           Não foi possível carregar os ambientes. Verifique se a API está online e se a sessão está ativa.
         </div>
       )}
@@ -223,12 +226,12 @@ export function TenantsPage() {
           {filteredTenants.map((tenant) => (
             <article
               key={tenant.id}
-              className="bg-card border border-border rounded-2xl p-4 hover:border-neon/60 transition"
+              className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-background border border-border flex items-center justify-center shrink-0">
-                    <Building2 className="text-neon" size={20} />
+                  <div className="icon-tile">
+                    <Building2 size={20} />
                   </div>
 
                   <div className="min-w-0">
@@ -243,12 +246,12 @@ export function TenantsPage() {
                 </div>
 
                 {tenant.active ? (
-                  <span className="inline-flex items-center gap-1 text-neon text-xs shrink-0">
+                  <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
                     <CheckCircle2 size={14} />
                     Ativo
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-red-300 text-xs shrink-0">
+                  <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
                     <XCircle size={14} />
                     Inativo
                   </span>
@@ -283,7 +286,7 @@ export function TenantsPage() {
                     tenant.timezone,
                     "timezone"
                   )}
-                  icon={<Globe2 size={14} className="text-neon" />}
+                  icon={<Globe2 size={14} className="text-primary" />}
                 />
               </div>
 
@@ -296,7 +299,7 @@ export function TenantsPage() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleEdit(tenant)}
-                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
                       title="Alterar"
                     >
                       <Edit size={14} />
@@ -309,7 +312,7 @@ export function TenantsPage() {
                         })
                       }}
                       disabled={deleteLoadingId === tenant.id}
-                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Excluir"
                     >
                       <Trash2 size={14} />
@@ -321,7 +324,7 @@ export function TenantsPage() {
           ))}
 
           {filteredTenants.length === 0 && (
-            <div className="xl:col-span-2 2xl:col-span-3 bg-card border border-border rounded-2xl p-8 text-center text-muted">
+            <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
               Nenhum ambiente encontrado com os filtros atuais.
             </div>
           )}
@@ -360,19 +363,29 @@ export function TenantsPage() {
 function SummaryCard({
   title,
   value,
+  icon,
 }: {
   title: string
   value: string
+  icon: ReactNode
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 hover:border-neon/70 transition">
-      <p className="text-[11px] uppercase tracking-wide text-muted">
-        {title}
-      </p>
+    <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-wide text-muted">
+            {title}
+          </p>
 
-      <strong className="text-xl text-neon block mt-1 truncate">
-        {value}
-      </strong>
+          <strong className="text-xl text-primary block mt-1 truncate">
+            {value}
+          </strong>
+        </div>
+
+        <div className="icon-tile">
+          {icon}
+        </div>
+      </div>
     </div>
   )
 }
@@ -384,16 +397,17 @@ function InfoBox({
 }: {
   label: string
   value: string
-  icon?: React.ReactNode
+  icon?: ReactNode
 }) {
   return (
-    <div className="bg-background border border-border rounded-2xl p-3 min-w-0">
+    <div className="surface-muted rounded-2xl p-3 min-w-0">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {label}
       </p>
 
       <div className="flex items-center gap-2 mt-1 min-w-0">
         {icon}
+
         <strong className="text-sm block truncate">
           {value}
         </strong>

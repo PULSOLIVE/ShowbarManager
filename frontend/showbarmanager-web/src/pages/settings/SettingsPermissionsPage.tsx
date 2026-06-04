@@ -174,7 +174,7 @@ export function SettingsPermissionsPage() {
     <div className="space-y-4">
       <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
+          <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <KeyRound size={16} />
             Configurações
           </span>
@@ -190,7 +190,7 @@ export function SettingsPermissionsPage() {
 
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="bg-neon text-black px-4 py-2.5 rounded-full font-semibold flex items-center justify-center gap-2 hover:shadow-neon transition text-sm"
+          className="bg-primary text-white px-4 py-2.5 rounded-full font-semibold flex items-center justify-center gap-2 hover:shadow-neon transition text-sm"
         >
           <Plus size={16} />
           Nova permissão
@@ -204,7 +204,7 @@ export function SettingsPermissionsPage() {
         <SummaryCard title="Filtradas" value={String(filteredPermissions.length)} icon={<Search size={18} />} />
       </section>
 
-      <section className="bg-card border border-border rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
+      <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
         <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
           <Search size={15} className="text-muted shrink-0" />
 
@@ -244,7 +244,7 @@ export function SettingsPermissionsPage() {
 
           <button
             onClick={handleRefresh}
-            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-neon hover:text-neon transition text-sm"
+            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
             Atualizar
@@ -253,13 +253,13 @@ export function SettingsPermissionsPage() {
       </section>
 
       {isLoading && (
-        <div className="bg-card border border-border rounded-2xl p-4 text-muted text-sm">
+        <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
           Carregando permissões...
         </div>
       )}
 
       {isError && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-sm">
+        <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
           Não foi possível carregar as permissões.
         </div>
       )}
@@ -269,12 +269,12 @@ export function SettingsPermissionsPage() {
           {filteredPermissions.map((permission) => (
             <article
               key={permission.id}
-              className="bg-card border border-border rounded-2xl p-4 hover:border-neon/60 transition"
+              className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-background border border-border flex items-center justify-center shrink-0">
-                    <KeyRound className="text-neon" size={20} />
+                  <div className="icon-tile">
+                    <KeyRound size={20} />
                   </div>
 
                   <div className="min-w-0">
@@ -282,19 +282,19 @@ export function SettingsPermissionsPage() {
                       {permission.name}
                     </h3>
 
-                    <p className="text-xs text-neon mt-1 truncate">
+                    <p className="text-xs text-primary mt-1 truncate">
                       {permission.code}
                     </p>
                   </div>
                 </div>
 
                 {permission.active ? (
-                  <span className="inline-flex items-center gap-1 text-neon text-xs shrink-0">
+                  <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
                     <CheckCircle2 size={14} />
                     Ativa
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-red-300 text-xs shrink-0">
+                  <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
                     <XCircle size={14} />
                     Inativa
                   </span>
@@ -312,7 +312,7 @@ export function SettingsPermissionsPage() {
                 <InfoBox
                   label="Tipo"
                   value={permission.systemPermission ? "Sistema" : "Customizada"}
-                  icon={permission.systemPermission ? <ShieldCheck size={14} className="text-neon" /> : undefined}
+                  icon={permission.systemPermission ? <ShieldCheck size={14} className="text-primary" /> : undefined}
                 />
               </div>
 
@@ -324,7 +324,7 @@ export function SettingsPermissionsPage() {
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => handleEdit(permission)}
-                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
                     title="Editar"
                   >
                     <Edit size={14} />
@@ -337,7 +337,7 @@ export function SettingsPermissionsPage() {
                       })
                     }}
                     disabled={deleteLoadingId === permission.id || permission.systemPermission}
-                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Excluir"
                   >
                     <Trash2 size={14} />
@@ -348,16 +348,16 @@ export function SettingsPermissionsPage() {
           ))}
 
           {filteredPermissions.length === 0 && (
-            <div className="xl:col-span-2 2xl:col-span-3 bg-card border border-border rounded-2xl p-8 text-center text-muted">
+            <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
               Nenhuma permissão encontrada.
             </div>
           )}
         </section>
       )}
 
-      <section className="bg-card border border-border rounded-2xl overflow-hidden">
+      <section className="surface-premium rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-          <ShieldCheck size={17} className="text-neon" />
+          <ShieldCheck size={17} className="text-primary" />
 
           <div>
             <h3 className="text-base font-semibold">
@@ -384,7 +384,7 @@ export function SettingsPermissionsPage() {
             {matrix.map((row) => (
               <div
                 key={row.profile}
-                className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-3 border-b border-border last:border-b-0 hover:bg-white/[0.03] transition text-sm"
+                className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-3 border-b border-border last:border-b-0 hover:bg-primarySoft transition text-sm"
               >
                 <strong>{row.profile}</strong>
                 <PermissionStatus allowed={row.settings} />
@@ -435,19 +435,19 @@ function SummaryCard({
   icon: ReactNode
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 hover:border-neon/70 transition">
+    <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-wide text-muted">
             {title}
           </p>
 
-          <strong className="text-xl text-neon block mt-1 truncate">
+          <strong className="text-xl text-primary block mt-1 truncate">
             {value}
           </strong>
         </div>
 
-        <div className="w-9 h-9 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon shrink-0">
+        <div className="icon-tile">
           {icon}
         </div>
       </div>
@@ -465,7 +465,7 @@ function InfoBox({
   icon?: ReactNode
 }) {
   return (
-    <div className="bg-background border border-border rounded-2xl p-3 min-w-0">
+    <div className="surface-muted rounded-2xl p-3 min-w-0">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {label}
       </p>
@@ -483,7 +483,7 @@ function InfoBox({
 
 function PermissionStatus({ allowed }: { allowed: boolean }) {
   return allowed ? (
-    <span className="inline-flex items-center gap-1 text-neon text-sm">
+    <span className="inline-flex items-center gap-1 text-success text-sm">
       <CheckCircle2 size={14} />
       Sim
     </span>

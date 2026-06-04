@@ -4,7 +4,6 @@ import {
   Languages,
   LogOut,
   Moon,
-  Search,
   Settings,
   Sun,
   UserCircle,
@@ -78,19 +77,11 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="hidden 2xl:flex items-center gap-2 bg-card border border-border rounded-full px-3 py-2 w-64">
-          <Search size={15} className="text-muted shrink-0" />
-
-          <input
-            className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Busca global..."
-          />
-        </div>
-
         <div className="relative">
           <button
+            type="button"
             onClick={() => setLanguageOpen((value) => !value)}
-            className="h-9 rounded-full bg-card border border-border flex items-center gap-2 px-3 hover:border-neon hover:text-neon transition"
+            className="h-9 rounded-full bg-card border border-border flex items-center gap-2 px-3 hover:border-primary hover:text-primary transition shadow-card"
             title="Idioma"
           >
             <Languages size={16} />
@@ -103,9 +94,10 @@ export function Topbar() {
           </button>
 
           {languageOpen && (
-            <div className="absolute right-0 top-11 w-56 bg-card border border-border rounded-2xl shadow-neon p-2 z-50">
+            <div className="absolute right-0 top-11 w-56 bg-card border border-border rounded-2xl shadow-soft p-2 z-50">
               {availableLanguages.map((item) => (
                 <button
+                  type="button"
                   key={item.value}
                   onClick={() => {
                     setLanguage(item.value as LanguageCode)
@@ -114,7 +106,7 @@ export function Topbar() {
                   className={[
                     "w-full text-left rounded-xl px-3 py-2 text-sm transition",
                     item.value === language
-                      ? "bg-neon text-black font-semibold"
+                      ? "bg-primary text-white font-semibold"
                       : "text-muted hover:text-text hover:bg-background",
                   ].join(" ")}
                 >
@@ -126,15 +118,17 @@ export function Topbar() {
         </div>
 
         <button
+          type="button"
           onClick={toggleTheme}
-          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition shadow-card"
           title={theme === "dark" ? "Modo claro" : "Modo escuro"}
         >
           {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
 
         <button
-          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+          type="button"
+          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition shadow-card"
           title="Notificações"
         >
           <Bell size={17} />
@@ -142,16 +136,17 @@ export function Topbar() {
 
         {canViewSettings() && (
           <button
+            type="button"
             onClick={() => navigate("/settings")}
-            className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+            className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition shadow-card"
             title="Configurações"
           >
             <Settings size={17} />
           </button>
         )}
 
-        <div className="hidden lg:flex items-center gap-2 bg-card border border-border rounded-full px-3 py-2 max-w-[260px]">
-          <UserCircle size={20} className="text-neon shrink-0" />
+        <div className="hidden lg:flex items-center gap-2 bg-card border border-border rounded-full px-3 py-2 max-w-[260px] shadow-card">
+          <UserCircle size={20} className="text-primary shrink-0" />
 
           <div className="leading-tight min-w-0">
             <p className="text-sm font-medium truncate">
@@ -165,8 +160,9 @@ export function Topbar() {
         </div>
 
         <button
+          type="button"
           onClick={handleLogout}
-          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition"
+          className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shadow-card"
           title="Sair"
         >
           <LogOut size={17} />

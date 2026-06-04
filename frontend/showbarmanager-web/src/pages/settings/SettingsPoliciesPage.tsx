@@ -22,67 +22,83 @@ const policies = [
 
 export function SettingsPoliciesPage() {
   return (
-    <div className="space-y-5">
-      <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
-            <FileText size={16} />
-            Configurações
-          </span>
+    <div className="space-y-4">
+      <section className="surface-premium rounded-2xl p-4 lg:p-5">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
+              <FileText size={16} />
+              Configurações
+            </span>
 
-          <h2 className="text-3xl xl:text-4xl font-bold mt-1">
-            Políticas
-          </h2>
+            <h2 className="text-2xl xl:text-3xl font-bold mt-1">
+              Políticas
+            </h2>
 
-          <p className="text-muted mt-2">
-            LGPD, RGPD, retenção, auditoria, backup, exportação e governança.
-          </p>
-        </div>
+            <p className="text-muted mt-2 text-sm max-w-4xl">
+              LGPD, RGPD, retenção, auditoria, backup, exportação e governança.
+            </p>
+          </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button className="bg-background border border-border px-5 py-3 rounded-full flex items-center justify-center gap-2 hover:border-neon hover:text-neon transition text-sm">
-            <Plus size={16} />
-            Nova política
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm">
+              <Plus size={15} />
+              Nova política
+            </button>
 
-          <button className="bg-neon text-black font-semibold px-5 py-3 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
-            <Save size={16} />
-            Salvar políticas
-          </button>
+            <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
+              <Save size={15} />
+              Salvar políticas
+            </button>
+          </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <section className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         {policies.map((policy) => (
-          <div
-            key={policy}
-            className="bg-card border border-border rounded-2xl p-5 hover:border-neon/70 transition"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
-                  <ShieldCheck className="text-neon" size={22} />
-                </div>
-
-                <div>
-                  <h3 className="font-semibold">{policy}</h3>
-                  <p className="text-sm text-muted mt-1">Política enterprise configurável.</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition">
-                  <Edit size={15} />
-                </button>
-
-                <button className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition">
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </div>
-          </div>
+          <PolicyCard key={policy} policy={policy} />
         ))}
-      </div>
+      </section>
     </div>
+  )
+}
+
+function PolicyCard({ policy }: { policy: string }) {
+  return (
+    <article className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-primarySoft flex items-center justify-center shrink-0">
+            <ShieldCheck className="text-primary" size={19} />
+          </div>
+
+          <div className="min-w-0">
+            <h3 className="font-semibold truncate">
+              {policy}
+            </h3>
+
+            <p className="text-sm text-muted mt-1">
+              Política enterprise configurável.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
+            title="Editar"
+          >
+            <Edit size={14} />
+          </button>
+
+          <button
+            className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition"
+            title="Excluir"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+    </article>
   )
 }

@@ -135,7 +135,7 @@ export function SettingsPage() {
     <div className="space-y-4">
       <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
+          <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <Settings size={16} />
             Núcleo de Governança
           </span>
@@ -152,7 +152,7 @@ export function SettingsPage() {
 
         <button
           onClick={() => navigate("/settings/audit")}
-          className="bg-card border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-neon hover:text-neon transition text-sm"
+          className="bg-card border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
         >
           <Activity size={15} />
           Ver auditoria
@@ -174,14 +174,14 @@ export function SettingsPage() {
             <button
               key={section.path}
               onClick={() => navigate(section.path)}
-              className="group text-left bg-card border border-border rounded-2xl p-4 hover:border-neon/70 hover:-translate-y-0.5 transition-all"
+              className="group text-left surface-premium rounded-2xl p-4 hover:border-primary/50 hover:-translate-y-0.5 transition-all"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-background border border-border flex items-center justify-center group-hover:border-neon/40 transition">
-                  <Icon size={19} className="text-neon" />
+                <div className="icon-tile">
+                  <Icon size={19} strokeWidth={2} />
                 </div>
 
-                <span className="text-[11px] bg-background border border-border rounded-full px-2.5 py-1 text-muted">
+                <span className="text-[11px] bg-cardSoft rounded-full px-2.5 py-1 text-muted shadow-card">
                   {section.status}
                 </span>
               </div>
@@ -211,20 +211,20 @@ function SummaryCard({
   icon: LucideIcon
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 hover:border-neon/70 transition">
+    <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-wide text-muted">
             {title}
           </p>
 
-          <strong className="text-lg text-neon block mt-1 truncate">
+          <strong className="text-lg text-primary block mt-1 truncate">
             {value}
           </strong>
         </div>
 
-        <div className="w-9 h-9 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center shrink-0">
-          <Icon size={18} className="text-neon" />
+        <div className="icon-tile">
+          <Icon size={18} strokeWidth={2} />
         </div>
       </div>
     </div>

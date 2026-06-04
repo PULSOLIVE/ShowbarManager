@@ -38,7 +38,10 @@ export function AppRoutes() {
             <Route path="settings/profiles" element={<SettingsProfilesPage />} />
             <Route path="settings/permissions" element={<SettingsPermissionsPage />} />
             <Route path="settings/users" element={<SettingsUsersPage />} />
-            <Route path="settings/internationalization" element={<SettingsInternationalizationPage />} />
+            <Route
+              path="settings/internationalization"
+              element={<SettingsInternationalizationPage />}
+            />
             <Route path="settings/security" element={<SettingsSecurityPage />} />
             <Route path="settings/sessions" element={<SettingsSessionsPage />} />
             <Route path="settings/audit" element={<SettingsAuditPage />} />

@@ -43,15 +43,9 @@ const countryTimezoneOptions: Record<string, TimezoneOption[]> = {
     { value: "America/Anchorage", label: "(UTC-09/-08) América/Anchorage" },
     { value: "Pacific/Honolulu", label: "(UTC-10) Pacífico/Honolulu" },
   ],
-  FR: [
-    { value: "Europe/Paris", label: "(UTC+01/+02) Europa/Paris" },
-  ],
-  DE: [
-    { value: "Europe/Berlin", label: "(UTC+01/+02) Europa/Berlim" },
-  ],
-  GB: [
-    { value: "Europe/London", label: "(UTC+00/+01) Europa/Londres" },
-  ],
+  FR: [{ value: "Europe/Paris", label: "(UTC+01/+02) Europa/Paris" }],
+  DE: [{ value: "Europe/Berlin", label: "(UTC+01/+02) Europa/Berlim" }],
+  GB: [{ value: "Europe/London", label: "(UTC+00/+01) Europa/Londres" }],
 }
 
 function generateSlug(value: string) {
@@ -122,12 +116,13 @@ export function CreateTenantModal({
   }, [country])
 
   useEffect(() => {
-    if (!open) {
-      return
-    }
+    if (!open) return
 
-    const defaultTimezones = getTimezoneOptionsByCountry(defaultConfig?.countryCode || "")
-    const defaultTimezone = defaultTimezones[0]?.value || defaultConfig?.timezone || ""
+    const defaultTimezones = getTimezoneOptionsByCountry(
+      defaultConfig?.countryCode || ""
+    )
+    const defaultTimezone =
+      defaultTimezones[0]?.value || defaultConfig?.timezone || ""
 
     setName("")
     setSlug("")
@@ -155,7 +150,8 @@ export function CreateTenantModal({
     )
 
     const selectedTimezones = getTimezoneOptionsByCountry(value)
-    const selectedTimezone = selectedTimezones[0]?.value || selectedConfig?.timezone || ""
+    const selectedTimezone =
+      selectedTimezones[0]?.value || selectedConfig?.timezone || ""
 
     setCountry(value)
 
@@ -185,10 +181,10 @@ export function CreateTenantModal({
 
     try {
       const payload: CreateTenantRequest = {
-        name,
-        slug,
+        name: name.trim(),
+        slug: slug.trim(),
         country,
-        currency,
+        currency: currency.trim().toUpperCase(),
         language,
         timezone,
         active,
@@ -207,10 +203,10 @@ export function CreateTenantModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[620px] bg-card border border-border rounded-2xl p-5 shadow-neon">
+      <div className="w-full max-w-[620px] max-h-[92vh] overflow-y-auto app-scrollbar surface-premium rounded-2xl p-5">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
-            <span className="text-sm text-neon font-medium">
+            <span className="text-sm text-primary font-medium">
               Novo ambiente
             </span>
 
@@ -224,50 +220,51 @@ export function CreateTenantModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition shrink-0"
+            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
           >
             <X size={17} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs text-muted mb-1.5">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
               Nome do ambiente
-            </label>
+            </span>
 
             <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              className="field-input"
               placeholder="Ex: Empresa Demo Portugal"
               value={name}
               onChange={(event) => handleNameChange(event.target.value)}
               required
             />
-          </div>
+          </label>
 
-          <div>
-            <label className="block text-xs text-muted mb-1.5">
+          <label className="block">
+            <span className="block text-xs text-muted mb-1.5">
               Slug automático
-            </label>
+            </span>
 
             <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+              className="field-input"
               placeholder="empresa-demo-portugal"
               value={slug}
               onChange={(event) => setSlug(generateSlug(event.target.value))}
               required
             />
-          </div>
+          </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-muted mb-1.5">
+            <label className="block">
+              <span className="block text-xs text-muted mb-1.5">
                 País
-              </label>
+              </span>
 
               <select
-                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+                className="field-input"
                 value={country}
                 onChange={(event) => handleCountryChange(event.target.value)}
                 required
@@ -280,29 +277,29 @@ export function CreateTenantModal({
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-xs text-muted mb-1.5">
+            <label className="block">
+              <span className="block text-xs text-muted mb-1.5">
                 Moeda
-              </label>
+              </span>
 
               <input
-                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+                className="field-input"
                 placeholder="EUR"
                 value={currency}
-                onChange={(event) => setCurrency(event.target.value)}
+                onChange={(event) => setCurrency(event.target.value.toUpperCase())}
                 required
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-xs text-muted mb-1.5">
+            <label className="block">
+              <span className="block text-xs text-muted mb-1.5">
                 Idioma
-              </label>
+              </span>
 
               <select
-                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+                className="field-input"
                 value={language}
                 onChange={(event) => handleLanguageChange(event.target.value)}
                 required
@@ -310,23 +307,20 @@ export function CreateTenantModal({
                 <option value="">Selecione o idioma</option>
 
                 {availableLanguageOptions.map((item) => (
-                  <option
-                    key={`${item.id}-language`}
-                    value={item.languageCode}
-                  >
+                  <option key={`${item.id}-language`} value={item.languageCode}>
                     {item.languageName}
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-xs text-muted mb-1.5">
+            <label className="block">
+              <span className="block text-xs text-muted mb-1.5">
                 Fuso horário
-              </label>
+              </span>
 
               <select
-                className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+                className="field-input"
                 value={timezone}
                 onChange={(event) => setTimezone(event.target.value)}
                 required
@@ -334,18 +328,15 @@ export function CreateTenantModal({
                 <option value="">Selecione o fuso</option>
 
                 {availableTimezoneOptions.map((item) => (
-                  <option
-                    key={item.value}
-                    value={item.value}
-                  >
+                  <option key={item.value} value={item.value}>
                     {item.label}
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
           </div>
 
-          <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-2.5">
+          <label className="flex items-center justify-between surface-muted rounded-2xl px-4 py-2.5">
             <span className="text-sm text-muted">
               Ambiente ativo
             </span>
@@ -355,7 +346,7 @@ export function CreateTenantModal({
               onClick={() => setActive((value) => !value)}
               className={[
                 "relative w-12 h-7 rounded-full transition-all",
-                active ? "bg-neon" : "bg-zinc-700",
+                active ? "bg-primary" : "bg-zinc-700",
               ].join(" ")}
             >
               <span
@@ -368,7 +359,7 @@ export function CreateTenantModal({
           </label>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl px-4 py-3 text-sm">
+            <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl px-4 py-3 text-sm">
               {error}
             </div>
           )}
@@ -376,7 +367,7 @@ export function CreateTenantModal({
           <button
             type="submit"
             disabled={loading || internationalizationOptions.length === 0}
-            className="w-full bg-neon text-black font-semibold py-3 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-white font-semibold py-3 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Criando ambiente..." : "Criar ambiente"}
           </button>

@@ -7,6 +7,9 @@ export interface User {
   masterUser: boolean
   developerUser: boolean
   roles: string[]
+  permissions?: string[]
+  profileIds?: string[]
+  permissionIds?: string[]
   createdAt: string
   updatedAt: string | null
 }
@@ -17,6 +20,8 @@ export interface CreateUserRequest {
   email: string
   password: string
   role: string
+  profileIds?: string[]
+  permissionIds?: string[]
 }
 
 export interface UpdateUserRequest {
@@ -24,4 +29,6 @@ export interface UpdateUserRequest {
   email: string
   role: string
   active: boolean
+  profileIds?: string[]
+  permissionIds?: string[]
 }

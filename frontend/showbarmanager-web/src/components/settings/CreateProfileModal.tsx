@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import type { FormEvent } from "react"
-import { X } from "lucide-react"
+import type { FormEvent, ReactNode } from "react"
+import { AlertTriangle, CheckCircle2, ShieldCheck, X } from "lucide-react"
 import { ProfileService } from "../../services/profile.service"
 import type { CreateProfileRequest } from "../../types/profile.types"
 
@@ -22,6 +22,10 @@ function normalizeProfileCode(value: string) {
     .toUpperCase()
 }
 
+function generateProfileCodeFromName(value: string) {
+  return normalizeProfileCode(value)
+}
+
 export function CreateProfileModal({
   open,
   onClose,
@@ -33,6 +37,7 @@ export function CreateProfileModal({
   const [priority, setPriority] = useState(0)
   const [active, setActive] = useState(true)
   const [systemProfile, setSystemProfile] = useState(false)
+  const [codeManuallyEdited, setCodeManuallyEdited] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,6 +57,7 @@ export function CreateProfileModal({
     setPriority(0)
     setActive(true)
     setSystemProfile(false)
+    setCodeManuallyEdited(false)
     setLoading(false)
     setError(null)
   }
@@ -59,6 +65,19 @@ export function CreateProfileModal({
   function handleClose() {
     resetForm()
     onClose()
+  }
+
+  function handleNameChange(value: string) {
+    setName(value)
+
+    if (!codeManuallyEdited) {
+      setCode(generateProfileCodeFromName(value))
+    }
+  }
+
+  function handleCodeChange(value: string) {
+    setCodeManuallyEdited(true)
+    setCode(normalizeProfileCode(value))
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -70,6 +89,12 @@ export function CreateProfileModal({
 
     if (!normalizedCode) {
       setError("Informe um código válido para o perfil.")
+      setLoading(false)
+      return
+    }
+
+    if (!name.trim()) {
+      setError("Informe o nome do perfil.")
       setLoading(false)
       return
     }
@@ -97,10 +122,10 @@ export function CreateProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[560px] bg-card border border-border rounded-2xl p-5 shadow-neon">
-        <div className="flex items-start justify-between gap-4 mb-5">
+      <div className="w-full max-w-[600px] max-h-[90vh] overflow-y-auto app-scrollbar surface-premium rounded-2xl p-4 shadow-neon">
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-sm text-neon font-medium">
+            <span className="text-xs text-primary font-semibold uppercase tracking-wide">
               Novo perfil
             </span>
 
@@ -109,134 +134,193 @@ export function CreateProfileModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Cadastre um novo perfil de acesso do ecossistema.
+              Cadastre um perfil de acesso para governança, grupos e permissões.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={handleClose}
-            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition shrink-0"
+            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
+            title="Fechar"
           >
             <X size={17} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <label className="block">
-            <span className="block text-xs text-muted mb-1.5">
-              Código
-            </span>
+          <section className="surface-muted rounded-2xl p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck size={15} className="text-primary" />
 
-            <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
-              placeholder="Ex: SUPPORT_N1"
-              value={code}
-              onChange={(event) => setCode(normalizeProfileCode(event.target.value))}
-              required
-            />
-          </label>
+              <div>
+                <p className="text-sm font-semibold">
+                  Identificação do perfil
+                </p>
 
-          <label className="block">
-            <span className="block text-xs text-muted mb-1.5">
-              Nome do perfil
-            </span>
+                <p className="text-xs text-muted">
+                  O código será usado como referência técnica no RBAC.
+                </p>
+              </div>
+            </div>
 
-            <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
-              placeholder="Ex: Suporte Nível 1"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-            />
-          </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Nome do perfil">
+                <input
+                  className="field-input"
+                  placeholder="Ex: Suporte Nível 1"
+                  value={name}
+                  onChange={(event) => handleNameChange(event.target.value)}
+                  required
+                />
+              </Field>
 
-          <label className="block">
-            <span className="block text-xs text-muted mb-1.5">
-              Descrição
-            </span>
+              <Field label="Código técnico">
+                <input
+                  className="field-input"
+                  placeholder="Ex: SUPPORT_N1"
+                  value={code}
+                  onChange={(event) => handleCodeChange(event.target.value)}
+                  required
+                />
+              </Field>
+            </div>
 
-            <textarea
-              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon min-h-24 text-sm resize-none"
-              placeholder="Descrição do perfil"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </label>
+            <p className="text-[11px] text-muted mt-2">
+              Sugestão: use códigos curtos e padronizados, como ADMIN_MASTER,
+              SUPPORT_N1, FINANCIAL_MANAGER ou EVENT_ADMIN.
+            </p>
+          </section>
 
-          <label className="block">
-            <span className="block text-xs text-muted mb-1.5">
-              Prioridade
-            </span>
+          <section className="surface-muted rounded-2xl p-3">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
+              <Field label="Descrição">
+                <textarea
+                  className="field-input min-h-24 resize-none"
+                  placeholder="Descreva a finalidade e o nível de acesso deste perfil."
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </Field>
 
-            <input
-              className="w-full bg-background border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
-              type="number"
-              placeholder="0"
-              value={priority}
-              onChange={(event) => setPriority(Number(event.target.value))}
-            />
-          </label>
+              <Field label="Prioridade">
+                <input
+                  className="field-input"
+                  type="number"
+                  placeholder="0"
+                  value={priority}
+                  onChange={(event) => setPriority(Number(event.target.value))}
+                />
+              </Field>
+            </div>
+          </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
               label="Perfil ativo"
+              description="Permite uso imediato no sistema."
               active={active}
               onToggle={() => setActive((value) => !value)}
             />
 
             <ToggleField
               label="Perfil de sistema"
+              description="Protegido para regras estruturais."
               active={systemProfile}
               onToggle={() => setSystemProfile((value) => !value)}
             />
-          </div>
+          </section>
 
           {systemProfile && (
-            <div className="bg-neon/10 border border-neon/20 text-neon rounded-2xl px-4 py-3 text-sm">
-              Perfis de sistema devem ser usados apenas para regras estruturais do ERP.
-            </div>
+            <Notice
+              type="warning"
+              message="Perfis de sistema devem ser usados apenas para regras estruturais do ERP. Evite marcar perfis comuns como sistema."
+            />
+          )}
+
+          {!active && (
+            <Notice
+              type="info"
+              message="Este perfil será criado como inativo e não deverá ser usado em novos vínculos até ser ativado."
+            />
           )}
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl px-4 py-3 text-sm">
+            <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl px-4 py-3 text-sm">
               {error}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-neon text-black font-semibold py-3 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? "Criando perfil..." : "Criar perfil"}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-full sm:w-auto bg-background border border-border text-muted font-semibold px-5 py-2.5 rounded-full hover:border-danger hover:text-danger transition text-sm"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+            >
+              {loading ? "Criando perfil..." : "Criar perfil"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   )
 }
 
+function Field({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs text-muted mb-1.5">
+        {label}
+      </span>
+
+      {children}
+    </label>
+  )
+}
+
 function ToggleField({
   label,
+  description,
   active,
   onToggle,
 }: {
   label: string
+  description: string
   active: boolean
   onToggle: () => void
 }) {
   return (
-    <label className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-2.5">
-      <span className="text-sm text-muted">
-        {label}
+    <label className="flex items-center justify-between gap-4 surface-muted rounded-2xl px-4 py-3">
+      <span>
+        <span className="block text-sm font-medium">
+          {label}
+        </span>
+
+        <span className="block text-xs text-muted mt-0.5">
+          {description}
+        </span>
       </span>
 
       <button
         type="button"
         onClick={onToggle}
         className={[
-          "relative w-12 h-7 rounded-full transition-all",
-          active ? "bg-neon" : "bg-zinc-700",
+          "relative w-12 h-7 rounded-full transition-all shrink-0",
+          active ? "bg-primary" : "bg-zinc-700",
         ].join(" ")}
       >
         <span
@@ -247,5 +331,29 @@ function ToggleField({
         />
       </button>
     </label>
+  )
+}
+
+function Notice({
+  type,
+  message,
+}: {
+  type: "info" | "warning"
+  message: string
+}) {
+  const Icon = type === "warning" ? AlertTriangle : CheckCircle2
+
+  return (
+    <div
+      className={[
+        "rounded-2xl px-4 py-3 text-sm border flex items-start gap-2",
+        type === "warning"
+          ? "bg-warning/10 border-warning/30 text-warning"
+          : "bg-primarySoft border-primary/20 text-primary",
+      ].join(" ")}
+    >
+      <Icon size={16} className="shrink-0 mt-0.5" />
+      <span>{message}</span>
+    </div>
   )
 }

@@ -45,35 +45,37 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
-            <Gauge size={16} />
-            Visão Geral Enterprise
-          </span>
+      <section className="surface-premium rounded-2xl p-4 lg:p-5">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
+              <Gauge size={16} />
+              Visão Geral Enterprise
+            </span>
 
-          <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Painel Operacional
-          </h2>
+            <h2 className="text-2xl xl:text-3xl font-bold mt-1">
+              Painel Operacional
+            </h2>
 
-          <p className="text-muted max-w-4xl mt-2 text-sm leading-relaxed">
-            Monitoramento executivo do ecossistema ShowbarManager ERP:
-            infraestrutura, ambientes, usuários, autenticação, disponibilidade
-            e operação SaaS multiempresa.
-          </p>
-        </div>
+            <p className="text-muted max-w-4xl mt-2 text-sm leading-relaxed">
+              Monitoramento executivo do ecossistema ShowbarManager ERP:
+              infraestrutura, ambientes, usuários, autenticação, disponibilidade
+              e operação SaaS multiempresa.
+            </p>
+          </div>
 
-        <div className="bg-card border border-border rounded-2xl px-4 py-3 min-w-[240px]">
-          <span className="text-[11px] text-muted uppercase tracking-wide">
-            Ambiente
-          </span>
+          <div className="surface-muted rounded-2xl px-4 py-3 min-w-[240px]">
+            <span className="text-[11px] text-muted uppercase tracking-wide">
+              Ambiente
+            </span>
 
-          <div className="flex items-center gap-3 mt-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-neon shadow-neon" />
+            <div className="flex items-center gap-3 mt-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-success" />
 
-            <strong className="text-neon text-sm leading-tight">
-              Produção Empresarial Local
-            </strong>
+              <strong className="text-success text-sm leading-tight">
+                Produção Empresarial Local
+              </strong>
+            </div>
           </div>
         </div>
       </section>
@@ -92,7 +94,7 @@ export function DashboardPage() {
           value={statsLoading ? "..." : String(stats?.totalTenants || 0)}
           description={`${stats?.activeTenants || 0} ambientes ativos`}
           icon={Building2}
-          status="success"
+          status="neutral"
         />
 
         <MetricCard
@@ -100,7 +102,7 @@ export function DashboardPage() {
           value={statsLoading ? "..." : String(stats?.totalUsers || 0)}
           description={`${stats?.activeUsers || 0} usuários ativos`}
           icon={Users}
-          status="success"
+          status="neutral"
         />
 
         <MetricCard
@@ -108,15 +110,15 @@ export function DashboardPage() {
           value="JWT"
           description="Autenticação protegida com Bearer Token"
           icon={ShieldCheck}
-          status="success"
+          status="neutral"
         />
       </section>
 
-      <section className="grid grid-cols-1 2xl:grid-cols-3 gap-3">
-        <div className="2xl:col-span-2 bg-card border border-border rounded-2xl p-4">
+      <section className="grid grid-cols-1 2xl:grid-cols-3 gap-3 items-stretch">
+        <div className="2xl:col-span-2 surface-premium rounded-2xl p-4 h-full">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
+              <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
                 <Activity size={16} />
                 Resumo operacional
               </span>
@@ -126,8 +128,8 @@ export function DashboardPage() {
               </h3>
             </div>
 
-            <div className="w-10 h-10 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
-              <Layers3 className="text-neon" size={20} />
+            <div className="icon-tile">
+              <Layers3 size={20} strokeWidth={2} />
             </div>
           </div>
 
@@ -158,10 +160,10 @@ export function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-4">
+        <div className="surface-premium rounded-2xl p-4 h-full">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
+              <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
                 <Crown size={16} />
                 Sistema
               </span>
@@ -171,8 +173,8 @@ export function DashboardPage() {
               </h3>
             </div>
 
-            <div className="w-10 h-10 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
-              <Crown className="text-neon" size={20} />
+            <div className="icon-tile">
+              <Crown size={20} strokeWidth={2} />
             </div>
           </div>
 
@@ -198,7 +200,7 @@ function StatusBox({
   status: string
 }) {
   return (
-    <div className="bg-background border border-border rounded-2xl p-3 flex items-center justify-between gap-4">
+    <div className="surface-muted rounded-2xl p-3 flex items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="text-xs text-muted">
           {title}
@@ -209,7 +211,7 @@ function StatusBox({
         </strong>
       </div>
 
-      <span className="text-neon font-semibold text-xs shrink-0">
+      <span className="text-success font-semibold text-xs shrink-0">
         {status}
       </span>
     </div>
@@ -224,12 +226,12 @@ function SmallBox({
   value: string
 }) {
   return (
-    <div className="bg-background border border-border rounded-2xl p-3">
+    <div className="surface-muted rounded-2xl p-3">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {title}
       </p>
 
-      <strong className="text-sm text-neon block mt-1">
+      <strong className="text-sm text-primary block mt-1">
         {value}
       </strong>
     </div>

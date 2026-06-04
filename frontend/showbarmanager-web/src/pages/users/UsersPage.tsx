@@ -19,6 +19,10 @@ import { UserService } from "../../services/user.service"
 import { useAuthStore } from "../../store/auth.store"
 import type { User } from "../../types/user.types"
 
+type UserWithPermissions = User & {
+  permissions?: string[]
+}
+
 export function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -51,23 +55,31 @@ export function UsersPage() {
     return data.filter((user) => user.masterUser).length
   }, [data])
 
+  const developerUsersCount = useMemo(() => {
+    return data.filter((user) => user.developerUser).length
+  }, [data])
+
   const filteredUsers = useMemo(() => {
     const searchTerm = search.trim().toLowerCase()
 
     return data.filter((user) => {
-      const roles = (user.roles ?? []).join(" ").toLowerCase()
+      const current = user as UserWithPermissions
+      const roles = (current.roles ?? []).join(" ").toLowerCase()
+      const permissions = (current.permissions ?? []).join(" ").toLowerCase()
 
       const matchesSearch =
         !searchTerm ||
-        user.name.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm) ||
-        roles.includes(searchTerm)
+        current.name.toLowerCase().includes(searchTerm) ||
+        current.email.toLowerCase().includes(searchTerm) ||
+        roles.includes(searchTerm) ||
+        permissions.includes(searchTerm)
 
       const matchesStatus =
         statusFilter === "all" ||
-        (statusFilter === "active" && user.active) ||
-        (statusFilter === "inactive" && !user.active) ||
-        (statusFilter === "master" && user.masterUser)
+        (statusFilter === "active" && current.active) ||
+        (statusFilter === "inactive" && !current.active) ||
+        (statusFilter === "master" && current.masterUser) ||
+        (statusFilter === "developer" && current.developerUser)
 
       return matchesSearch && matchesStatus
     })
@@ -87,6 +99,11 @@ export function UsersPage() {
   async function handleDelete(user: User) {
     if (user.id === currentUserId) {
       alert("Você não pode excluir o próprio usuário logado.")
+      return
+    }
+
+    if (user.masterUser) {
+      alert("Usuários master devem ser removidos apenas por fluxo administrativo seguro.")
       return
     }
 
@@ -113,7 +130,7 @@ export function UsersPage() {
     <div className="space-y-4">
       <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
+          <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <ShieldCheck size={16} />
             Controle de Acesso
           </span>
@@ -123,53 +140,35 @@ export function UsersPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão de usuários, permissões, perfis e acessos da plataforma.
+            Gestão de usuários, perfis, permissões e acessos da plataforma.
           </p>
         </div>
 
         {canManageUsers() && (
           <button
             onClick={() => setModalOpen(true)}
-            className="bg-neon text-black font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
+            className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
           >
             Novo usuário
           </button>
         )}
       </section>
 
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <SummaryCard
-          title="Total"
-          value={String(data.length)}
-          icon={<Users size={18} />}
-        />
-
-        <SummaryCard
-          title="Ativos"
-          value={String(activeUsersCount)}
-          icon={<CheckCircle2 size={18} />}
-        />
-
-        <SummaryCard
-          title="Master"
-          value={String(masterUsersCount)}
-          icon={<Crown size={18} />}
-        />
-
-        <SummaryCard
-          title="Filtrados"
-          value={String(filteredUsers.length)}
-          icon={<Search size={18} />}
-        />
+      <section className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+        <SummaryCard title="Total" value={String(data.length)} icon={<Users size={18} />} />
+        <SummaryCard title="Ativos" value={String(activeUsersCount)} icon={<CheckCircle2 size={18} />} />
+        <SummaryCard title="Master" value={String(masterUsersCount)} icon={<Crown size={18} />} />
+        <SummaryCard title="Dev" value={String(developerUsersCount)} icon={<ShieldCheck size={18} />} />
+        <SummaryCard title="Filtrados" value={String(filteredUsers.length)} icon={<Search size={18} />} />
       </section>
 
-      <section className="bg-card border border-border rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
+      <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
         <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
           <Search size={15} className="text-muted shrink-0" />
 
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Buscar por nome, e-mail ou perfil..."
+            placeholder="Buscar por nome, e-mail, perfil ou permissão..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -185,11 +184,12 @@ export function UsersPage() {
             <option value="active">Ativos</option>
             <option value="inactive">Inativos</option>
             <option value="master">Master</option>
+            <option value="developer">Desenvolvedor</option>
           </select>
 
           <button
             onClick={handleRefresh}
-            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
+            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
             Atualizar
@@ -198,138 +198,141 @@ export function UsersPage() {
       </section>
 
       {isLoading && (
-        <div className="bg-card border border-border rounded-2xl p-4 text-muted text-sm">
+        <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
           Carregando usuários...
         </div>
       )}
 
       {isError && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-sm">
+        <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
           Não foi possível carregar os usuários. Verifique se a API está online e se a sessão está ativa.
         </div>
       )}
 
       {!isLoading && !isError && (
         <section className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
-          {filteredUsers.map((user) => (
-            <article
-              key={user.id}
-              className="bg-card border border-border rounded-2xl p-4 hover:border-neon/60 transition"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-background border border-border flex items-center justify-center shrink-0">
-                    {user.masterUser ? (
-                      <Crown className="text-neon" size={19} />
-                    ) : (
-                      <UserCircle className="text-neon" size={20} />
-                    )}
-                  </div>
+          {filteredUsers.map((user) => {
+            const current = user as UserWithPermissions
 
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="text-base font-semibold truncate">
-                        {user.name}
-                      </h3>
-
-                      {user.id === currentUserId && (
-                        <span className="text-[11px] bg-neon/10 text-neon border border-neon/20 rounded-full px-2 py-0.5 shrink-0">
-                          Você
-                        </span>
+            return (
+              <article
+                key={current.id}
+                className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="icon-tile">
+                      {current.masterUser ? (
+                        <Crown size={19} />
+                      ) : (
+                        <UserCircle size={20} />
                       )}
                     </div>
 
-                    <p className="text-xs text-muted mt-1 truncate">
-                      {user.email}
-                    </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <h3 className="text-base font-semibold truncate">
+                          {current.name}
+                        </h3>
+
+                        {current.id === currentUserId && (
+                          <span className="text-[11px] bg-primarySoft text-primary rounded-full px-2 py-0.5 shrink-0">
+                            Você
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-muted mt-1 truncate">
+                        {current.email}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {user.active ? (
-                  <span className="inline-flex items-center gap-1 text-neon text-xs shrink-0">
-                    <CheckCircle2 size={14} />
-                    Ativo
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-red-300 text-xs shrink-0">
-                    <XCircle size={14} />
-                    Inativo
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <InfoBox
-                  label="Tipo"
-                  value={user.masterUser ? "Usuário Master" : "Usuário comum"}
-                  icon={user.masterUser ? <Crown size={14} className="text-neon" /> : undefined}
-                />
-
-                <InfoBox
-                  label="ID"
-                  value={user.id.slice(0, 8)}
-                />
-              </div>
-
-              <div className="mt-3 bg-background border border-border rounded-2xl p-3 min-h-[76px]">
-                <p className="text-[11px] uppercase tracking-wide text-muted mb-2">
-                  Perfis
-                </p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {(user.roles ?? []).length > 0 ? (
-                    (user.roles ?? []).map((role) => (
-                      <span
-                        key={role}
-                        className="inline-flex items-center gap-1 bg-neon/10 text-neon border border-neon/30 px-2.5 py-1 rounded-full text-xs font-medium"
-                      >
-                        <ShieldCheck size={12} />
-                        {role}
-                      </span>
-                    ))
+                  {current.active ? (
+                    <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
+                      <CheckCircle2 size={14} />
+                      Ativo
+                    </span>
                   ) : (
-                    <span className="text-xs text-muted">
-                      Nenhum perfil vinculado
+                    <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
+                      <XCircle size={14} />
+                      Inativo
                     </span>
                   )}
                 </div>
-              </div>
 
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
-                <span className="text-xs text-muted truncate">
-                  {user.email}
-                </span>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <InfoBox
+                    label="Tipo"
+                    value={
+                      current.masterUser
+                        ? "Usuário Master"
+                        : current.developerUser
+                          ? "Desenvolvedor"
+                          : "Usuário comum"
+                    }
+                    icon={
+                      current.masterUser || current.developerUser ? (
+                        <Crown size={14} className="text-primary" />
+                      ) : undefined
+                    }
+                  />
 
-                {canManageUsers() && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
-                      title="Alterar"
-                    >
-                      <Edit size={14} />
-                    </button>
+                  <InfoBox label="ID" value={current.id.slice(0, 8)} />
+                </div>
 
-                    <button
-                      onClick={() => {
-                        handleDelete(user).catch(() => {
-                          alert("Erro inesperado ao excluir usuário.")
-                        })
-                      }}
-                      disabled={deleteLoadingId === user.id || user.id === currentUserId}
-                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Excluir"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </article>
-          ))}
+                <AccessBox
+                  title="Perfis"
+                  emptyLabel="Nenhum perfil vinculado"
+                  items={current.roles ?? []}
+                />
+
+                <AccessBox
+                  title="Permissões extras"
+                  emptyLabel="Nenhuma permissão extra"
+                  items={current.permissions ?? []}
+                />
+
+                <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
+                  <span className="text-xs text-muted truncate">
+                    {current.email}
+                  </span>
+
+                  {canManageUsers() && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleEdit(current)}
+                        className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
+                        title="Alterar"
+                      >
+                        <Edit size={14} />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleDelete(current).catch(() => {
+                            alert("Erro inesperado ao excluir usuário.")
+                          })
+                        }}
+                        disabled={
+                          deleteLoadingId === current.id ||
+                          current.id === currentUserId ||
+                          current.masterUser
+                        }
+                        className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Excluir"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </article>
+            )
+          })}
 
           {filteredUsers.length === 0 && (
-            <div className="xl:col-span-2 2xl:col-span-3 bg-card border border-border rounded-2xl p-8 text-center text-muted">
+            <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
               Nenhum usuário encontrado com os filtros atuais.
             </div>
           )}
@@ -374,19 +377,19 @@ function SummaryCard({
   icon: ReactNode
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 hover:border-neon/70 transition">
+    <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-wide text-muted">
             {title}
           </p>
 
-          <strong className="text-xl text-neon block mt-1 truncate">
+          <strong className="text-xl text-primary block mt-1 truncate">
             {value}
           </strong>
         </div>
 
-        <div className="w-9 h-9 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon shrink-0">
+        <div className="icon-tile">
           {icon}
         </div>
       </div>
@@ -404,7 +407,7 @@ function InfoBox({
   icon?: ReactNode
 }) {
   return (
-    <div className="bg-background border border-border rounded-2xl p-3 min-w-0">
+    <div className="surface-muted rounded-2xl p-3 min-w-0">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {label}
       </p>
@@ -415,6 +418,42 @@ function InfoBox({
         <strong className="text-sm block truncate">
           {value}
         </strong>
+      </div>
+    </div>
+  )
+}
+
+function AccessBox({
+  title,
+  emptyLabel,
+  items,
+}: {
+  title: string
+  emptyLabel: string
+  items: string[]
+}) {
+  return (
+    <div className="mt-3 surface-muted rounded-2xl p-3 min-h-[76px]">
+      <p className="text-[11px] uppercase tracking-wide text-muted mb-2">
+        {title}
+      </p>
+
+      <div className="flex flex-wrap gap-1.5">
+        {items.length > 0 ? (
+          items.map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-1 bg-primarySoft text-primary px-2.5 py-1 rounded-full text-xs font-medium"
+            >
+              <ShieldCheck size={12} />
+              {item}
+            </span>
+          ))
+        ) : (
+          <span className="text-xs text-muted">
+            {emptyLabel}
+          </span>
+        )}
       </div>
     </div>
   )

@@ -11,51 +11,83 @@ import {
 } from "lucide-react"
 
 const networkItems = [
-  { title: "Link principal", value: "Preparado", icon: Wifi },
-  { title: "Link backup", value: "Preparado", icon: Wifi },
-  { title: "Roteador", value: "Planejado", icon: Router },
-  { title: "Servidor local", value: "Planejado", icon: Server },
-  { title: "Agente local", value: "Planejado", icon: Network },
-  { title: "Failover", value: "Futuro", icon: Network },
+  {
+    title: "Link principal",
+    value: "Preparado",
+    description: "Conexão principal para operação do ambiente.",
+    icon: Wifi,
+  },
+  {
+    title: "Link backup",
+    value: "Preparado",
+    description: "Contingência para operação crítica.",
+    icon: Wifi,
+  },
+  {
+    title: "Roteador",
+    value: "Planejado",
+    description: "Controle de rede local e dispositivos.",
+    icon: Router,
+  },
+  {
+    title: "Servidor local",
+    value: "Planejado",
+    description: "Processamento local para eventos e operação offline.",
+    icon: Server,
+  },
+  {
+    title: "Agente local",
+    value: "Planejado",
+    description: "Sincronização entre hardware, rede e ERP.",
+    icon: Network,
+  },
+  {
+    title: "Failover",
+    value: "Futuro",
+    description: "Troca automática entre links e serviços críticos.",
+    icon: Network,
+  },
 ]
 
 export function SettingsNetworkPage() {
   return (
-    <div className="space-y-5">
-      <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
-            <Network size={16} />
-            Configurações
-          </span>
+    <div className="space-y-4">
+      <section className="surface-premium rounded-2xl p-4 lg:p-5">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
+              <Network size={16} />
+              Configurações
+            </span>
 
-          <h2 className="text-3xl xl:text-4xl font-bold mt-1">
-            Rede Local
-          </h2>
+            <h2 className="text-2xl xl:text-3xl font-bold mt-1">
+              Rede Local
+            </h2>
 
-          <p className="text-muted mt-2">
-            Links, roteadores, servidores locais, agente local, contingência e failover.
-          </p>
-        </div>
+            <p className="text-muted mt-2 text-sm max-w-4xl">
+              Links, roteadores, servidores locais, agente local, contingência e failover.
+            </p>
+          </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button className="bg-background border border-border px-5 py-3 rounded-full flex items-center justify-center gap-2 hover:border-neon hover:text-neon transition text-sm">
-            <Plus size={16} />
-            Novo dispositivo
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm">
+              <Plus size={15} />
+              Novo dispositivo
+            </button>
 
-          <button className="bg-neon text-black font-semibold px-5 py-3 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
-            <Save size={16} />
-            Salvar rede
-          </button>
+            <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
+              <Save size={15} />
+              Salvar rede
+            </button>
+          </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {networkItems.map((item) => (
           <NetworkCard key={item.title} {...item} />
         ))}
-      </div>
+      </section>
     </div>
   )
 }
@@ -63,30 +95,49 @@ export function SettingsNetworkPage() {
 function NetworkCard({
   title,
   value,
+  description,
   icon: Icon,
 }: {
   title: string
   value: string
+  description: string
   icon: LucideIcon
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-5 hover:border-neon/70 transition">
-      <div className="flex items-start justify-between gap-4">
-        <Icon className="text-neon" size={24} />
+    <article className="surface-premium rounded-2xl p-4 min-h-[150px] hover:border-primary/50 transition">
+      <div className="flex items-start justify-between gap-3">
+        <div className="w-9 h-9 rounded-2xl bg-primarySoft flex items-center justify-center shrink-0">
+          <Icon className="text-primary" size={18} />
+        </div>
 
-        <div className="flex items-center gap-2">
-          <button className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition">
+        <div className="flex items-center gap-1">
+          <button
+            className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
+            title="Editar"
+          >
             <Edit size={14} />
           </button>
 
-          <button className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition">
+          <button
+            className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition"
+            title="Excluir"
+          >
             <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      <h3 className="font-semibold mt-4">{title}</h3>
-      <p className="text-neon font-semibold mt-2">{value}</p>
-    </div>
+      <h3 className="font-semibold mt-4">
+        {title}
+      </h3>
+
+      <p className="text-primary text-sm font-semibold mt-1">
+        {value}
+      </p>
+
+      <p className="text-xs text-muted mt-2 leading-relaxed line-clamp-2">
+        {description}
+      </p>
+    </article>
   )
 }

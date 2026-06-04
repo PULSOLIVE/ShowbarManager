@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import type { ComponentType, ReactNode } from "react"
 import {
   Activity,
   Building2,
@@ -17,7 +18,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "../../store/auth.store"
 
 interface SidebarProps {
@@ -25,7 +26,14 @@ interface SidebarProps {
   onToggle: () => void
 }
 
-const mainMenu = [
+interface SidebarItem {
+  label: string
+  path: string
+  icon: ComponentType<{ size?: number }>
+  roles?: string[]
+}
+
+const mainMenu: SidebarItem[] = [
   {
     label: "Painel",
     path: "/dashboard",
@@ -46,12 +54,7 @@ const mainMenu = [
   },
 ]
 
-const settingsMenu = [
-  {
-    label: "Configurações",
-    path: "/settings",
-    icon: Settings,
-  },
+const settingsMenu: SidebarItem[] = [
   {
     label: "Perfis",
     path: "/settings/profiles",
@@ -116,6 +119,7 @@ const settingsMenu = [
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const hasAnyRole = useAuthStore((state) => state.hasAnyRole)
   const [settingsOpen, setSettingsOpen] = useState(
     location.pathname.startsWith("/settings")
@@ -128,11 +132,32 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   ])
 
   const visibleMainMenu = mainMenu.filter((item) => {
-    if (item.roles.length === 0) return true
+    if (!item.roles || item.roles.length === 0) return true
     return hasAnyRole(item.roles)
   })
 
   const settingsActive = location.pathname.startsWith("/settings")
+
+  useEffect(() => {
+    if (settingsActive && !collapsed) {
+      setSettingsOpen(true)
+    }
+  }, [settingsActive, collapsed])
+
+  function handleSettingsClick() {
+    if (collapsed) {
+      navigate("/settings")
+      return
+    }
+
+    if (!settingsActive) {
+      navigate("/settings")
+      setSettingsOpen(true)
+      return
+    }
+
+    setSettingsOpen((value) => !value)
+  }
 
   return (
     <aside
@@ -142,11 +167,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       ].join(" ")}
     >
       <div className="h-full flex flex-col">
-        <div className="px-4 pt-4 pb-3">
-          <div className="flex items-center justify-between gap-3">
-            {!collapsed && (
+        <div className={collapsed ? "px-3 pt-4 pb-3" : "px-4 pt-4 pb-3"}>
+          {!collapsed ? (
+            <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-lg font-black text-neon leading-tight truncate">
+                <div className="text-lg font-black text-primary leading-tight truncate">
                   ShowbarManager
                 </div>
 
@@ -154,22 +179,18 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   ERP Complete Ecosystem
                 </div>
               </div>
-            )}
 
-            {collapsed && (
-              <div className="w-11 h-11 rounded-2xl bg-neon/10 border border-neon/30 flex items-center justify-center text-neon font-black text-xs tracking-tight shrink-0">
-                SBM
+              <ToggleButton collapsed={collapsed} onToggle={onToggle} />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-xs shadow-neon shrink-0">
+                SM
               </div>
-            )}
 
-            <button
-              onClick={onToggle}
-              className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition shrink-0"
-              title={collapsed ? "Expandir menu" : "Recolher menu"}
-            >
-              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-            </button>
-          </div>
+              <ToggleButton collapsed={collapsed} onToggle={onToggle} />
+            </div>
+          )}
         </div>
 
         <div className="px-3 pb-3 flex-1 min-h-0 overflow-y-auto sidebar-scrollbar">
@@ -187,13 +208,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             {canViewSettings && (
               <MenuGroup title="Administração" collapsed={collapsed}>
                 <button
-                  onClick={() => setSettingsOpen((value) => !value)}
+                  type="button"
+                  onClick={handleSettingsClick}
                   className={[
                     "w-full flex items-center rounded-2xl transition-all duration-200",
                     collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
                     "text-sm font-semibold",
                     settingsActive
-                      ? "bg-neon text-black shadow-neon"
+                      ? "bg-primary text-white shadow-neon"
                       : "text-muted hover:text-text hover:bg-background",
                   ].join(" ")}
                   title={collapsed ? "Configurações" : undefined}
@@ -217,25 +239,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   )}
                 </button>
 
-                {(settingsOpen || collapsed) && (
-                  <div
-                    className={[
-                      "space-y-1.5",
-                      collapsed ? "pt-1" : "pl-2 pt-1",
-                    ].join(" ")}
-                  >
+                {settingsOpen && !collapsed && (
+                  <div className="space-y-1.5 pl-2 pt-1">
                     {settingsMenu.map((item) => (
                       <SidebarLink
                         key={item.path}
                         item={item}
                         collapsed={collapsed}
-                        exact={item.path === "/settings"}
                         compact
-                        activeOverride={
-                          item.path === "/settings"
-                            ? location.pathname === "/settings"
-                            : undefined
-                        }
                       />
                     ))}
                   </div>
@@ -247,12 +258,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
         <div className="px-4 pb-4">
           {!collapsed ? (
-            <div className="rounded-2xl border border-border bg-background/70 px-3 py-3">
+            <div className="rounded-2xl border border-border bg-background/70 px-3 py-3 shadow-card">
               <p className="text-[10px] uppercase tracking-wide text-muted">
                 ShowbarManager ERP
               </p>
 
-              <strong className="text-sm text-neon block mt-1">
+              <strong className="text-sm text-primary block mt-1">
                 v0.4.4 Enterprise
               </strong>
 
@@ -263,8 +274,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               </p>
             </div>
           ) : (
-            <div className="h-11 rounded-2xl border border-border bg-background/70 flex items-center justify-center">
-              <span className="text-[10px] text-neon font-bold">
+            <div className="h-11 rounded-2xl border border-border bg-background/70 flex items-center justify-center shadow-card">
+              <span className="text-[10px] text-primary font-bold">
                 v0.4
               </span>
             </div>
@@ -275,6 +286,25 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   )
 }
 
+function ToggleButton({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean
+  onToggle: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition shrink-0"
+      title={collapsed ? "Expandir menu" : "Recolher menu"}
+    >
+      {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+    </button>
+  )
+}
+
 function MenuGroup({
   title,
   collapsed,
@@ -282,7 +312,7 @@ function MenuGroup({
 }: {
   title: string
   collapsed: boolean
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <div className="space-y-1.5">
@@ -300,31 +330,20 @@ function MenuGroup({
 function SidebarLink({
   item,
   collapsed,
-  exact,
   compact,
-  activeOverride,
 }: {
-  item: {
-    label: string
-    path: string
-    icon: React.ComponentType<{ size?: number }>
-  }
+  item: SidebarItem
   collapsed: boolean
-  exact?: boolean
   compact?: boolean
-  activeOverride?: boolean
 }) {
   const Icon = item.icon
 
   return (
     <NavLink
       to={item.path}
-      end={exact}
       title={collapsed ? item.label : undefined}
-      className={({ isActive }) => {
-        const active = activeOverride ?? isActive
-
-        return [
+      className={({ isActive }) =>
+        [
           "flex items-center rounded-2xl transition-all duration-200",
           collapsed
             ? "justify-center px-0 py-2.5"
@@ -332,11 +351,11 @@ function SidebarLink({
               ? "gap-2.5 px-3 py-2"
               : "gap-3 px-3 py-2.5",
           compact ? "text-xs font-semibold" : "text-sm font-semibold",
-          active
-            ? "bg-neon text-black shadow-neon"
+          isActive
+            ? "bg-primary text-white shadow-neon"
             : "text-muted hover:text-text hover:bg-background",
         ].join(" ")
-      }}
+      }
     >
       <Icon size={compact ? 15 : 17} />
 

@@ -188,6 +188,18 @@ const countryPresets: CountryPreset[] = [
   },
 ]
 
+const utcTimezoneOptions = [
+  { value: "UTC", label: "(UTC+00) Universal Coordinated Time" },
+  { value: "Etc/GMT-1", label: "(UTC+01) GMT+1" },
+  { value: "Etc/GMT-2", label: "(UTC+02) GMT+2" },
+  { value: "Etc/GMT-3", label: "(UTC+03) GMT+3" },
+  { value: "Etc/GMT+1", label: "(UTC-01) GMT-1" },
+  { value: "Etc/GMT+2", label: "(UTC-02) GMT-2" },
+  { value: "Etc/GMT+3", label: "(UTC-03) GMT-3" },
+  { value: "Etc/GMT+4", label: "(UTC-04) GMT-4" },
+  { value: "Etc/GMT+5", label: "(UTC-05) GMT-5" },
+]
+
 const InternationalizationService = {
   async list(): Promise<Internationalization[]> {
     const response = await apiClient.get<ApiResponse<Internationalization[]>>(
@@ -278,9 +290,17 @@ function getCountryPreset(countryCode: string) {
 function getTimezoneLabel(countryCode: string, timezone: string) {
   const preset = getCountryPreset(countryCode)
 
-  const found = preset?.timezones.find((item) => item.value === timezone)
+  const countryTimezone = preset?.timezones.find(
+    (item) => item.value === timezone
+  )
 
-  return found?.label || timezone
+  if (countryTimezone) {
+    return countryTimezone.label
+  }
+
+  const utcTimezone = utcTimezoneOptions.find((item) => item.value === timezone)
+
+  return utcTimezone?.label || timezone
 }
 
 function makeCode(countryCode: string, languageCode: string) {
@@ -308,10 +328,11 @@ export function SettingsInternationalizationPage() {
   })
 
   const filteredItems = useMemo(() => {
-    const searchTerm = search.toLowerCase()
+    const searchTerm = search.trim().toLowerCase()
 
     return data.filter((item) => {
       const matchesSearch =
+        !searchTerm ||
         item.code.toLowerCase().includes(searchTerm) ||
         item.countryName.toLowerCase().includes(searchTerm) ||
         item.languageName.toLowerCase().includes(searchTerm) ||
@@ -344,7 +365,9 @@ export function SettingsInternationalizationPage() {
       `Deseja realmente excluir ${item.countryName} / ${item.languageName}?`
     )
 
-    if (!confirmed) return
+    if (!confirmed) {
+      return
+    }
 
     try {
       setDeleteLoadingId(item.id)
@@ -359,30 +382,33 @@ export function SettingsInternationalizationPage() {
 
   return (
     <div className="space-y-4">
-      <section className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-2 text-sm text-neon font-semibold">
-            <Languages size={16} />
-            Configurações
-          </span>
+      <section className="surface-premium rounded-2xl p-4 lg:p-5">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
+              <Languages size={16} />
+              Configurações
+            </span>
 
-          <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Internacionalização
-          </h2>
+            <h2 className="text-2xl xl:text-3xl font-bold mt-1">
+              Internacionalização
+            </h2>
 
-          <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão dinâmica de países, idiomas, moedas, fusos horários, formatos
-            regionais e bandeiras do ShowbarManager.
-          </p>
+            <p className="text-muted mt-2 text-sm max-w-4xl">
+              Gestão dinâmica de países, idiomas, moedas, fusos horários,
+              formatos regionais e bandeiras do ShowbarManager.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto flex items-center justify-center gap-2 text-sm"
+          >
+            <Plus size={16} />
+            Nova configuração
+          </button>
         </div>
-
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="bg-neon text-black font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto flex items-center justify-center gap-2 text-sm"
-        >
-          <Plus size={16} />
-          Nova configuração
-        </button>
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -398,8 +424,8 @@ export function SettingsInternationalizationPage() {
         <SummaryCard title="Filtradas" value={String(filteredItems.length)} />
       </section>
 
-      <section className="bg-card border border-border rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
-        <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
+      <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
+        <div className="flex items-center gap-2 bg-cardSoft border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
           <Search size={15} className="text-muted shrink-0" />
 
           <input
@@ -412,7 +438,7 @@ export function SettingsInternationalizationPage() {
 
         <div className="flex flex-col sm:flex-row gap-2">
           <select
-            className="bg-background border border-border rounded-full px-4 py-2.5 outline-none text-sm"
+            className="field-input rounded-full"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
@@ -423,12 +449,13 @@ export function SettingsInternationalizationPage() {
           </select>
 
           <button
+            type="button"
             onClick={() => {
               refetch().catch(() => {
                 alert("Não foi possível atualizar a lista.")
               })
             }}
-            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-neon transition text-sm"
+            className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
             Atualizar
@@ -437,13 +464,13 @@ export function SettingsInternationalizationPage() {
       </section>
 
       {isLoading && (
-        <div className="bg-card border border-border rounded-2xl p-4 text-muted text-sm">
+        <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
           Carregando configurações internacionais...
         </div>
       )}
 
       {isError && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-sm">
+        <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
           Não foi possível carregar as configurações internacionais. Verifique se
           a API está online e se a sessão está ativa.
         </div>
@@ -454,11 +481,11 @@ export function SettingsInternationalizationPage() {
           {filteredItems.map((item) => (
             <article
               key={item.id}
-              className="bg-card border border-border rounded-2xl p-4 hover:border-neon/60 transition"
+              className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-background border border-border flex items-center justify-center text-xl shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-primarySoft flex items-center justify-center text-xl shrink-0">
                     {item.flagEmoji || "🌐"}
                   </div>
 
@@ -469,7 +496,7 @@ export function SettingsInternationalizationPage() {
                       </strong>
 
                       {item.systemDefault && (
-                        <span className="inline-flex items-center gap-1 text-yellow-300 text-xs bg-yellow-300/10 border border-yellow-300/20 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-warning text-xs bg-warning/10 border border-warning/20 px-2 py-0.5 rounded-full">
                           <Star size={12} />
                           Padrão
                         </span>
@@ -484,21 +511,23 @@ export function SettingsInternationalizationPage() {
 
                 <div className="flex items-center gap-1 shrink-0">
                   <button
+                    type="button"
                     onClick={() => handleEdit(item)}
-                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-neon hover:text-neon transition"
+                    className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
                     title="Editar"
                   >
                     <Edit size={14} />
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => {
                       handleDelete(item).catch(() => {
                         alert("Erro inesperado ao excluir configuração.")
                       })
                     }}
                     disabled={deleteLoadingId === item.id || item.systemDefault}
-                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Excluir"
                   >
                     <Trash2 size={14} />
@@ -513,14 +542,17 @@ export function SettingsInternationalizationPage() {
                 <InfoBox label="Prioridade" value={String(item.priority)} />
               </div>
 
-              <div className="mt-3 bg-background border border-border rounded-2xl p-3">
+              <div className="mt-3 bg-cardSoft border border-border rounded-2xl p-3">
                 <div className="flex items-start gap-2">
-                  <Globe2 size={15} className="text-neon mt-0.5 shrink-0" />
+                  <Globe2 size={15} className="text-primary mt-0.5 shrink-0" />
+
                   <div className="min-w-0">
                     <p className="text-xs text-muted">Fuso horário</p>
+
                     <strong className="text-sm block truncate">
                       {item.timezoneLabel}
                     </strong>
+
                     <p className="text-xs text-muted truncate">
                       {item.timezone}
                     </p>
@@ -530,12 +562,12 @@ export function SettingsInternationalizationPage() {
 
               <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                 {item.active ? (
-                  <span className="inline-flex items-center gap-2 text-neon text-sm">
+                  <span className="inline-flex items-center gap-2 text-success text-sm">
                     <CheckCircle2 size={15} />
                     Ativo
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-2 text-red-300 text-sm">
+                  <span className="inline-flex items-center gap-2 text-danger text-sm">
                     <XCircle size={15} />
                     Inativo
                   </span>
@@ -549,7 +581,7 @@ export function SettingsInternationalizationPage() {
           ))}
 
           {filteredItems.length === 0 && (
-            <div className="xl:col-span-2 2xl:col-span-3 bg-card border border-border rounded-2xl p-8 text-center text-muted">
+            <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
               Nenhuma configuração internacional encontrada.
             </div>
           )}
@@ -577,7 +609,9 @@ export function SettingsInternationalizationPage() {
           setSelectedItem(null)
         }}
         onSubmit={async (payload) => {
-          if (!selectedItem) return
+          if (!selectedItem) {
+            return
+          }
 
           await InternationalizationService.update(selectedItem.id, payload)
           await refetch()
@@ -591,12 +625,12 @@ export function SettingsInternationalizationPage() {
 
 function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 hover:border-neon/70 transition">
+    <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {title}
       </p>
 
-      <strong className="text-xl text-neon block mt-1 truncate">
+      <strong className="text-xl text-primary block mt-1 truncate">
         {value}
       </strong>
     </div>
@@ -611,7 +645,7 @@ function InfoBox({
   value: string
 }) {
   return (
-    <div className="bg-background border border-border rounded-2xl p-3 min-w-0">
+    <div className="bg-cardSoft border border-border rounded-2xl p-3 min-w-0">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {label}
       </p>
@@ -644,29 +678,13 @@ function InternationalizationModal({
 
   const selectedCountryPreset = getCountryPreset(form.countryCode)
 
-  const timezoneOptions = useMemo(() => {
-    const baseOptions = selectedCountryPreset?.timezones || []
-
-    if (!form.timezone) {
-      return baseOptions
-    }
-
-    const timezoneExists = baseOptions.some(
-      (item) => item.value === form.timezone
-    )
-
-    if (timezoneExists) {
-      return baseOptions
-    }
-
-    return [
-      ...baseOptions,
-      {
-        value: form.timezone,
-        label: form.timezoneLabel || form.timezone,
-      },
-    ]
-  }, [form.timezone, form.timezoneLabel, selectedCountryPreset])
+  const timezoneOptions = [
+    ...(selectedCountryPreset?.timezones || []),
+    ...utcTimezoneOptions,
+  ].filter(
+    (item, index, list) =>
+      list.findIndex((option) => option.value === item.value) === index
+  )
 
   useEffect(() => {
     if (open) {
@@ -676,7 +694,9 @@ function InternationalizationModal({
     }
   }, [initialData, open])
 
-  if (!open) return null
+  if (!open) {
+    return null
+  }
 
   function updateField<K extends keyof InternationalizationPayload>(
     field: K,
@@ -746,10 +766,10 @@ function InternationalizationModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[820px] max-h-[90vh] overflow-y-auto bg-card border border-border rounded-2xl p-5 shadow-neon">
-        <div className="flex items-start justify-between gap-4 mb-5">
+      <div className="w-full max-w-[820px] max-h-[90vh] overflow-y-auto app-scrollbar surface-premium rounded-2xl p-4 shadow-neon">
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span className="text-sm text-neon font-medium">
+            <span className="text-xs text-primary font-semibold uppercase tracking-wide">
               Internacionalização
             </span>
 
@@ -763,14 +783,15 @@ function InternationalizationModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-red-400 hover:text-red-300 transition shrink-0"
+            className="w-9 h-9 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
           >
             <X size={17} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <FormGroup title="País e identificação">
             <SelectField
               label="País cadastrado"
@@ -862,7 +883,7 @@ function InternationalizationModal({
 
             <TextField
               label="Nome do timezone"
-              placeholder="(UTC-03) América/São Paulo"
+              placeholder="Europa/Lisboa"
               value={form.timezoneLabel}
               onChange={(value) => updateField("timezoneLabel", value)}
               required
@@ -925,7 +946,7 @@ function InternationalizationModal({
           </FormGroup>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl px-4 py-3 text-sm">
+            <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl px-4 py-3 text-sm">
               {error}
             </div>
           )}
@@ -933,7 +954,7 @@ function InternationalizationModal({
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-neon text-black font-semibold py-3 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
           >
             {loading ? "Salvando..." : "Salvar configuração"}
           </button>
@@ -951,7 +972,7 @@ function FormGroup({
   children: ReactNode
 }) {
   return (
-    <fieldset className="bg-background border border-border rounded-2xl p-4">
+    <fieldset className="bg-cardSoft border border-border rounded-2xl p-4">
       <legend className="px-2 text-xs uppercase tracking-wide text-muted">
         {title}
       </legend>
@@ -985,7 +1006,7 @@ function TextField({
       </span>
 
       <input
-        className="w-full bg-card border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+        className="field-input bg-card"
         placeholder={placeholder}
         type={type}
         value={value}
@@ -1019,7 +1040,7 @@ function SelectField({
       </span>
 
       <select
-        className="w-full bg-card border border-border rounded-2xl px-4 py-2.5 outline-none focus:border-neon text-sm"
+        className="field-input bg-card"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         required={required}
@@ -1052,12 +1073,12 @@ function ToggleField({
         onClick={onChange}
         className={[
           "relative w-12 h-7 rounded-full transition-all",
-          value ? "bg-neon" : "bg-zinc-700",
+          value ? "bg-primary" : "bg-cardSoft border border-border",
         ].join(" ")}
       >
         <span
           className={[
-            "absolute top-1 w-5 h-5 rounded-full bg-white transition-all",
+            "absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-card",
             value ? "left-6" : "left-1",
           ].join(" ")}
         />

@@ -12,8 +12,17 @@ export const UserService = {
     return response.data.data
   },
 
+  async findById(id: string): Promise<User> {
+    const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`)
+    return response.data.data
+  },
+
   async create(payload: CreateUserRequest): Promise<User> {
-    const response = await apiClient.post<ApiResponse<User>>("/users", payload)
+    const response = await apiClient.post<ApiResponse<User>>(
+      "/users",
+      payload
+    )
+
     return response.data.data
   },
 
