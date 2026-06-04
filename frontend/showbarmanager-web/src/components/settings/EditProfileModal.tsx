@@ -1,6 +1,14 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { FormEvent, ReactNode } from "react"
-import { AlertTriangle, CheckCircle2, ShieldCheck, X } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  KeyRound,
+  ShieldCheck,
+  X,
+} from "lucide-react"
+import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
 import type { Profile, UpdateProfileRequest } from "../../types/profile.types"
 
@@ -24,8 +32,29 @@ export function EditProfileModal({
   const [priority, setPriority] = useState(0)
   const [active, setActive] = useState(true)
   const [systemProfile, setSystemProfile] = useState(false)
+  const [permissionIds, setPermissionIds] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { data: permissions = [] } = useQuery({
+    queryKey: ["profile-edit-modal-permissions"],
+    queryFn: PermissionService.findAll,
+    enabled: open,
+  })
+
+  const permissionOptions = useMemo(() => {
+    return permissions
+      .filter((permission) => permission.active)
+      .sort((a, b) => {
+        const moduleCompare = a.module.localeCompare(b.module)
+
+        if (moduleCompare !== 0) {
+          return moduleCompare
+        }
+
+        return a.action.localeCompare(b.action)
+      })
+  }, [permissions])
 
   useEffect(() => {
     if (!open || !profile) {
@@ -39,12 +68,21 @@ export function EditProfileModal({
     setPriority(Number(profile.priority || 0))
     setActive(Boolean(profile.active))
     setSystemProfile(Boolean(profile.systemProfile))
+    setPermissionIds(profile.permissionIds ?? [])
     setLoading(false)
     setError(null)
   }, [open, profile])
 
   if (!open || !profile) {
     return null
+  }
+
+  function togglePermission(permissionId: string) {
+    setPermissionIds((current) =>
+      current.includes(permissionId)
+        ? current.filter((item) => item !== permissionId)
+        : [...current, permissionId]
+    )
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -71,6 +109,7 @@ export function EditProfileModal({
         active,
         systemProfile,
         priority,
+        permissionIds,
       }
 
       await ProfileService.update(profileId, payload)
@@ -86,7 +125,7 @@ export function EditProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[600px] max-h-[90vh] overflow-y-auto app-scrollbar surface-premium rounded-2xl p-4 shadow-neon">
+      <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto app-scrollbar surface-premium rounded-2xl p-4 shadow-neon">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs text-primary font-semibold uppercase tracking-wide">
@@ -98,7 +137,7 @@ export function EditProfileModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Atualize os dados, prioridade e status do perfil selecionado.
+              Atualize os dados, prioridade, status e permissões do perfil selecionado.
             </p>
           </div>
 
@@ -177,6 +216,19 @@ export function EditProfileModal({
             </div>
           </section>
 
+          <SelectionPanel
+            title="Permissões vinculadas"
+            description="Selecione as permissões herdadas por este perfil."
+            emptyLabel="Nenhuma permissão ativa encontrada."
+            items={permissionOptions.map((permission) => ({
+              id: permission.id,
+              code: permission.code,
+              label: `${permission.module} · ${permission.action}`,
+            }))}
+            selectedIds={permissionIds}
+            onToggle={togglePermission}
+          />
+
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
               label="Perfil ativo"
@@ -251,6 +303,87 @@ function Field({
 
       {children}
     </label>
+  )
+}
+
+function SelectionPanel({
+  title,
+  description,
+  emptyLabel,
+  items,
+  selectedIds,
+  onToggle,
+}: {
+  title: string
+  description: string
+  emptyLabel: string
+  items: Array<{
+    id: string
+    code: string
+    label: string
+  }>
+  selectedIds: string[]
+  onToggle: (id: string) => void
+}) {
+  return (
+    <section className="surface-muted rounded-2xl p-3">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div>
+          <p className="text-sm font-semibold">
+            {title}
+          </p>
+
+          <p className="text-xs text-muted mt-0.5">
+            {description}
+          </p>
+        </div>
+
+        <span className="text-xs text-primary font-semibold">
+          {selectedIds.length}
+        </span>
+      </div>
+
+      <div className="max-h-36 overflow-y-auto app-scrollbar grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1">
+        {items.length > 0 ? (
+          items.map((item) => {
+            const selected = selectedIds.includes(item.id)
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onToggle(item.id)}
+                className={[
+                  "text-left rounded-xl border px-3 py-2 transition text-xs",
+                  selected
+                    ? "bg-primary text-white border-primary font-semibold"
+                    : "bg-card border-border text-muted hover:text-text hover:border-primary/60",
+                ].join(" ")}
+              >
+                <span className="flex items-center gap-1.5">
+                  <KeyRound size={12} />
+                  {item.label}
+                </span>
+
+                <span
+                  className={
+                    selected
+                      ? "block mt-1 text-white/75"
+                      : "block mt-1 text-muted"
+                  }
+                >
+                  {item.code}
+                </span>
+              </button>
+            )
+          })
+        ) : (
+          <span className="text-xs text-muted">
+            {emptyLabel}
+          </span>
+        )}
+      </div>
+    </section>
   )
 }
 

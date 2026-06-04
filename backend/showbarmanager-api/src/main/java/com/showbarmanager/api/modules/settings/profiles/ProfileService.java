@@ -2,23 +2,34 @@ package com.showbarmanager.api.modules.settings.profiles;
 
 import com.showbarmanager.api.exceptions.BusinessException;
 import com.showbarmanager.api.exceptions.ResourceNotFoundException;
+import com.showbarmanager.api.modules.settings.permissions.Permission;
+import com.showbarmanager.api.modules.settings.permissions.PermissionRepository;
 import com.showbarmanager.api.modules.settings.profiles.dto.CreateProfileRequest;
 import com.showbarmanager.api.modules.settings.profiles.dto.ProfileResponse;
 import com.showbarmanager.api.modules.settings.profiles.dto.UpdateProfileRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
+    private final PermissionRepository permissionRepository;
 
-    public ProfileService(ProfileRepository profileRepository) {
+    public ProfileService(
+            ProfileRepository profileRepository,
+            PermissionRepository permissionRepository
+    ) {
         this.profileRepository = profileRepository;
+        this.permissionRepository = permissionRepository;
     }
 
+    @Transactional
     public ProfileResponse create(CreateProfileRequest request) {
         String normalizedCode = normalizeCode(request.getCode());
 
@@ -28,17 +39,19 @@ public class ProfileService {
 
         Profile profile = new Profile();
         profile.setCode(normalizedCode);
-        profile.setName(request.getName());
+        profile.setName(request.getName().trim());
         profile.setDescription(request.getDescription());
         profile.setActive(request.getActive() != null ? request.getActive() : true);
         profile.setSystemProfile(request.getSystemProfile() != null ? request.getSystemProfile() : false);
         profile.setPriority(request.getPriority() != null ? request.getPriority() : 0);
+        profile.setPermissions(resolvePermissions(request.getPermissionIds()));
 
         Profile savedProfile = profileRepository.save(profile);
 
         return toResponse(savedProfile);
     }
 
+    @Transactional(readOnly = true)
     public List<ProfileResponse> findAll() {
         return profileRepository.findAll()
                 .stream()
@@ -46,16 +59,18 @@ public class ProfileService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public ProfileResponse findById(UUID id) {
         Profile profile = findProfileById(id);
 
         return toResponse(profile);
     }
 
+    @Transactional
     public ProfileResponse update(UUID id, UpdateProfileRequest request) {
         Profile profile = findProfileById(id);
 
-        profile.setName(request.getName());
+        profile.setName(request.getName().trim());
         profile.setDescription(request.getDescription());
 
         if (request.getActive() != null) {
@@ -70,11 +85,14 @@ public class ProfileService {
             profile.setPriority(request.getPriority());
         }
 
+        profile.setPermissions(resolvePermissions(request.getPermissionIds()));
+
         Profile savedProfile = profileRepository.save(profile);
 
         return toResponse(savedProfile);
     }
 
+    @Transactional
     public void delete(UUID id) {
         Profile profile = findProfileById(id);
 
@@ -88,6 +106,21 @@ public class ProfileService {
     private Profile findProfileById(UUID id) {
         return profileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil não encontrado."));
+    }
+
+    private Set<Permission> resolvePermissions(List<UUID> permissionIds) {
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        Set<UUID> uniquePermissionIds = new HashSet<>(permissionIds);
+        List<Permission> permissions = permissionRepository.findAllById(uniquePermissionIds);
+
+        if (permissions.size() != uniquePermissionIds.size()) {
+            throw new BusinessException("Uma ou mais permissões informadas não foram encontradas.");
+        }
+
+        return new HashSet<>(permissions);
     }
 
     private String normalizeCode(String code) {
@@ -104,6 +137,12 @@ public class ProfileService {
         response.setActive(profile.getActive());
         response.setSystemProfile(profile.getSystemProfile());
         response.setPriority(profile.getPriority());
+        response.setPermissionIds(
+                profile.getPermissions()
+                        .stream()
+                        .map(Permission::getId)
+                        .toList()
+        );
         response.setCreatedAt(profile.getCreatedAt());
         response.setUpdatedAt(profile.getUpdatedAt());
 

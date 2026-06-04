@@ -6,6 +6,7 @@ export interface Profile {
   active: boolean
   systemProfile: boolean
   priority: number
+  permissionIds?: string[]
   createdAt: string
   updatedAt: string | null
 }
@@ -17,6 +18,7 @@ export interface CreateProfileRequest {
   active: boolean
   systemProfile: boolean
   priority: number
+  permissionIds?: string[]
 }
 
 export interface UpdateProfileRequest {
@@ -25,4 +27,5 @@ export interface UpdateProfileRequest {
   active: boolean
   systemProfile: boolean
   priority: number
+  permissionIds?: string[]
 }

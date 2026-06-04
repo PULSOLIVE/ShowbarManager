@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Crown,
   Edit,
+  KeyRound,
   Plus,
   RefreshCcw,
   Search,
@@ -49,11 +50,14 @@ export function SettingsProfilesPage() {
     const term = search.trim().toLowerCase()
 
     return profiles.filter((profile) => {
+      const permissions = (profile.permissionIds ?? []).join(" ").toLowerCase()
+
       const matchesSearch =
         !term ||
         profile.name.toLowerCase().includes(term) ||
         profile.code.toLowerCase().includes(term) ||
-        (profile.description || "").toLowerCase().includes(term)
+        (profile.description || "").toLowerCase().includes(term) ||
+        permissions.includes(term)
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -116,7 +120,7 @@ export function SettingsProfilesPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão completa de perfis, grupos, hierarquias e níveis de acesso.
+            Gestão completa de perfis, grupos, hierarquias, permissões e níveis de acesso.
           </p>
         </div>
 
@@ -141,7 +145,7 @@ export function SettingsProfilesPage() {
           <Search size={15} className="text-muted shrink-0" />
 
           <input
-            placeholder="Pesquisar por nome, código ou descrição..."
+            placeholder="Pesquisar por nome, código, descrição ou permissões..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="bg-transparent outline-none w-full text-sm placeholder:text-muted"
@@ -228,12 +232,19 @@ export function SettingsProfilesPage() {
                 {profile.description || "Perfil do ecossistema"}
               </p>
 
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <InfoBox label="Prioridade" value={String(profile.priority)} />
+
                 <InfoBox
                   label="Tipo"
                   value={profile.systemProfile ? "Sistema" : "Customizado"}
                   icon={profile.systemProfile ? <ShieldCheck size={14} className="text-primary" /> : undefined}
+                />
+
+                <InfoBox
+                  label="Permissões"
+                  value={String(profile.permissionIds?.length || 0)}
+                  icon={<KeyRound size={14} className="text-primary" />}
                 />
               </div>
 

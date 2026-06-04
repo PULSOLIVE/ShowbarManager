@@ -1,8 +1,11 @@
 package com.showbarmanager.api.modules.settings.profiles;
 
+import com.showbarmanager.api.modules.settings.permissions.Permission;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -31,6 +34,14 @@ public class Profile {
     @Column(nullable = false)
     private Integer priority = 0;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "profile_permissions",
+        joinColumns = @JoinColumn(name = "profile_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions = new HashSet<>();
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -51,11 +62,19 @@ public class Profile {
         if (priority == null) {
             priority = 0;
         }
+
+        if (permissions == null) {
+            permissions = new HashSet<>();
+        }
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if (permissions == null) {
+            permissions = new HashSet<>();
+        }
     }
 
     public UUID getId() {
@@ -112,6 +131,14 @@ public class Profile {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
     }
 
     public LocalDateTime getCreatedAt() {

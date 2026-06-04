@@ -3,6 +3,10 @@ package com.showbarmanager.api.modules.settings.profiles.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 public class CreateProfileRequest {
 
     @NotBlank(message = "O código do perfil é obrigatório.")
@@ -21,6 +25,8 @@ public class CreateProfileRequest {
     private Boolean systemProfile = false;
 
     private Integer priority = 0;
+
+    private List<UUID> permissionIds = new ArrayList<>();
 
     public String getCode() {
         return code;
@@ -68,5 +74,13 @@ public class CreateProfileRequest {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public List<UUID> getPermissionIds() {
+        return permissionIds;
+    }
+
+    public void setPermissionIds(List<UUID> permissionIds) {
+        this.permissionIds = permissionIds != null ? permissionIds : new ArrayList<>();
     }
 }

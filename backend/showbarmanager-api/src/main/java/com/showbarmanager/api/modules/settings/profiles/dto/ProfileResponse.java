@@ -1,6 +1,8 @@
 package com.showbarmanager.api.modules.settings.profiles.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class ProfileResponse {
@@ -12,6 +14,7 @@ public class ProfileResponse {
     private Boolean active;
     private Boolean systemProfile;
     private Integer priority;
+    private List<UUID> permissionIds = new ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -69,6 +72,14 @@ public class ProfileResponse {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public List<UUID> getPermissionIds() {
+        return permissionIds;
+    }
+
+    public void setPermissionIds(List<UUID> permissionIds) {
+        this.permissionIds = permissionIds != null ? permissionIds : new ArrayList<>();
     }
 
     public LocalDateTime getCreatedAt() {
