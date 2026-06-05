@@ -3,6 +3,10 @@ package com.showbarmanager.api.modules.users.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 public class UpdateUserRequest {
 
     @NotBlank(message = "O nome é obrigatório.")
@@ -16,6 +20,8 @@ public class UpdateUserRequest {
     private String role;
 
     private Boolean active;
+
+    private List<UUID> profileIds = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -33,6 +39,10 @@ public class UpdateUserRequest {
         return active;
     }
 
+    public List<UUID> getProfileIds() {
+        return profileIds;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -47,5 +57,9 @@ public class UpdateUserRequest {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public void setProfileIds(List<UUID> profileIds) {
+        this.profileIds = profileIds;
     }
 }

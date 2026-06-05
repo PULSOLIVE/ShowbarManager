@@ -1,5 +1,6 @@
 package com.showbarmanager.api.modules.users;
 
+import com.showbarmanager.api.modules.settings.profiles.Profile;
 import com.showbarmanager.api.modules.tenants.Tenant;
 import jakarta.persistence.*;
 
@@ -45,6 +46,14 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_profiles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "profile_id")
+    )
+    private Set<Profile> profiles = new HashSet<>();
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -70,11 +79,27 @@ public class User {
         if (this.developerUser == null) {
             this.developerUser = false;
         }
+
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+        }
+
+        if (this.profiles == null) {
+            this.profiles = new HashSet<>();
+        }
     }
 
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+        }
+
+        if (this.profiles == null) {
+            this.profiles = new HashSet<>();
+        }
     }
 
     public UUID getId() {
@@ -111,6 +136,10 @@ public class User {
 
     public Set<Role> getRoles() {
         return roles;
+    }
+
+    public Set<Profile> getProfiles() {
+        return profiles;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -155,6 +184,10 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public void setProfiles(Set<Profile> profiles) {
+        this.profiles = profiles;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {

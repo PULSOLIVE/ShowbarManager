@@ -1,6 +1,8 @@
 package com.showbarmanager.api.modules.users.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,6 +23,10 @@ public class UserResponse {
     private Boolean developerUser;
 
     private Set<String> roles;
+
+    private List<UUID> profileIds = new ArrayList<>();
+
+    private Set<String> profiles;
 
     private LocalDateTime createdAt;
 
@@ -80,6 +86,22 @@ public class UserResponse {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
+    }
+
+    public List<UUID> getProfileIds() {
+        return profileIds;
+    }
+
+    public void setProfileIds(List<UUID> profileIds) {
+        this.profileIds = profileIds;
+    }
+
+    public Set<String> getProfiles() {
+        return profiles;
+    }
+
+    public void setProfiles(Set<String> profiles) {
+        this.profiles = profiles;
     }
 
     public LocalDateTime getCreatedAt() {

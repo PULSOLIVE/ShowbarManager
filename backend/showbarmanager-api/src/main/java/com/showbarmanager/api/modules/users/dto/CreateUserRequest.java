@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class CreateUserRequest {
@@ -23,6 +25,8 @@ public class CreateUserRequest {
 
     @NotBlank
     private String role;
+
+    private List<UUID> profileIds = new ArrayList<>();
 
     public UUID getTenantId() {
         return tenantId;
@@ -62,5 +66,13 @@ public class CreateUserRequest {
 
     public void setRole(@NotBlank String role) {
         this.role = role;
+    }
+
+    public List<UUID> getProfileIds() {
+        return profileIds;
+    }
+
+    public void setProfileIds(List<UUID> profileIds) {
+        this.profileIds = profileIds;
     }
 }

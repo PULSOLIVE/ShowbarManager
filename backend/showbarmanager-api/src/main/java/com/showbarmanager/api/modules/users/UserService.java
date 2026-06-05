@@ -2,6 +2,8 @@ package com.showbarmanager.api.modules.users;
 
 import com.showbarmanager.api.exceptions.BusinessException;
 import com.showbarmanager.api.exceptions.ResourceNotFoundException;
+import com.showbarmanager.api.modules.settings.profiles.Profile;
+import com.showbarmanager.api.modules.settings.profiles.ProfileRepository;
 import com.showbarmanager.api.modules.tenants.Tenant;
 import com.showbarmanager.api.modules.tenants.TenantRepository;
 import com.showbarmanager.api.modules.users.dto.CreateUserRequest;
@@ -9,6 +11,7 @@ import com.showbarmanager.api.modules.users.dto.UpdateUserRequest;
 import com.showbarmanager.api.modules.users.dto.UserResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,22 +25,28 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
+    private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
             UserRepository userRepository,
             RoleRepository roleRepository,
             TenantRepository tenantRepository,
+            ProfileRepository profileRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
+        this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public UserResponse create(CreateUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException("Já existe um usuário com este e-mail.");
         }
 
@@ -49,10 +58,11 @@ public class UserService {
 
         User user = new User();
         user.setTenant(tenant);
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setName(request.getName().trim());
+        user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(new HashSet<>(Set.of(role)));
+        user.setProfiles(resolveProfiles(request.getProfileIds()));
         user.setActive(true);
 
         applySpecialUserFlags(user, role);
@@ -62,6 +72,7 @@ public class UserService {
         return toResponse(savedUser);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
         return userRepository.findAll()
                 .stream()
@@ -69,29 +80,31 @@ public class UserService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public UserResponse findById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+        User user = findUserById(id);
 
         return toResponse(user);
     }
 
+    @Transactional
     public UserResponse update(UUID id, UpdateUserRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+        User user = findUserById(id);
 
-        boolean emailChanged = !user.getEmail().equalsIgnoreCase(request.getEmail());
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+        boolean emailChanged = !user.getEmail().equalsIgnoreCase(normalizedEmail);
 
-        if (emailChanged && userRepository.existsByEmail(request.getEmail())) {
+        if (emailChanged && userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException("Já existe outro usuário com este e-mail.");
         }
 
         Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new ResourceNotFoundException("Role não encontrada."));
 
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setName(request.getName().trim());
+        user.setEmail(normalizedEmail);
         user.setRoles(new HashSet<>(Set.of(role)));
+        user.setProfiles(resolveProfiles(request.getProfileIds()));
 
         if (request.getActive() != null) {
             user.setActive(request.getActive());
@@ -107,11 +120,31 @@ public class UserService {
         return toResponse(savedUser);
     }
 
+    @Transactional
     public void delete(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+        User user = findUserById(id);
 
         userRepository.delete(user);
+    }
+
+    private User findUserById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+    }
+
+    private Set<Profile> resolveProfiles(List<UUID> profileIds) {
+        if (profileIds == null || profileIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        Set<UUID> uniqueProfileIds = new HashSet<>(profileIds);
+        List<Profile> profiles = profileRepository.findAllById(uniqueProfileIds);
+
+        if (profiles.size() != uniqueProfileIds.size()) {
+            throw new BusinessException("Um ou mais perfis informados não foram encontrados.");
+        }
+
+        return new HashSet<>(profiles);
     }
 
     private void applySpecialUserFlags(User user, Role role) {
@@ -141,6 +174,20 @@ public class UserService {
                 user.getRoles()
                         .stream()
                         .map(Role::getName)
+                        .collect(Collectors.toSet())
+        );
+
+        response.setProfileIds(
+                user.getProfiles()
+                        .stream()
+                        .map(Profile::getId)
+                        .toList()
+        );
+
+        response.setProfiles(
+                user.getProfiles()
+                        .stream()
+                        .map(Profile::getCode)
                         .collect(Collectors.toSet())
         );
 
