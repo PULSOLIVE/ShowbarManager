@@ -28,6 +28,8 @@ public class CreateUserRequest {
 
     private List<UUID> profileIds = new ArrayList<>();
 
+    private List<UUID> permissionIds = new ArrayList<>();
+
     public UUID getTenantId() {
         return tenantId;
     }
@@ -74,5 +76,13 @@ public class CreateUserRequest {
 
     public void setProfileIds(List<UUID> profileIds) {
         this.profileIds = profileIds;
+    }
+
+    public List<UUID> getPermissionIds() {
+        return permissionIds;
+    }
+
+    public void setPermissionIds(List<UUID> permissionIds) {
+        this.permissionIds = permissionIds;
     }
 }

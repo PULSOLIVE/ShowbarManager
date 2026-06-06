@@ -28,6 +28,10 @@ public class UserResponse {
 
     private Set<String> profiles;
 
+    private List<UUID> permissionIds = new ArrayList<>();
+
+    private Set<String> permissions;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -102,6 +106,22 @@ public class UserResponse {
 
     public void setProfiles(Set<String> profiles) {
         this.profiles = profiles;
+    }
+
+    public List<UUID> getPermissionIds() {
+        return permissionIds;
+    }
+
+    public void setPermissionIds(List<UUID> permissionIds) {
+        this.permissionIds = permissionIds;
+    }
+
+    public Set<String> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<String> permissions) {
+        this.permissions = permissions;
     }
 
     public LocalDateTime getCreatedAt() {

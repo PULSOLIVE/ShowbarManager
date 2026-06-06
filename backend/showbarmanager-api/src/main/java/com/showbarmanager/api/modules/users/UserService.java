@@ -2,6 +2,8 @@ package com.showbarmanager.api.modules.users;
 
 import com.showbarmanager.api.exceptions.BusinessException;
 import com.showbarmanager.api.exceptions.ResourceNotFoundException;
+import com.showbarmanager.api.modules.settings.permissions.Permission;
+import com.showbarmanager.api.modules.settings.permissions.PermissionRepository;
 import com.showbarmanager.api.modules.settings.profiles.Profile;
 import com.showbarmanager.api.modules.settings.profiles.ProfileRepository;
 import com.showbarmanager.api.modules.tenants.Tenant;
@@ -26,6 +28,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
     private final ProfileRepository profileRepository;
+    private final PermissionRepository permissionRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
@@ -33,12 +36,14 @@ public class UserService {
             RoleRepository roleRepository,
             TenantRepository tenantRepository,
             ProfileRepository profileRepository,
+            PermissionRepository permissionRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
         this.profileRepository = profileRepository;
+        this.permissionRepository = permissionRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -63,6 +68,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(new HashSet<>(Set.of(role)));
         user.setProfiles(resolveProfiles(request.getProfileIds()));
+        user.setPermissions(resolvePermissions(request.getPermissionIds()));
         user.setActive(true);
 
         applySpecialUserFlags(user, role);
@@ -105,6 +111,7 @@ public class UserService {
         user.setEmail(normalizedEmail);
         user.setRoles(new HashSet<>(Set.of(role)));
         user.setProfiles(resolveProfiles(request.getProfileIds()));
+        user.setPermissions(resolvePermissions(request.getPermissionIds()));
 
         if (request.getActive() != null) {
             user.setActive(request.getActive());
@@ -145,6 +152,21 @@ public class UserService {
         }
 
         return new HashSet<>(profiles);
+    }
+
+    private Set<Permission> resolvePermissions(List<UUID> permissionIds) {
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        Set<UUID> uniquePermissionIds = new HashSet<>(permissionIds);
+        List<Permission> permissions = permissionRepository.findAllById(uniquePermissionIds);
+
+        if (permissions.size() != uniquePermissionIds.size()) {
+            throw new BusinessException("Uma ou mais permissões informadas não foram encontradas.");
+        }
+
+        return new HashSet<>(permissions);
     }
 
     private void applySpecialUserFlags(User user, Role role) {
@@ -188,6 +210,20 @@ public class UserService {
                 user.getProfiles()
                         .stream()
                         .map(Profile::getCode)
+                        .collect(Collectors.toSet())
+        );
+
+        response.setPermissionIds(
+                user.getPermissions()
+                        .stream()
+                        .map(Permission::getId)
+                        .toList()
+        );
+
+        response.setPermissions(
+                user.getPermissions()
+                        .stream()
+                        .map(Permission::getCode)
                         .collect(Collectors.toSet())
         );
 

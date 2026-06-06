@@ -23,6 +23,8 @@ public class UpdateUserRequest {
 
     private List<UUID> profileIds = new ArrayList<>();
 
+    private List<UUID> permissionIds = new ArrayList<>();
+
     public String getName() {
         return name;
     }
@@ -43,6 +45,10 @@ public class UpdateUserRequest {
         return profileIds;
     }
 
+    public List<UUID> getPermissionIds() {
+        return permissionIds;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -61,5 +67,9 @@ public class UpdateUserRequest {
 
     public void setProfileIds(List<UUID> profileIds) {
         this.profileIds = profileIds;
+    }
+
+    public void setPermissionIds(List<UUID> permissionIds) {
+        this.permissionIds = permissionIds;
     }
 }

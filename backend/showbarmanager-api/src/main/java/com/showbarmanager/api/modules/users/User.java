@@ -1,5 +1,6 @@
 package com.showbarmanager.api.modules.users;
 
+import com.showbarmanager.api.modules.settings.permissions.Permission;
 import com.showbarmanager.api.modules.settings.profiles.Profile;
 import com.showbarmanager.api.modules.tenants.Tenant;
 import jakarta.persistence.*;
@@ -54,6 +55,14 @@ public class User {
     )
     private Set<Profile> profiles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_permissions",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions = new HashSet<>();
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -87,6 +96,10 @@ public class User {
         if (this.profiles == null) {
             this.profiles = new HashSet<>();
         }
+
+        if (this.permissions == null) {
+            this.permissions = new HashSet<>();
+        }
     }
 
     @PreUpdate
@@ -99,6 +112,10 @@ public class User {
 
         if (this.profiles == null) {
             this.profiles = new HashSet<>();
+        }
+
+        if (this.permissions == null) {
+            this.permissions = new HashSet<>();
         }
     }
 
@@ -140,6 +157,10 @@ public class User {
 
     public Set<Profile> getProfiles() {
         return profiles;
+    }
+
+    public Set<Permission> getPermissions() {
+        return permissions;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -188,6 +209,10 @@ public class User {
 
     public void setProfiles(Set<Profile> profiles) {
         this.profiles = profiles;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
