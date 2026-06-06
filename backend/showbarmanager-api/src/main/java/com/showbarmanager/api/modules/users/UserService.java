@@ -179,6 +179,26 @@ public class UserService {
         }
     }
 
+    private Set<String> resolveEffectivePermissions(User user) {
+        Set<String> effectivePermissions = new HashSet<>();
+
+        user.getProfiles()
+                .stream()
+                .filter(profile -> Boolean.TRUE.equals(profile.getActive()))
+                .flatMap(profile -> profile.getPermissions().stream())
+                .filter(permission -> Boolean.TRUE.equals(permission.getActive()))
+                .map(Permission::getCode)
+                .forEach(effectivePermissions::add);
+
+        user.getPermissions()
+                .stream()
+                .filter(permission -> Boolean.TRUE.equals(permission.getActive()))
+                .map(Permission::getCode)
+                .forEach(effectivePermissions::add);
+
+        return effectivePermissions;
+    }
+
     private UserResponse toResponse(User user) {
         UserResponse response = new UserResponse();
 
@@ -226,6 +246,8 @@ public class UserService {
                         .map(Permission::getCode)
                         .collect(Collectors.toSet())
         );
+
+        response.setEffectivePermissions(resolveEffectivePermissions(user));
 
         return response;
     }

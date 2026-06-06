@@ -32,6 +32,8 @@ public class UserResponse {
 
     private Set<String> permissions;
 
+    private Set<String> effectivePermissions;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -122,6 +124,14 @@ public class UserResponse {
 
     public void setPermissions(Set<String> permissions) {
         this.permissions = permissions;
+    }
+
+    public Set<String> getEffectivePermissions() {
+        return effectivePermissions;
+    }
+
+    public void setEffectivePermissions(Set<String> effectivePermissions) {
+        this.effectivePermissions = effectivePermissions;
     }
 
     public LocalDateTime getCreatedAt() {

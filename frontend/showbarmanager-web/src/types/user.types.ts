@@ -7,7 +7,9 @@ export interface User {
   masterUser: boolean
   developerUser: boolean
   roles: string[]
+  profiles?: string[]
   permissions?: string[]
+  effectivePermissions?: string[]
   profileIds?: string[]
   permissionIds?: string[]
   createdAt: string

@@ -19,10 +19,6 @@ import { UserService } from "../../services/user.service"
 import { useAuthStore } from "../../store/auth.store"
 import type { User } from "../../types/user.types"
 
-type UserWithPermissions = User & {
-  permissions?: string[]
-}
-
 export function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -63,23 +59,28 @@ export function UsersPage() {
     const searchTerm = search.trim().toLowerCase()
 
     return data.filter((user) => {
-      const current = user as UserWithPermissions
-      const roles = (current.roles ?? []).join(" ").toLowerCase()
-      const permissions = (current.permissions ?? []).join(" ").toLowerCase()
+      const roles = (user.roles ?? []).join(" ").toLowerCase()
+      const profiles = (user.profiles ?? []).join(" ").toLowerCase()
+      const permissions = (user.permissions ?? []).join(" ").toLowerCase()
+      const effectivePermissions = (user.effectivePermissions ?? [])
+        .join(" ")
+        .toLowerCase()
 
       const matchesSearch =
         !searchTerm ||
-        current.name.toLowerCase().includes(searchTerm) ||
-        current.email.toLowerCase().includes(searchTerm) ||
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm) ||
         roles.includes(searchTerm) ||
-        permissions.includes(searchTerm)
+        profiles.includes(searchTerm) ||
+        permissions.includes(searchTerm) ||
+        effectivePermissions.includes(searchTerm)
 
       const matchesStatus =
         statusFilter === "all" ||
-        (statusFilter === "active" && current.active) ||
-        (statusFilter === "inactive" && !current.active) ||
-        (statusFilter === "master" && current.masterUser) ||
-        (statusFilter === "developer" && current.developerUser)
+        (statusFilter === "active" && user.active) ||
+        (statusFilter === "inactive" && !user.active) ||
+        (statusFilter === "master" && user.masterUser) ||
+        (statusFilter === "developer" && user.developerUser)
 
       return matchesSearch && matchesStatus
     })
@@ -140,7 +141,7 @@ export function UsersPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão de usuários, perfis, permissões e acessos da plataforma.
+            Gestão de usuários, perfis, permissões diretas e permissões efetivas da plataforma.
           </p>
         </div>
 
@@ -211,125 +212,127 @@ export function UsersPage() {
 
       {!isLoading && !isError && (
         <section className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
-          {filteredUsers.map((user) => {
-            const current = user as UserWithPermissions
+          {filteredUsers.map((user) => (
+            <article
+              key={user.id}
+              className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="icon-tile">
+                    {user.masterUser ? (
+                      <Crown size={19} />
+                    ) : (
+                      <UserCircle size={20} />
+                    )}
+                  </div>
 
-            return (
-              <article
-                key={current.id}
-                className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="icon-tile">
-                      {current.masterUser ? (
-                        <Crown size={19} />
-                      ) : (
-                        <UserCircle size={20} />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h3 className="text-base font-semibold truncate">
+                        {user.name}
+                      </h3>
+
+                      {user.id === currentUserId && (
+                        <span className="text-[11px] bg-primarySoft text-primary rounded-full px-2 py-0.5 shrink-0">
+                          Você
+                        </span>
                       )}
                     </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <h3 className="text-base font-semibold truncate">
-                          {current.name}
-                        </h3>
-
-                        {current.id === currentUserId && (
-                          <span className="text-[11px] bg-primarySoft text-primary rounded-full px-2 py-0.5 shrink-0">
-                            Você
-                          </span>
-                        )}
-                      </div>
-
-                      <p className="text-xs text-muted mt-1 truncate">
-                        {current.email}
-                      </p>
-                    </div>
+                    <p className="text-xs text-muted mt-1 truncate">
+                      {user.email}
+                    </p>
                   </div>
-
-                  {current.active ? (
-                    <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
-                      <CheckCircle2 size={14} />
-                      Ativo
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
-                      <XCircle size={14} />
-                      Inativo
-                    </span>
-                  )}
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <InfoBox
-                    label="Tipo"
-                    value={
-                      current.masterUser
-                        ? "Usuário Master"
-                        : current.developerUser
-                          ? "Desenvolvedor"
-                          : "Usuário comum"
-                    }
-                    icon={
-                      current.masterUser || current.developerUser ? (
-                        <Crown size={14} className="text-primary" />
-                      ) : undefined
-                    }
-                  />
-
-                  <InfoBox label="ID" value={current.id.slice(0, 8)} />
-                </div>
-
-                <AccessBox
-                  title="Perfis"
-                  emptyLabel="Nenhum perfil vinculado"
-                  items={current.roles ?? []}
-                />
-
-                <AccessBox
-                  title="Permissões extras"
-                  emptyLabel="Nenhuma permissão extra"
-                  items={current.permissions ?? []}
-                />
-
-                <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
-                  <span className="text-xs text-muted truncate">
-                    {current.email}
+                {user.active ? (
+                  <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
+                    <CheckCircle2 size={14} />
+                    Ativo
                   </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
+                    <XCircle size={14} />
+                    Inativo
+                  </span>
+                )}
+              </div>
 
-                  {canManageUsers() && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => handleEdit(current)}
-                        className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-                        title="Alterar"
-                      >
-                        <Edit size={14} />
-                      </button>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <InfoBox
+                  label="Tipo"
+                  value={
+                    user.masterUser
+                      ? "Usuário Master"
+                      : user.developerUser
+                        ? "Desenvolvedor"
+                        : "Usuário comum"
+                  }
+                  icon={
+                    user.masterUser || user.developerUser ? (
+                      <Crown size={14} className="text-primary" />
+                    ) : undefined
+                  }
+                />
 
-                      <button
-                        onClick={() => {
-                          handleDelete(current).catch(() => {
-                            alert("Erro inesperado ao excluir usuário.")
-                          })
-                        }}
-                        disabled={
-                          deleteLoadingId === current.id ||
-                          current.id === currentUserId ||
-                          current.masterUser
-                        }
-                        className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Excluir"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            )
-          })}
+                <InfoBox label="ID" value={user.id.slice(0, 8)} />
+              </div>
+
+              <AccessBox
+                title="Perfis"
+                emptyLabel="Nenhum perfil vinculado"
+                items={user.profiles ?? user.roles ?? []}
+              />
+
+              <AccessBox
+                title="Permissões diretas"
+                emptyLabel="Nenhuma permissão direta"
+                items={user.permissions ?? []}
+              />
+
+              <AccessBox
+                title="Permissões efetivas"
+                emptyLabel="Nenhuma permissão efetiva"
+                items={user.effectivePermissions ?? []}
+              />
+
+              <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
+                <span className="text-xs text-muted truncate">
+                  {user.email}
+                </span>
+
+                {canManageUsers() && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleEdit(user)}
+                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
+                      title="Alterar"
+                    >
+                      <Edit size={14} />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleDelete(user).catch(() => {
+                          alert("Erro inesperado ao excluir usuário.")
+                        })
+                      }}
+                      disabled={
+                        deleteLoadingId === user.id ||
+                        user.id === currentUserId ||
+                        user.masterUser
+                      }
+                      className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Excluir"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
 
           {filteredUsers.length === 0 && (
             <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
