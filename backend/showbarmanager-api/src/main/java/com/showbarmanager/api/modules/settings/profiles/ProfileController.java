@@ -4,6 +4,7 @@ import com.showbarmanager.api.modules.settings.profiles.dto.CreateProfileRequest
 import com.showbarmanager.api.modules.settings.profiles.dto.ProfileResponse;
 import com.showbarmanager.api.modules.settings.profiles.dto.UpdateProfileRequest;
 import com.showbarmanager.api.responses.ApiResponse;
+import com.showbarmanager.api.security.RequirePermission;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class ProfileController {
     }
 
     @PostMapping
+    @RequirePermission("PROFILES_CREATE")
     public ApiResponse<ProfileResponse> create(@Valid @RequestBody CreateProfileRequest request) {
         return new ApiResponse<>(
                 true,
@@ -30,6 +32,7 @@ public class ProfileController {
     }
 
     @GetMapping
+    @RequirePermission("PROFILES_VIEW")
     public ApiResponse<List<ProfileResponse>> findAll() {
         return new ApiResponse<>(
                 true,
@@ -39,6 +42,7 @@ public class ProfileController {
     }
 
     @GetMapping("/{id}")
+    @RequirePermission("PROFILES_VIEW")
     public ApiResponse<ProfileResponse> findById(@PathVariable UUID id) {
         return new ApiResponse<>(
                 true,
@@ -48,6 +52,7 @@ public class ProfileController {
     }
 
     @PutMapping("/{id}")
+    @RequirePermission("PROFILES_UPDATE")
     public ApiResponse<ProfileResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProfileRequest request
@@ -60,6 +65,7 @@ public class ProfileController {
     }
 
     @DeleteMapping("/{id}")
+    @RequirePermission("PROFILES_DELETE")
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         profileService.delete(id);
 

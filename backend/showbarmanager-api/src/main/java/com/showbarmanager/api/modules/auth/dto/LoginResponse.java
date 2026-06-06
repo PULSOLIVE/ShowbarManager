@@ -1,5 +1,6 @@
 package com.showbarmanager.api.modules.auth.dto;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,6 +19,8 @@ public class LoginResponse {
     private String email;
 
     private Set<String> roles;
+
+    private Set<String> effectivePermissions = new HashSet<>();
 
     private Boolean masterUser;
 
@@ -49,6 +52,10 @@ public class LoginResponse {
 
     public Set<String> getRoles() {
         return roles;
+    }
+
+    public Set<String> getEffectivePermissions() {
+        return effectivePermissions;
     }
 
     public Boolean getMasterUser() {
@@ -85,6 +92,10 @@ public class LoginResponse {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
+    }
+
+    public void setEffectivePermissions(Set<String> effectivePermissions) {
+        this.effectivePermissions = effectivePermissions;
     }
 
     public void setMasterUser(Boolean masterUser) {

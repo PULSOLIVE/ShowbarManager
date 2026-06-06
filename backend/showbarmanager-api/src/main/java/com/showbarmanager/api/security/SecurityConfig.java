@@ -59,31 +59,7 @@ public class SecurityConfig {
                                 "/v3/docs-api/**"
                         ).permitAll()
 
-                        .requestMatchers(
-                                "/api/v1/settings",
-                                "/api/v1/settings/**"
-                        ).hasAnyAuthority(
-                                "ROLE_ADMIN_MASTER",
-                                "ROLE_DEVELOPER_MASTER"
-                        )
-
-                        .requestMatchers(
-                                "/api/v1/tenants",
-                                "/api/v1/tenants/**"
-                        ).hasAnyAuthority(
-                                "ROLE_ADMIN_MASTER",
-                                "ROLE_DEVELOPER_MASTER",
-                                "ROLE_TENANT_ADMIN"
-                        )
-
-                        .requestMatchers(
-                                "/api/v1/users",
-                                "/api/v1/users/**"
-                        ).hasAnyAuthority(
-                                "ROLE_ADMIN_MASTER",
-                                "ROLE_DEVELOPER_MASTER",
-                                "ROLE_TENANT_ADMIN"
-                        )
+                        .requestMatchers("/api/v1/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

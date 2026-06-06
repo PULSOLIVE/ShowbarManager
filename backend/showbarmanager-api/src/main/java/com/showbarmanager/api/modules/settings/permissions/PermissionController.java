@@ -4,6 +4,7 @@ import com.showbarmanager.api.modules.settings.permissions.dto.CreatePermissionR
 import com.showbarmanager.api.modules.settings.permissions.dto.PermissionResponse;
 import com.showbarmanager.api.modules.settings.permissions.dto.UpdatePermissionRequest;
 import com.showbarmanager.api.responses.ApiResponse;
+import com.showbarmanager.api.security.RequirePermission;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class PermissionController {
     }
 
     @PostMapping
+    @RequirePermission("PERMISSIONS_CREATE")
     public ApiResponse<PermissionResponse> create(@Valid @RequestBody CreatePermissionRequest request) {
         return new ApiResponse<>(
                 true,
@@ -30,6 +32,7 @@ public class PermissionController {
     }
 
     @GetMapping
+    @RequirePermission("PERMISSIONS_VIEW")
     public ApiResponse<List<PermissionResponse>> findAll() {
         return new ApiResponse<>(
                 true,
@@ -39,6 +42,7 @@ public class PermissionController {
     }
 
     @GetMapping("/{id}")
+    @RequirePermission("PERMISSIONS_VIEW")
     public ApiResponse<PermissionResponse> findById(@PathVariable UUID id) {
         return new ApiResponse<>(
                 true,
@@ -48,6 +52,7 @@ public class PermissionController {
     }
 
     @PutMapping("/{id}")
+    @RequirePermission("PERMISSIONS_UPDATE")
     public ApiResponse<PermissionResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody UpdatePermissionRequest request
@@ -60,6 +65,7 @@ public class PermissionController {
     }
 
     @DeleteMapping("/{id}")
+    @RequirePermission("PERMISSIONS_DELETE")
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         permissionService.delete(id);
 

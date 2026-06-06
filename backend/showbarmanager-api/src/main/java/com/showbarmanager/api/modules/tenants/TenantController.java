@@ -4,6 +4,7 @@ import com.showbarmanager.api.modules.tenants.dto.CreateTenantRequest;
 import com.showbarmanager.api.modules.tenants.dto.TenantResponse;
 import com.showbarmanager.api.modules.tenants.dto.UpdateTenantRequest;
 import com.showbarmanager.api.responses.ApiResponse;
+import com.showbarmanager.api.security.RequirePermission;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class TenantController {
     }
 
     @PostMapping
+    @RequirePermission("TENANTS_CREATE")
     public ApiResponse<TenantResponse> create(
             @Valid @RequestBody CreateTenantRequest request
     ) {
@@ -32,6 +34,7 @@ public class TenantController {
     }
 
     @GetMapping
+    @RequirePermission("TENANTS_VIEW")
     public ApiResponse<List<TenantResponse>> findAll() {
         return new ApiResponse<>(
                 true,
@@ -41,6 +44,7 @@ public class TenantController {
     }
 
     @GetMapping("/{id}")
+    @RequirePermission("TENANTS_VIEW")
     public ApiResponse<TenantResponse> findById(@PathVariable UUID id) {
         return new ApiResponse<>(
                 true,
@@ -50,6 +54,7 @@ public class TenantController {
     }
 
     @PutMapping("/{id}")
+    @RequirePermission("TENANTS_UPDATE")
     public ApiResponse<TenantResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateTenantRequest request
@@ -62,6 +67,7 @@ public class TenantController {
     }
 
     @DeleteMapping("/{id}")
+    @RequirePermission("TENANTS_DELETE")
     public ApiResponse<Void> delete(@PathVariable UUID id) {
         tenantService.delete(id);
 

@@ -7,9 +7,11 @@ import com.showbarmanager.api.modules.users.User;
 import com.showbarmanager.api.modules.users.UserRepository;
 import com.showbarmanager.api.security.AuthLoggingService;
 import com.showbarmanager.api.security.JwtService;
+import com.showbarmanager.api.security.RbacAuthorityService;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
@@ -20,34 +22,40 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthLoggingService authLoggingService;
+    private final RbacAuthorityService rbacAuthorityService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            AuthLoggingService authLoggingService
+            AuthLoggingService authLoggingService,
+            RbacAuthorityService rbacAuthorityService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authLoggingService = authLoggingService;
+        this.rbacAuthorityService = rbacAuthorityService;
     }
 
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request, String ip) {
-        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+
+        User user = userRepository.findByEmail(normalizedEmail).orElse(null);
 
         if (user == null) {
-            authLoggingService.loginFailure(request.getEmail(), ip, "USER_NOT_FOUND");
+            authLoggingService.loginFailure(normalizedEmail, ip, "USER_NOT_FOUND");
             throw new BadCredentialsException("E-mail ou senha inválidos.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            authLoggingService.loginFailure(request.getEmail(), ip, "INVALID_PASSWORD");
+            authLoggingService.loginFailure(normalizedEmail, ip, "INVALID_PASSWORD");
             throw new BadCredentialsException("E-mail ou senha inválidos.");
         }
 
         if (!user.getActive()) {
-            authLoggingService.loginFailure(request.getEmail(), ip, "USER_INACTIVE");
+            authLoggingService.loginFailure(normalizedEmail, ip, "USER_INACTIVE");
             throw new BadCredentialsException("Usuário inativo.");
         }
 
@@ -72,6 +80,9 @@ public class AuthService {
                         .stream()
                         .map(Role::getName)
                         .collect(Collectors.toSet())
+        );
+        response.setEffectivePermissions(
+                rbacAuthorityService.resolveEffectivePermissionCodes(user)
         );
 
         return response;

@@ -2,6 +2,7 @@ package com.showbarmanager.api.modules.users.dto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -32,7 +33,7 @@ public class UserResponse {
 
     private Set<String> permissions;
 
-    private Set<String> effectivePermissions;
+    private Set<String> effectivePermissions = new HashSet<>();
 
     private LocalDateTime createdAt;
 
