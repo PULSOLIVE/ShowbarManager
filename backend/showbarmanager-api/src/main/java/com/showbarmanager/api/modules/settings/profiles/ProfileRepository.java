@@ -11,6 +11,7 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
     boolean existsByCode(String code);
 
+    @EntityGraph(attributePaths = "permissions")
     Optional<Profile> findByCode(String code);
 
     @Override
