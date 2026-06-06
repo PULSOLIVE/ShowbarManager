@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.13](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.12...v0.4.13) (2026-06-06)
+
+
+### Features
+
+* seed default RBAC roles profiles and permissions ([68b1cd5](https://github.com/PULSOLIVE/ShowbarManager/commit/68b1cd5092ed12fdf2bcbf0732ed31bd320e1cfe))
+
 ### [0.4.12](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.11...v0.4.12) (2026-06-06)
 
 
