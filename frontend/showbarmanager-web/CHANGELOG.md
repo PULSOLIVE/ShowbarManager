@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.2](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.5.1...v0.5.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* adjust multi ambiente labels and status badges ([6679eb7](https://github.com/PULSOLIVE/ShowbarManager/commit/6679eb752c0fae056f82feb3d898772e28fac432))
+
 ### [0.5.1](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.5.0-rbac-complete...v0.5.1) (2026-06-07)
 
 ### [0.4.14](https://github.com/PULSOLIVE/ShowbarManager/compare/v0.4.13...v0.4.14) (2026-06-06)
