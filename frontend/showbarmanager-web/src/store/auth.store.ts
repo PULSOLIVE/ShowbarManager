@@ -8,10 +8,13 @@ interface AuthState {
   userId: string | null
   isAuthenticated: boolean
   roles: string[]
+  permissions: string[]
   isMaster: boolean
   isDeveloper: boolean
   hasRole: (role: string) => boolean
   hasAnyRole: (roles: string[]) => boolean
+  hasPermission: (permission: string) => boolean
+  hasAnyPermission: (permissions: string[]) => boolean
   canManageTenants: () => boolean
   canManageUsers: () => boolean
   canViewSettings: () => boolean
@@ -23,17 +26,33 @@ interface AuthState {
   logout: () => void
 }
 
+type LoginResponseWithPermissions = LoginResponse & {
+  permissions?: string[]
+  effectivePermissions?: string[]
+}
+
 function normalizeRoles(roles: string[] = []) {
   return roles.map((role) => role.replace("ROLE_", ""))
 }
 
+function normalizePermissions(permissions: string[] = []) {
+  return permissions.map((permission) => permission.trim().toUpperCase())
+}
+
 function buildPermissions(user: LoginResponse | null) {
-  const roles = normalizeRoles(user?.roles || [])
+  const currentUser = user as LoginResponseWithPermissions | null
+  const roles = normalizeRoles(currentUser?.roles || [])
+  const permissions = normalizePermissions([
+    ...(currentUser?.permissions || []),
+    ...(currentUser?.effectivePermissions || []),
+  ])
 
   return {
     roles,
-    isMaster: !!user?.masterUser || roles.includes("ADMIN_MASTER"),
-    isDeveloper: !!user?.developerUser || roles.includes("DEVELOPER_MASTER"),
+    permissions,
+    isMaster: !!currentUser?.masterUser || roles.includes("ADMIN_MASTER"),
+    isDeveloper:
+      !!currentUser?.developerUser || roles.includes("DEVELOPER_MASTER"),
   }
 }
 
@@ -51,6 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userId: localStorage.getItem("showbar_user_id"),
   isAuthenticated: !!localStorage.getItem("showbar_token"),
   roles: [],
+  permissions: [],
   isMaster: false,
   isDeveloper: false,
 
@@ -59,14 +79,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hasAnyRole: (roles) =>
     roles.some((role) => get().roles.includes(role.replace("ROLE_", ""))),
 
+  hasPermission: (permission) => {
+    const state = get()
+
+    if (state.isMaster || state.isDeveloper) {
+      return true
+    }
+
+    return state.permissions.includes(permission.trim().toUpperCase())
+  },
+
+  hasAnyPermission: (permissions) => {
+    const state = get()
+
+    if (state.isMaster || state.isDeveloper) {
+      return true
+    }
+
+    return permissions.some((permission) =>
+      state.permissions.includes(permission.trim().toUpperCase())
+    )
+  },
+
   canManageTenants: () =>
-    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
+    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]) ||
+    get().hasAnyPermission(["TENANTS_VIEW", "TENANTS_CREATE", "TENANTS_UPDATE"]),
 
   canManageUsers: () =>
-    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
+    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]) ||
+    get().hasAnyPermission(["USERS_VIEW", "USERS_CREATE", "USERS_UPDATE"]),
 
   canViewSettings: () =>
-    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
+    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]) ||
+    get().hasAnyPermission(["SETTINGS_VIEW"]),
 
   canCreate: () =>
     get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
@@ -75,7 +120,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
 
   canDelete: () =>
-    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"]),
+    get().hasAnyRole(["ADMIN_MASTER", "DEVELOPER_MASTER"]),
 
   setAuth: (data) => {
     const permissions = buildPermissions(data)
@@ -109,6 +154,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         userId: null,
         isAuthenticated: false,
         roles: [],
+        permissions: [],
         isMaster: false,
         isDeveloper: false,
       })
@@ -138,6 +184,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         userId: null,
         isAuthenticated: false,
         roles: [],
+        permissions: [],
         isMaster: false,
         isDeveloper: false,
       })
@@ -154,6 +201,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       userId: null,
       isAuthenticated: false,
       roles: [],
+      permissions: [],
       isMaster: false,
       isDeveloper: false,
     })

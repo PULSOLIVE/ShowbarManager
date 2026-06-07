@@ -30,98 +30,98 @@ interface SettingsSection {
 const settingsSections: SettingsSection[] = [
   {
     title: "Usuários",
-    description: "Acessos, status e vínculos.",
+    description: "Acessos, status, perfis e permissões diretas.",
     icon: Users,
     path: "/settings/users",
     status: "Ativo",
   },
   {
+    title: "Inquilinos / Tenants",
+    description: "Ambientes, isolamento, governança e multiempresa.",
+    icon: Building2,
+    path: "/settings/tenants",
+    status: "Ativo",
+  },
+  {
     title: "Perfis e Grupos",
-    description: "Perfis, grupos e hierarquias.",
+    description: "Perfis, grupos, hierarquias e permissões herdadas.",
     icon: UserCog,
     path: "/settings/profiles",
     status: "Ativo",
   },
   {
     title: "Permissões",
-    description: "ACL por módulo, ação e contexto.",
+    description: "ACL por módulo, ação, contexto e governança.",
     icon: KeyRound,
     path: "/settings/permissions",
     status: "Ativo",
   },
   {
     title: "Internacionalização",
-    description: "Países, moedas, idiomas e fusos.",
+    description: "Países, moedas, idiomas, fusos e formatos regionais.",
     icon: Languages,
     path: "/settings/internationalization",
     status: "Ativo",
   },
   {
     title: "Segurança",
-    description: "MFA, senha, sessões e dispositivos.",
+    description: "MFA, senha, sessões, dispositivos e políticas de acesso.",
     icon: ShieldCheck,
     path: "/settings/security",
     status: "Planejado",
   },
   {
     title: "Sessões",
-    description: "Sessões ativas e rastreabilidade.",
+    description: "Sessões ativas, rastreabilidade e acessos privilegiados.",
     icon: Activity,
     path: "/settings/sessions",
     status: "Planejado",
   },
   {
-    title: "Multi-tenant",
-    description: "Tenants, isolamento e governança.",
-    icon: Building2,
-    path: "/settings/tenants",
-    status: "Ativo",
-  },
-  {
     title: "Branding",
-    description: "Logo, cores, domínio e white label.",
+    description: "Logo, cores, domínio, tema visual e white label.",
     icon: Palette,
     path: "/settings/branding",
     status: "Planejado",
   },
   {
     title: "Países e Fiscal",
-    description: "Regras fiscais e campos obrigatórios.",
+    description: "Regras fiscais, documentos e campos obrigatórios.",
     icon: Globe2,
     path: "/settings/countries",
     status: "Planejado",
   },
   {
     title: "Integrações",
-    description: "APIs, pagamentos, POS e mensageria.",
+    description: "APIs, pagamentos, POS, mensageria e webhooks.",
     icon: PlugZap,
     path: "/settings/integrations",
     status: "Planejado",
   },
   {
     title: "Rede Local",
-    description: "Links, roteadores e agente local.",
+    description: "Links, roteadores, servidor local e agente local.",
     icon: Network,
     path: "/settings/network",
     status: "Planejado",
   },
   {
     title: "Hardware",
-    description: "POS, catracas, impressoras e IoT.",
+    description: "POS, catracas, impressoras, leitores e IoT.",
     icon: HardDrive,
     path: "/settings/hardware",
     status: "Planejado",
   },
   {
     title: "Auditoria e Logs",
-    description: "Logs, ações críticas e observabilidade.",
+    description: "Logs, ações críticas, segurança e observabilidade.",
     icon: Activity,
     path: "/settings/audit",
     status: "Parcial",
   },
   {
     title: "Políticas",
-    description: "LGPD, RGPD, backup e retenção.",
+    description: "LGPD, RGPD, backup, retenção e termos de uso.",
     icon: FileText,
     path: "/settings/policies",
     status: "Planejado",
@@ -145,8 +145,9 @@ export function SettingsPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Central executiva para usuários, perfis, permissões, tenants,
-            internacionalização, segurança, branding, integrações e compliance.
+            Central executiva para usuários, perfis, permissões, inquilinos,
+            internacionalização, segurança, branding, integrações, auditoria,
+            compliance e governança global do ShowbarManager.
           </p>
         </div>
 
@@ -161,7 +162,7 @@ export function SettingsPage() {
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <SummaryCard title="Governança" value="14 módulos" icon={SlidersHorizontal} />
-        <SummaryCard title="Segurança" value="JWT + ACL" icon={ShieldCheck} />
+        <SummaryCard title="Segurança" value="JWT + RBAC" icon={ShieldCheck} />
         <SummaryCard title="Compliance" value="LGPD/RGPD" icon={FileText} />
         <SummaryCard title="Operação" value="Enterprise" icon={CheckCircle2} />
       </section>

@@ -31,29 +31,36 @@ export function AppRoutes() {
           <Route path="/" element={<AdminLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
+
             <Route path="tenants" element={<TenantsPage />} />
             <Route path="users" element={<UsersPage />} />
 
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/users" element={<SettingsUsersPage />} />
+            <Route path="settings/tenants" element={<SettingsTenantsPage />} />
             <Route path="settings/profiles" element={<SettingsProfilesPage />} />
             <Route path="settings/permissions" element={<SettingsPermissionsPage />} />
-            <Route path="settings/users" element={<SettingsUsersPage />} />
+
             <Route
               path="settings/internationalization"
               element={<SettingsInternationalizationPage />}
             />
+
             <Route path="settings/security" element={<SettingsSecurityPage />} />
             <Route path="settings/sessions" element={<SettingsSessionsPage />} />
             <Route path="settings/audit" element={<SettingsAuditPage />} />
-            <Route path="settings/tenants" element={<SettingsTenantsPage />} />
             <Route path="settings/branding" element={<SettingsBrandingPage />} />
             <Route path="settings/countries" element={<SettingsCountriesPage />} />
             <Route path="settings/integrations" element={<SettingsIntegrationsPage />} />
             <Route path="settings/network" element={<SettingsNetworkPage />} />
             <Route path="settings/hardware" element={<SettingsHardwarePage />} />
             <Route path="settings/policies" element={<SettingsPoliciesPage />} />
+
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   )

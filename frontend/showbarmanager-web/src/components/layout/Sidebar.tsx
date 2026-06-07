@@ -31,7 +31,10 @@ interface SidebarItem {
   path: string
   icon: ComponentType<{ size?: number }>
   roles?: string[]
+  permissions?: string[]
 }
+
+const appVersion = import.meta.env.VITE_APP_VERSION || "0.0.0"
 
 const mainMenu: SidebarItem[] = [
   {
@@ -41,79 +44,105 @@ const mainMenu: SidebarItem[] = [
     roles: [],
   },
   {
-    label: "Ambientes",
+    label: "Inquilinos",
     path: "/tenants",
     icon: Building2,
     roles: ["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"],
+    permissions: ["TENANTS_VIEW"],
   },
   {
     label: "Usuários",
     path: "/users",
     icon: Users,
     roles: ["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"],
+    permissions: ["USERS_VIEW"],
   },
 ]
 
 const settingsMenu: SidebarItem[] = [
   {
+    label: "Usuários",
+    path: "/settings/users",
+    icon: Users,
+    permissions: ["USERS_VIEW"],
+  },
+  {
+    label: "Inquilinos",
+    path: "/settings/tenants",
+    icon: Building2,
+    permissions: ["TENANTS_VIEW"],
+  },
+  {
     label: "Perfis",
     path: "/settings/profiles",
     icon: Users,
+    permissions: ["PROFILES_VIEW"],
   },
   {
     label: "Permissões",
     path: "/settings/permissions",
     icon: KeyRound,
+    permissions: ["PERMISSIONS_VIEW"],
   },
   {
     label: "Internacionalização",
     path: "/settings/internationalization",
     icon: Globe2,
+    permissions: ["INTERNATIONALIZATION_VIEW"],
   },
   {
     label: "Segurança",
     path: "/settings/security",
     icon: ShieldCheck,
+    permissions: ["SECURITY_VIEW"],
   },
   {
     label: "Sessões",
     path: "/settings/sessions",
     icon: Activity,
+    permissions: ["SESSIONS_VIEW"],
   },
   {
     label: "Auditoria",
     path: "/settings/audit",
     icon: FileText,
+    permissions: ["AUDIT_VIEW"],
   },
   {
     label: "Branding",
     path: "/settings/branding",
     icon: Palette,
+    permissions: ["BRANDING_VIEW"],
   },
   {
     label: "Países/Fiscal",
     path: "/settings/countries",
     icon: Globe2,
+    permissions: ["SETTINGS_VIEW"],
   },
   {
     label: "Integrações",
     path: "/settings/integrations",
     icon: PlugZap,
+    permissions: ["INTEGRATIONS_VIEW"],
   },
   {
     label: "Rede Local",
     path: "/settings/network",
     icon: Network,
+    permissions: ["NETWORK_VIEW"],
   },
   {
     label: "Hardware",
     path: "/settings/hardware",
     icon: HardDrive,
+    permissions: ["HARDWARE_VIEW"],
   },
   {
     label: "Políticas",
     path: "/settings/policies",
     icon: FileText,
+    permissions: ["POLICIES_VIEW"],
   },
 ]
 
@@ -121,22 +150,40 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const hasAnyRole = useAuthStore((state) => state.hasAnyRole)
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission)
+  const canViewSettings = useAuthStore((state) => state.canViewSettings)
+
   const [settingsOpen, setSettingsOpen] = useState(
     location.pathname.startsWith("/settings")
   )
 
-  const canViewSettings = hasAnyRole([
-    "ADMIN_MASTER",
-    "DEVELOPER_MASTER",
-    "TENANT_ADMIN",
-  ])
-
   const visibleMainMenu = mainMenu.filter((item) => {
-    if (!item.roles || item.roles.length === 0) return true
-    return hasAnyRole(item.roles)
+    const allowedByRole =
+      !item.roles || item.roles.length === 0 || hasAnyRole(item.roles)
+
+    const allowedByPermission =
+      !item.permissions ||
+      item.permissions.length === 0 ||
+      hasAnyPermission(item.permissions)
+
+    return allowedByRole || allowedByPermission
+  })
+
+  const visibleSettingsMenu = settingsMenu.filter((item) => {
+    if (!item.roles && !item.permissions) {
+      return true
+    }
+
+    const allowedByRole = item.roles ? hasAnyRole(item.roles) : false
+    const allowedByPermission = item.permissions
+      ? hasAnyPermission(item.permissions)
+      : false
+
+    return allowedByRole || allowedByPermission
   })
 
   const settingsActive = location.pathname.startsWith("/settings")
+  const showSettingsMenu = canViewSettings() || visibleSettingsMenu.length > 0
 
   useEffect(() => {
     if (settingsActive && !collapsed) {
@@ -205,14 +252,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               ))}
             </MenuGroup>
 
-            {canViewSettings && (
+            {showSettingsMenu && (
               <MenuGroup title="Administração" collapsed={collapsed}>
                 <button
                   type="button"
                   onClick={handleSettingsClick}
                   className={[
                     "w-full flex items-center rounded-2xl transition-all duration-200",
-                    collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
+                    collapsed
+                      ? "justify-center px-0 py-2.5"
+                      : "gap-3 px-3 py-2.5",
                     "text-sm font-semibold",
                     settingsActive
                       ? "bg-primary text-white shadow-neon"
@@ -241,7 +290,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
                 {settingsOpen && !collapsed && (
                   <div className="space-y-1.5 pl-2 pt-1">
-                    {settingsMenu.map((item) => (
+                    {visibleSettingsMenu.map((item) => (
                       <SidebarLink
                         key={item.path}
                         item={item}
@@ -264,7 +313,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               </p>
 
               <strong className="text-sm text-primary block mt-1">
-                v0.4.4 Enterprise
+                v{appVersion} Enterprise
               </strong>
 
               <p className="text-[10px] text-muted mt-2 leading-relaxed">
@@ -276,7 +325,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           ) : (
             <div className="h-11 rounded-2xl border border-border bg-background/70 flex items-center justify-center shadow-card">
               <span className="text-[10px] text-primary font-bold">
-                v0.4
+                v{appVersion}
               </span>
             </div>
           )}
