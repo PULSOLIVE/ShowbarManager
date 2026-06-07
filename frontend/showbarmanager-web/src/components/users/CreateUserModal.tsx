@@ -48,7 +48,7 @@ export function CreateUserModal({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("123456")
-  const [role, setRole] = useState("OPERATOR")
+  const [role, setRole] = useState("")
   const [profileIds, setProfileIds] = useState<string[]>([])
   const [permissionIds, setPermissionIds] = useState<string[]>([])
   const [showPassword, setShowPassword] = useState(false)
@@ -76,7 +76,15 @@ export function CreateUserModal({
   const permissionOptions = useMemo(() => {
     return permissions
       .filter((permission) => permission.active)
-      .sort((a, b) => a.module.localeCompare(b.module))
+      .sort((a, b) => {
+        const moduleCompare = a.module.localeCompare(b.module)
+
+        if (moduleCompare !== 0) {
+          return moduleCompare
+        }
+
+        return a.action.localeCompare(b.action)
+      })
   }, [permissions])
 
   const roleOptions = useMemo(() => {
@@ -96,13 +104,22 @@ export function CreateUserModal({
     setName("")
     setEmail("")
     setPassword("123456")
-    setRole("OPERATOR")
+    setRole("")
     setProfileIds([])
     setPermissionIds([])
     setShowPassword(false)
     setLoading(false)
     setError(null)
   }, [open])
+
+  useEffect(() => {
+    if (!open || role || roleOptions.length === 0) {
+      return
+    }
+
+    const operatorRole = roleOptions.find((item) => item.value === "OPERATOR")
+    setRole(operatorRole ? operatorRole.value : roleOptions[0].value)
+  }, [open, role, roleOptions])
 
   if (!open) {
     return null
@@ -131,6 +148,12 @@ export function CreateUserModal({
 
     if (!tenantId) {
       setError("Ambiente não identificado. Faça login novamente.")
+      setLoading(false)
+      return
+    }
+
+    if (!role) {
+      setError("Selecione um perfil principal para o usuário.")
       setLoading(false)
       return
     }
@@ -240,7 +263,14 @@ export function CreateUserModal({
                 className="field-input"
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
+                required
               >
+                {roleOptions.length === 0 && (
+                  <option value="">
+                    Nenhum perfil disponível
+                  </option>
+                )}
+
                 {roleOptions.map((item) => (
                   <option key={item.value} value={item.value}>
                     {item.label} · {item.value}
@@ -284,7 +314,7 @@ export function CreateUserModal({
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !role}
             className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
           >
             {loading ? "Criando usuário..." : "Criar usuário"}

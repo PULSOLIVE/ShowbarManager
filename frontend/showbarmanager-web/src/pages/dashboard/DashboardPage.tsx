@@ -32,7 +32,7 @@ export function DashboardPage() {
   })
 
   const apiStatus = healthLoading
-    ? "Verificando"
+    ? "A verificar"
     : healthError
       ? "Offline"
       : "Online"
@@ -50,17 +50,17 @@ export function DashboardPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <Gauge size={16} />
-              Visão Geral Enterprise
+              Visão geral empresarial
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Painel Operacional
+              Painel operacional
             </h2>
 
             <p className="text-muted max-w-4xl mt-2 text-sm leading-relaxed">
-              Monitoramento executivo do ecossistema ShowbarManager ERP:
+              Monitorização executiva do ecossistema ShowbarManager ERP:
               infraestrutura, ambientes, usuários, autenticação, disponibilidade
-              e operação SaaS multiempresa.
+              e operação SaaS multiambiente.
             </p>
           </div>
 
@@ -73,7 +73,7 @@ export function DashboardPage() {
               <div className="w-2.5 h-2.5 rounded-full bg-success" />
 
               <strong className="text-success text-sm leading-tight">
-                Produção Empresarial Local
+                Produção empresarial local
               </strong>
             </div>
           </div>
@@ -82,9 +82,9 @@ export function DashboardPage() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
         <MetricCard
-          title="Status da API"
+          title="Estado da API"
           value={apiStatus}
-          description={healthData || "Monitorando disponibilidade do backend"}
+          description={healthData || "A monitorizar a disponibilidade do backend"}
           icon={Wifi}
           status={apiStatusType}
         />
@@ -107,8 +107,8 @@ export function DashboardPage() {
 
         <MetricCard
           title="Segurança"
-          value="JWT"
-          description="Autenticação protegida com Bearer Token"
+          value="JWT + RBAC"
+          description="Autenticação protegida com Bearer Token e permissões"
           icon={ShieldCheck}
           status="neutral"
         />
@@ -135,25 +135,25 @@ export function DashboardPage() {
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             <StatusBox
-              title="Backend Enterprise"
+              title="Backend empresarial"
               value="Spring Boot + JWT"
               status="Online"
             />
 
             <StatusBox
-              title="Banco de Dados"
+              title="Banco de dados"
               value="PostgreSQL 16"
               status="Operacional"
             />
 
             <StatusBox
-              title="Cache e Storage"
+              title="Cache e armazenamento"
               value="Redis + MinIO"
               status="Sincronizado"
             />
 
             <StatusBox
-              title="Frontend Enterprise"
+              title="Frontend empresarial"
               value="React + TypeScript"
               status="Ativo"
             />
@@ -179,10 +179,10 @@ export function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-1 gap-3">
-            <SmallBox title="Multi-tenant" value="Ativado" />
-            <SmallBox title="Segurança" value="JWT + ACL" />
-            <SmallBox title="Arquitetura" value="Enterprise SaaS" />
-            <SmallBox title="UX/UI" value="Premium ERP" />
+            <SmallBox title="Multiambiente" value="Ativado" />
+            <SmallBox title="Segurança" value="JWT + RBAC" />
+            <SmallBox title="Arquitetura" value="SaaS empresarial" />
+            <SmallBox title="Experiência visual" value="ERP premium" />
           </div>
         </div>
       </section>

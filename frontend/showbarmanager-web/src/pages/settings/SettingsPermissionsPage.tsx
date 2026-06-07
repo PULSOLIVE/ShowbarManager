@@ -19,54 +19,87 @@ import type { Permission } from "../../types/permission.types"
 
 const matrix = [
   {
-    profile: "ADMIN_MASTER",
+    profile: "Administrador Master",
     settings: true,
     users: true,
-    tenants: true,
+    environments: true,
     audit: true,
     delete: true,
   },
   {
-    profile: "DEVELOPER_MASTER",
+    profile: "Desenvolvedor Master",
     settings: true,
     users: true,
-    tenants: true,
+    environments: true,
     audit: true,
     delete: true,
   },
   {
-    profile: "TENANT_ADMIN",
+    profile: "Administrador do Ambiente",
     settings: false,
     users: true,
-    tenants: true,
+    environments: true,
     audit: false,
     delete: false,
   },
   {
-    profile: "SUPPORT_N1",
+    profile: "Suporte Nível 1",
     settings: false,
     users: false,
-    tenants: false,
+    environments: false,
     audit: false,
     delete: false,
   },
   {
-    profile: "SUPPORT_N2",
+    profile: "Suporte Nível 2",
     settings: false,
     users: false,
-    tenants: false,
+    environments: false,
     audit: true,
     delete: false,
   },
   {
-    profile: "SUPPORT_N3",
+    profile: "Suporte Nível 3",
     settings: false,
     users: true,
-    tenants: false,
+    environments: false,
     audit: true,
     delete: false,
   },
 ]
+
+function getModuleLabel(value: string) {
+  const labels: Record<string, string> = {
+    AUDIT: "Auditoria",
+    BRANDING: "Branding",
+    HARDWARE: "Hardware",
+    INTEGRATIONS: "Integrações",
+    INTERNATIONALIZATION: "Internacionalização",
+    NETWORK: "Rede Local",
+    PERMISSIONS: "Permissões",
+    POLICIES: "Políticas",
+    PROFILES: "Perfis",
+    SECURITY: "Segurança",
+    SESSIONS: "Sessões",
+    SETTINGS: "Configurações",
+    TENANTS: "Ambientes",
+    USERS: "Usuários",
+  }
+
+  return labels[value] || value
+}
+
+function getActionLabel(value: string) {
+  const labels: Record<string, string> = {
+    CREATE: "Criar",
+    DELETE: "Excluir",
+    MANAGE: "Gerir",
+    UPDATE: "Atualizar",
+    VIEW: "Visualizar",
+  }
+
+  return labels[value] || value
+}
 
 export function SettingsPermissionsPage() {
   const [search, setSearch] = useState("")
@@ -112,12 +145,17 @@ export function SettingsPermissionsPage() {
     const term = search.trim().toLowerCase()
 
     return permissions.filter((permission) => {
+      const moduleLabel = getModuleLabel(permission.module).toLowerCase()
+      const actionLabel = getActionLabel(permission.action).toLowerCase()
+
       const matchesSearch =
         !term ||
         permission.name.toLowerCase().includes(term) ||
         permission.code.toLowerCase().includes(term) ||
         permission.module.toLowerCase().includes(term) ||
         permission.action.toLowerCase().includes(term) ||
+        moduleLabel.includes(term) ||
+        actionLabel.includes(term) ||
         (permission.description || "").toLowerCase().includes(term)
 
       const matchesStatus =
@@ -184,7 +222,7 @@ export function SettingsPermissionsPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Controle avançado de permissões e ACL por módulo, ação, campo e contexto.
+            Controle avançado de permissões e RBAC por módulo, ação, campo e contexto.
           </p>
         </div>
 
@@ -225,7 +263,7 @@ export function SettingsPermissionsPage() {
             <option value="all">Todos os módulos</option>
             {moduleOptions.map((module) => (
               <option key={module} value={module}>
-                {module}
+                {getModuleLabel(module)}
               </option>
             ))}
           </select>
@@ -239,7 +277,7 @@ export function SettingsPermissionsPage() {
             <option value="active">Ativas</option>
             <option value="inactive">Inativas</option>
             <option value="system">Sistema</option>
-            <option value="custom">Customizadas</option>
+            <option value="custom">Personalizadas</option>
           </select>
 
           <button
@@ -306,12 +344,12 @@ export function SettingsPermissionsPage() {
               </p>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <InfoBox label="Módulo" value={permission.module} />
-                <InfoBox label="Ação" value={permission.action} />
+                <InfoBox label="Módulo" value={getModuleLabel(permission.module)} />
+                <InfoBox label="Ação" value={getActionLabel(permission.action)} />
                 <InfoBox label="Prioridade" value={String(permission.priority)} />
                 <InfoBox
                   label="Tipo"
-                  value={permission.systemPermission ? "Sistema" : "Customizada"}
+                  value={permission.systemPermission ? "Sistema" : "Personalizada"}
                   icon={permission.systemPermission ? <ShieldCheck size={14} className="text-primary" /> : undefined}
                 />
               </div>
@@ -376,7 +414,7 @@ export function SettingsPermissionsPage() {
               <div>Perfil</div>
               <div>Config.</div>
               <div>Usuários</div>
-              <div>Tenants</div>
+              <div>Ambientes</div>
               <div>Auditoria</div>
               <div>Excluir</div>
             </div>
@@ -389,7 +427,7 @@ export function SettingsPermissionsPage() {
                 <strong>{row.profile}</strong>
                 <PermissionStatus allowed={row.settings} />
                 <PermissionStatus allowed={row.users} />
-                <PermissionStatus allowed={row.tenants} />
+                <PermissionStatus allowed={row.environments} />
                 <PermissionStatus allowed={row.audit} />
                 <PermissionStatus allowed={row.delete} />
               </div>

@@ -215,7 +215,7 @@ export function CreateTenantModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Cadastre uma nova empresa/ambiente no ecossistema.
+              Cadastre uma nova empresa ou ambiente no ecossistema.
             </p>
           </div>
 
@@ -223,6 +223,7 @@ export function CreateTenantModal({
             type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
+            title="Fechar"
           >
             <X size={17} />
           </button>

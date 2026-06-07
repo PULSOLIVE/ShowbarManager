@@ -36,7 +36,7 @@ const settingsSections: SettingsSection[] = [
     status: "Ativo",
   },
   {
-    title: "Inquilinos / Tenants",
+    title: "Ambientes",
     description: "Ambientes, isolamento, governança e multiempresa.",
     icon: Building2,
     path: "/settings/tenants",
@@ -51,7 +51,7 @@ const settingsSections: SettingsSection[] = [
   },
   {
     title: "Permissões",
-    description: "ACL por módulo, ação, contexto e governança.",
+    description: "RBAC por módulo, ação, contexto e governança.",
     icon: KeyRound,
     path: "/settings/permissions",
     status: "Ativo",
@@ -145,7 +145,7 @@ export function SettingsPage() {
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Central executiva para usuários, perfis, permissões, inquilinos,
+            Central executiva para usuários, perfis, permissões, ambientes,
             internacionalização, segurança, branding, integrações, auditoria,
             compliance e governança global do ShowbarManager.
           </p>

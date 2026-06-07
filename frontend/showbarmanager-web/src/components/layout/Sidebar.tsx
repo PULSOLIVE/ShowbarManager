@@ -44,7 +44,7 @@ const mainMenu: SidebarItem[] = [
     roles: [],
   },
   {
-    label: "Inquilinos",
+    label: "Ambientes",
     path: "/tenants",
     icon: Building2,
     roles: ["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"],
@@ -67,7 +67,7 @@ const settingsMenu: SidebarItem[] = [
     permissions: ["USERS_VIEW"],
   },
   {
-    label: "Inquilinos",
+    label: "Ambientes",
     path: "/settings/tenants",
     icon: Building2,
     permissions: ["TENANTS_VIEW"],
@@ -109,13 +109,13 @@ const settingsMenu: SidebarItem[] = [
     permissions: ["AUDIT_VIEW"],
   },
   {
-    label: "Branding",
+    label: "Identidade Visual",
     path: "/settings/branding",
     icon: Palette,
     permissions: ["BRANDING_VIEW"],
   },
   {
-    label: "Países/Fiscal",
+    label: "Países e Fiscal",
     path: "/settings/countries",
     icon: Globe2,
     permissions: ["SETTINGS_VIEW"],
@@ -170,9 +170,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   })
 
   const visibleSettingsMenu = settingsMenu.filter((item) => {
-    if (!item.roles && !item.permissions) {
-      return true
-    }
+    if (!item.roles && !item.permissions) return true
 
     const allowedByRole = item.roles ? hasAnyRole(item.roles) : false
     const allowedByPermission = item.permissions
@@ -223,7 +221,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 </div>
 
                 <div className="text-[11px] text-muted mt-1 truncate">
-                  ERP Complete Ecosystem
+                  Ecossistema ERP Completo
                 </div>
               </div>
 

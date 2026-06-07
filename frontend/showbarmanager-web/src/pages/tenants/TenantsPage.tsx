@@ -148,7 +148,7 @@ export function TenantsPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <Building2 size={16} />
-            Multiempresa
+            Multiambientes
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">

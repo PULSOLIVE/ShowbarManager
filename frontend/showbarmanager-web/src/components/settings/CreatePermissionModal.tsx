@@ -163,7 +163,7 @@ export function CreatePermissionModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Cadastre uma permissão para controle ACL e regras de RBAC.
+              Cadastre uma permissão para controle RBAC e regras de acesso.
             </p>
           </div>
 
@@ -188,7 +188,7 @@ export function CreatePermissionModal({
                 </p>
 
                 <p className="text-xs text-muted">
-                  O código técnico pode ser gerado por módulo + ação.
+                  O código técnico pode ser gerado por módulo e ação.
                 </p>
               </div>
             </div>

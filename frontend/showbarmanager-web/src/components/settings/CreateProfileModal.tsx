@@ -34,6 +34,50 @@ function generateProfileCodeFromName(value: string) {
   return normalizeProfileCode(value)
 }
 
+function translatePermissionPart(value: string) {
+  const dictionary: Record<string, string> = {
+    USERS: "Usuários",
+    USER: "Usuário",
+    TENANTS: "Ambientes",
+    TENANT: "Ambiente",
+    SETTINGS: "Configurações",
+    PROFILES: "Perfis",
+    PROFILE: "Perfil",
+    PERMISSIONS: "Permissões",
+    PERMISSION: "Permissão",
+    INTERNATIONALIZATION: "Internacionalização",
+    SECURITY: "Segurança",
+    SESSIONS: "Sessões",
+    SESSION: "Sessão",
+    AUDIT: "Auditoria",
+    BRANDING: "Identidade visual",
+    COUNTRIES: "Países",
+    COUNTRY: "País",
+    FISCAL: "Fiscal",
+    INTEGRATIONS: "Integrações",
+    INTEGRATION: "Integração",
+    NETWORK: "Rede local",
+    HARDWARE: "Equipamentos",
+    POLICIES: "Políticas",
+    POLICY: "Política",
+    VIEW: "Visualizar",
+    CREATE: "Criar",
+    UPDATE: "Atualizar",
+    DELETE: "Excluir",
+    MANAGE: "Gerir",
+    EXPORT: "Exportar",
+    IMPORT: "Importar",
+    APPROVE: "Aprovar",
+    CANCEL: "Cancelar",
+  }
+
+  return dictionary[value] || value
+}
+
+function formatPermissionLabel(module: string, action: string) {
+  return `${translatePermissionPart(module)} · ${translatePermissionPart(action)}`
+}
+
 export function CreateProfileModal({
   open,
   onClose,
@@ -207,7 +251,7 @@ export function CreateProfileModal({
               <Field label="Nome do perfil">
                 <input
                   className="field-input"
-                  placeholder="Ex: Suporte Nível 1"
+                  placeholder="Ex: Suporte nível 1"
                   value={name}
                   onChange={(event) => handleNameChange(event.target.value)}
                   required
@@ -261,7 +305,7 @@ export function CreateProfileModal({
             items={permissionOptions.map((permission) => ({
               id: permission.id,
               code: permission.code,
-              label: `${permission.module} · ${permission.action}`,
+              label: formatPermissionLabel(permission.module, permission.action),
             }))}
             selectedIds={permissionIds}
             onToggle={togglePermission}

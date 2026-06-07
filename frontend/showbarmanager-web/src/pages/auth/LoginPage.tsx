@@ -52,23 +52,23 @@ export function LoginPage() {
           <div className="relative">
             <div className="inline-flex items-center gap-2 rounded-full bg-primarySoft px-3 py-1.5 text-primary text-xs font-semibold">
               <Sparkles size={14} />
-              ERP Complete Ecosystem
+              Ecossistema ERP completo
             </div>
 
             <h1 className="text-3xl xl:text-4xl font-black mt-5 leading-tight max-w-xl">
-              ShowbarManager Enterprise
+              ShowbarManager Empresarial
             </h1>
 
             <p className="text-muted mt-3 text-sm leading-relaxed max-w-2xl">
               Plataforma executiva para gestão de ambientes, usuários,
               permissões, produção operacional, configurações e governança SaaS
-              multiempresa.
+              multiambiente.
             </p>
           </div>
 
           <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-            <FeatureCard title="Multi-tenant" description="Ambientes isolados" />
-            <FeatureCard title="Segurança" description="JWT + ACL" />
+            <FeatureCard title="Multiambiente" description="Ambientes isolados" />
+            <FeatureCard title="Segurança" description="JWT + RBAC" />
             <FeatureCard title="Governança" description="Perfis e permissões" />
           </div>
 
@@ -86,7 +86,7 @@ export function LoginPage() {
                 </div>
 
                 <p className="text-xs text-muted mt-1">
-                  ERP Complete Ecosystem
+                  Ecossistema ERP completo
                 </p>
               </div>
 
@@ -101,7 +101,7 @@ export function LoginPage() {
               </h2>
 
               <p className="text-muted text-sm mt-1.5">
-                Acesse o ambiente administrativo enterprise.
+                Acesse o ambiente administrativo empresarial.
               </p>
             </div>
 
@@ -169,7 +169,7 @@ export function LoginPage() {
               disabled={loading}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? "Entrando..." : "Entrar no Sistema"}
+              {loading ? "A entrar..." : "Entrar no sistema"}
               {!loading && <ArrowRight size={16} />}
             </button>
 
@@ -179,7 +179,7 @@ export function LoginPage() {
               </p>
 
               <p className="text-sm font-semibold mt-1 text-primary">
-                Produção Empresarial Local
+                Produção empresarial local
               </p>
             </div>
 

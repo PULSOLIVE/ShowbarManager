@@ -27,12 +27,12 @@ const pageTitles: Record<string, string> = {
   "/settings/security": "Segurança",
   "/settings/sessions": "Sessões",
   "/settings/audit": "Auditoria",
-  "/settings/tenants": "Multi-tenant",
-  "/settings/branding": "Branding",
-  "/settings/countries": "Países e Fiscal",
+  "/settings/tenants": "Ambientes",
+  "/settings/branding": "Identidade visual",
+  "/settings/countries": "Países e fiscal",
   "/settings/integrations": "Integrações",
-  "/settings/network": "Rede Local",
-  "/settings/hardware": "Hardware",
+  "/settings/network": "Rede local",
+  "/settings/hardware": "Equipamentos",
   "/settings/policies": "Políticas",
 }
 
@@ -72,7 +72,7 @@ export function Topbar() {
         </h1>
 
         <p className="hidden sm:block text-xs text-muted truncate">
-          ShowbarManager Enterprise
+          ShowbarManager Empresarial
         </p>
       </div>
 

@@ -19,6 +19,50 @@ interface EditProfileModalProps {
   onUpdated: () => void
 }
 
+function translatePermissionPart(value: string) {
+  const dictionary: Record<string, string> = {
+    USERS: "Usuários",
+    USER: "Usuário",
+    TENANTS: "Ambientes",
+    TENANT: "Ambiente",
+    SETTINGS: "Configurações",
+    PROFILES: "Perfis",
+    PROFILE: "Perfil",
+    PERMISSIONS: "Permissões",
+    PERMISSION: "Permissão",
+    INTERNATIONALIZATION: "Internacionalização",
+    SECURITY: "Segurança",
+    SESSIONS: "Sessões",
+    SESSION: "Sessão",
+    AUDIT: "Auditoria",
+    BRANDING: "Identidade visual",
+    COUNTRIES: "Países",
+    COUNTRY: "País",
+    FISCAL: "Fiscal",
+    INTEGRATIONS: "Integrações",
+    INTEGRATION: "Integração",
+    NETWORK: "Rede local",
+    HARDWARE: "Equipamentos",
+    POLICIES: "Políticas",
+    POLICY: "Política",
+    VIEW: "Visualizar",
+    CREATE: "Criar",
+    UPDATE: "Atualizar",
+    DELETE: "Excluir",
+    MANAGE: "Gerir",
+    EXPORT: "Exportar",
+    IMPORT: "Importar",
+    APPROVE: "Aprovar",
+    CANCEL: "Cancelar",
+  }
+
+  return dictionary[value] || value
+}
+
+function formatPermissionLabel(module: string, action: string) {
+  return `${translatePermissionPart(module)} · ${translatePermissionPart(action)}`
+}
+
 export function EditProfileModal({
   open,
   profile,
@@ -137,7 +181,7 @@ export function EditProfileModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Atualize os dados, prioridade, status e permissões do perfil selecionado.
+              Atualize os dados, a prioridade, o estado e as permissões do perfil selecionado.
             </p>
           </div>
 
@@ -162,7 +206,7 @@ export function EditProfileModal({
                 </p>
 
                 <p className="text-xs text-muted">
-                  O código técnico fica bloqueado para preservar vínculos RBAC.
+                  O código técnico fica bloqueado para preservar os vínculos RBAC.
                 </p>
               </div>
             </div>
@@ -223,7 +267,7 @@ export function EditProfileModal({
             items={permissionOptions.map((permission) => ({
               id: permission.id,
               code: permission.code,
-              label: `${permission.module} · ${permission.action}`,
+              label: formatPermissionLabel(permission.module, permission.action),
             }))}
             selectedIds={permissionIds}
             onToggle={togglePermission}
@@ -279,7 +323,7 @@ export function EditProfileModal({
               disabled={loading || !profileId}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? "Salvando..." : "Salvar alterações"}
+              {loading ? "A guardar..." : "Guardar alterações"}
             </button>
           </div>
         </form>

@@ -250,6 +250,7 @@ function EditTenantModalContent({
             type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
+            title="Fechar"
           >
             <X size={17} />
           </button>

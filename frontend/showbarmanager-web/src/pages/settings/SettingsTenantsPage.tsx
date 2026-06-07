@@ -13,13 +13,13 @@ import {
 
 const tenantSettings = [
   {
-    title: "Isolamento por tenant",
+    title: "Isolamento por ambiente",
     description: "Separação lógica de dados por empresa, cliente e ambiente.",
     status: "Ativo",
     icon: ShieldCheck,
   },
   {
-    title: "Cross-tenant",
+    title: "Acesso entre ambientes",
     description: "Acesso global controlado somente para usuários autorizados.",
     status: "Restrito",
     icon: Globe2,
@@ -33,9 +33,9 @@ const tenantSettings = [
 ]
 
 const tenantRules = [
-  "Tenant ativo obrigatório",
+  "Ambiente ativo obrigatório",
   "Empresa vinculada obrigatória",
-  "Timezone por tenant",
+  "Fuso horário por ambiente",
 ]
 
 export function SettingsTenantsPage() {
@@ -50,12 +50,12 @@ export function SettingsTenantsPage() {
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Multi-tenant
+              Multi Ambientes
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              Governança de tenants, multiempresa, isolamento de dados, acesso global
-              e regras operacionais por ambiente.
+              Governança de ambientes, multiempresa, isolamento de dados,
+              acesso global e regras operacionais por ambiente.
             </p>
           </div>
 
@@ -80,7 +80,7 @@ export function SettingsTenantsPage() {
             </h3>
 
             <p className="text-sm text-muted mt-1">
-              Parâmetros globais para tenants e empresas vinculadas.
+              Parâmetros globais para ambientes e empresas vinculadas.
             </p>
           </div>
 
@@ -114,11 +114,11 @@ function TenantCard({
   return (
     <div className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition">
       <div className="flex items-start justify-between gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-primarySoft border border-primary/20 flex items-center justify-center shrink-0">
-          <Icon className="text-primary" size={19} />
+        <div className="icon-tile">
+          <Icon size={19} />
         </div>
 
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-success bg-success/10 border border-success/20 rounded-full px-2.5 py-1">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-success bg-success/10 rounded-full px-2.5 py-1">
           <CheckCircle2 size={12} />
           {status}
         </span>

@@ -116,7 +116,7 @@ export function SettingsProfilesPage() {
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Perfis e Grupos
+            Perfis e grupos
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
@@ -162,7 +162,7 @@ export function SettingsProfilesPage() {
             <option value="active">Ativos</option>
             <option value="inactive">Inativos</option>
             <option value="system">Sistema</option>
-            <option value="custom">Customizados</option>
+            <option value="custom">Personalizados</option>
           </select>
 
           <button
@@ -237,7 +237,7 @@ export function SettingsProfilesPage() {
 
                 <InfoBox
                   label="Tipo"
-                  value={profile.systemProfile ? "Sistema" : "Customizado"}
+                  value={profile.systemProfile ? "Sistema" : "Personalizado"}
                   icon={profile.systemProfile ? <ShieldCheck size={14} className="text-primary" /> : undefined}
                 />
 
