@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { FormEvent, ReactNode } from "react"
 import { AlertTriangle, CheckCircle2, KeyRound, X } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 import { PermissionService } from "../../services/permission.service"
 import type {
   Permission,
@@ -32,6 +33,8 @@ export function EditPermissionModal({
   onClose,
   onUpdated,
 }: EditPermissionModalProps) {
+  const { t } = useTranslation()
+
   const [permissionId, setPermissionId] = useState("")
   const [permissionCode, setPermissionCode] = useState("")
   const [name, setName] = useState("")
@@ -72,7 +75,7 @@ export function EditPermissionModal({
     setError(null)
 
     if (!permissionId) {
-      setError("Permissão não selecionada.")
+      setError(t("permissions.permissionNotSelected"))
       setLoading(false)
       return
     }
@@ -81,13 +84,13 @@ export function EditPermissionModal({
     const normalizedAction = normalizePermissionCode(action)
 
     if (!name.trim()) {
-      setError("Informe o nome da permissão.")
+      setError(t("permissions.nameRequired"))
       setLoading(false)
       return
     }
 
     if (!normalizedModule || !normalizedAction) {
-      setError("Informe módulo e ação válidos.")
+      setError(t("permissions.moduleActionRequired"))
       setLoading(false)
       return
     }
@@ -108,7 +111,7 @@ export function EditPermissionModal({
       onUpdated()
       onClose()
     } catch {
-      setError("Não foi possível atualizar a permissão.")
+      setError(t("permissions.updateError"))
     } finally {
       setLoading(false)
     }
@@ -120,7 +123,7 @@ export function EditPermissionModal({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-              Editar permissão
+              {t("permissions.edit")}
             </span>
 
             <h2 className="text-xl font-bold mt-1">
@@ -128,7 +131,7 @@ export function EditPermissionModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Atualize módulo, ação, prioridade e status da permissão.
+              {t("permissions.editDescription")}
             </p>
           </div>
 
@@ -136,7 +139,7 @@ export function EditPermissionModal({
             type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
-            title="Fechar"
+            title={t("common.close")}
           >
             <X size={17} />
           </button>
@@ -149,17 +152,17 @@ export function EditPermissionModal({
 
               <div>
                 <p className="text-sm font-semibold">
-                  Identificação da permissão
+                  {t("permissions.identification")}
                 </p>
 
                 <p className="text-xs text-muted">
-                  O código técnico fica bloqueado para preservar vínculos RBAC.
+                  {t("permissions.technicalCodeLocked")}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Código técnico">
+              <Field label={t("permissions.technicalCode")}>
                 <input
                   className="field-input opacity-70 cursor-not-allowed"
                   value={permissionCode}
@@ -167,10 +170,10 @@ export function EditPermissionModal({
                 />
               </Field>
 
-              <Field label="Nome">
+              <Field label={t("common.name")}>
                 <input
                   className="field-input"
-                  placeholder="Nome da permissão"
+                  placeholder={t("permissions.name")}
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   required
@@ -179,14 +182,13 @@ export function EditPermissionModal({
             </div>
 
             <p className="text-[11px] text-muted mt-2">
-              Para alterar o código técnico, crie uma nova permissão e migre os
-              vínculos de forma controlada.
+              {t("permissions.technicalCodeChangeHint")}
             </p>
           </section>
 
           <section className="surface-muted rounded-2xl p-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Field label="Módulo">
+              <Field label={t("permissions.module")}>
                 <input
                   className="field-input"
                   placeholder="Ex: USERS"
@@ -198,7 +200,7 @@ export function EditPermissionModal({
                 />
               </Field>
 
-              <Field label="Ação">
+              <Field label={t("permissions.action")}>
                 <input
                   className="field-input"
                   placeholder="Ex: CREATE"
@@ -210,7 +212,7 @@ export function EditPermissionModal({
                 />
               </Field>
 
-              <Field label="Prioridade">
+              <Field label={t("common.priority")}>
                 <input
                   className="field-input"
                   type="number"
@@ -222,10 +224,10 @@ export function EditPermissionModal({
             </div>
 
             <div className="mt-3">
-              <Field label="Descrição">
+              <Field label={t("common.description")}>
                 <textarea
                   className="field-input min-h-24 resize-none"
-                  placeholder="Descrição"
+                  placeholder={t("common.description")}
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                 />
@@ -235,15 +237,15 @@ export function EditPermissionModal({
 
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
-              label="Permissão ativa"
-              description="Permite uso imediato no sistema."
+              label={t("permissions.active")}
+              description={t("permissions.activeDescription")}
               active={active}
               onToggle={() => setActive((value) => !value)}
             />
 
             <ToggleField
-              label="Permissão de sistema"
-              description="Protegida para regras estruturais."
+              label={t("permissions.systemPermission")}
+              description={t("permissions.systemPermissionDescription")}
               active={systemPermission}
               onToggle={() => setSystemPermission((value) => !value)}
             />
@@ -252,14 +254,14 @@ export function EditPermissionModal({
           {systemPermission && (
             <Notice
               type="warning"
-              message="Esta permissão está marcada como sistema. Alterações podem impactar regras internas, vínculos de perfis e permissões herdadas."
+              message={t("permissions.systemPermissionWarning")}
             />
           )}
 
           {!active && (
             <Notice
               type="info"
-              message="Esta permissão ficará inativa e não deverá ser vinculada a novos perfis até ser reativada."
+              message={t("permissions.inactivePermissionInfo")}
             />
           )}
 
@@ -275,7 +277,7 @@ export function EditPermissionModal({
               onClick={onClose}
               className="w-full sm:w-auto bg-background border border-border text-muted font-semibold px-5 py-2.5 rounded-full hover:border-danger hover:text-danger transition text-sm"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
 
             <button
@@ -283,7 +285,7 @@ export function EditPermissionModal({
               disabled={loading || !permissionId}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? "Salvando..." : "Salvar alterações"}
+              {loading ? t("permissions.saving") : t("permissions.saveChanges")}
             </button>
           </div>
         </form>

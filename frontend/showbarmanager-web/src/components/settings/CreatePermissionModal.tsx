@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { FormEvent, ReactNode } from "react"
 import { AlertTriangle, CheckCircle2, KeyRound, X } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 import { PermissionService } from "../../services/permission.service"
 import type { CreatePermissionRequest } from "../../types/permission.types"
 
@@ -38,6 +39,8 @@ export function CreatePermissionModal({
   onClose,
   onCreated,
 }: CreatePermissionModalProps) {
+  const { t } = useTranslation()
+
   const [code, setCode] = useState("")
   const [name, setName] = useState("")
   const [module, setModule] = useState("")
@@ -115,13 +118,13 @@ export function CreatePermissionModal({
     const normalizedAction = normalizePermissionCode(action)
 
     if (!name.trim()) {
-      setError("Informe o nome da permissão.")
+      setError(t("permissions.nameRequired"))
       setLoading(false)
       return
     }
 
     if (!normalizedCode || !normalizedModule || !normalizedAction) {
-      setError("Informe código, módulo e ação válidos.")
+      setError(t("permissions.validCodeModuleActionRequired"))
       setLoading(false)
       return
     }
@@ -143,7 +146,7 @@ export function CreatePermissionModal({
       onCreated()
       handleClose()
     } catch {
-      setError("Não foi possível criar a permissão. Verifique os dados.")
+      setError(t("permissions.createError"))
     } finally {
       setLoading(false)
     }
@@ -155,15 +158,15 @@ export function CreatePermissionModal({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-              Nova permissão
+              {t("permissions.new")}
             </span>
 
             <h2 className="text-xl font-bold mt-1">
-              Criar permissão
+              {t("permissions.create")}
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Cadastre uma permissão para controle RBAC e regras de acesso.
+              {t("permissions.createDescription")}
             </p>
           </div>
 
@@ -171,7 +174,7 @@ export function CreatePermissionModal({
             type="button"
             onClick={handleClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
-            title="Fechar"
+            title={t("common.close")}
           >
             <X size={17} />
           </button>
@@ -184,27 +187,27 @@ export function CreatePermissionModal({
 
               <div>
                 <p className="text-sm font-semibold">
-                  Identificação da permissão
+                  {t("permissions.identification")}
                 </p>
 
                 <p className="text-xs text-muted">
-                  O código técnico pode ser gerado por módulo e ação.
+                  {t("permissions.codeGeneratedByModuleAction")}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Nome">
+              <Field label={t("common.name")}>
                 <input
                   className="field-input"
-                  placeholder="Ex: Criar usuários"
+                  placeholder={t("permissions.namePlaceholder")}
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   required
                 />
               </Field>
 
-              <Field label="Código técnico">
+              <Field label={t("permissions.technicalCode")}>
                 <input
                   className="field-input"
                   placeholder="Ex: USERS_CREATE"
@@ -216,14 +219,13 @@ export function CreatePermissionModal({
             </div>
 
             <p className="text-[11px] text-muted mt-2">
-              Sugestão: use códigos padronizados, como USERS_CREATE,
-              USERS_UPDATE, TENANTS_DELETE ou SETTINGS_VIEW.
+              {t("permissions.codeSuggestion")}
             </p>
           </section>
 
           <section className="surface-muted rounded-2xl p-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Field label="Módulo">
+              <Field label={t("permissions.module")}>
                 <input
                   className="field-input"
                   placeholder="Ex: USERS"
@@ -233,7 +235,7 @@ export function CreatePermissionModal({
                 />
               </Field>
 
-              <Field label="Ação">
+              <Field label={t("permissions.action")}>
                 <input
                   className="field-input"
                   placeholder="Ex: CREATE"
@@ -243,7 +245,7 @@ export function CreatePermissionModal({
                 />
               </Field>
 
-              <Field label="Prioridade">
+              <Field label={t("common.priority")}>
                 <input
                   className="field-input"
                   type="number"
@@ -255,10 +257,10 @@ export function CreatePermissionModal({
             </div>
 
             <div className="mt-3">
-              <Field label="Descrição">
+              <Field label={t("common.description")}>
                 <textarea
                   className="field-input min-h-24 resize-none"
-                  placeholder="Descrição da permissão"
+                  placeholder={t("permissions.descriptionPlaceholder")}
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                 />
@@ -268,15 +270,15 @@ export function CreatePermissionModal({
 
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
-              label="Permissão ativa"
-              description="Permite uso imediato no sistema."
+              label={t("permissions.active")}
+              description={t("permissions.activeDescription")}
               active={active}
               onToggle={() => setActive((value) => !value)}
             />
 
             <ToggleField
-              label="Permissão de sistema"
-              description="Protegida para regras estruturais."
+              label={t("permissions.systemPermission")}
+              description={t("permissions.systemPermissionDescription")}
               active={systemPermission}
               onToggle={() => setSystemPermission((value) => !value)}
             />
@@ -285,14 +287,14 @@ export function CreatePermissionModal({
           {systemPermission && (
             <Notice
               type="warning"
-              message="Permissões de sistema devem ser usadas apenas para regras estruturais do ERP. Evite marcar permissões comuns como sistema."
+              message={t("permissions.systemPermissionWarning")}
             />
           )}
 
           {!active && (
             <Notice
               type="info"
-              message="Esta permissão será criada como inativa e não deverá ser vinculada a perfis até ser ativada."
+              message={t("permissions.inactivePermissionNotice")}
             />
           )}
 
@@ -308,7 +310,7 @@ export function CreatePermissionModal({
               onClick={handleClose}
               className="w-full sm:w-auto bg-background border border-border text-muted font-semibold px-5 py-2.5 rounded-full hover:border-danger hover:text-danger transition text-sm"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
 
             <button
@@ -316,7 +318,7 @@ export function CreatePermissionModal({
               disabled={loading}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? "Criando permissão..." : "Criar permissão"}
+              {loading ? t("permissions.creating") : t("permissions.create")}
             </button>
           </div>
         </form>

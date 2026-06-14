@@ -66,6 +66,7 @@ public class UserService {
         user.setName(request.getName().trim());
         user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setLanguage(normalizeLanguage(request.getLanguage()));
         user.setRoles(new HashSet<>(Set.of(role)));
         user.setProfiles(resolveProfiles(request.getProfileIds()));
         user.setPermissions(resolvePermissions(request.getPermissionIds()));
@@ -109,6 +110,7 @@ public class UserService {
 
         user.setName(request.getName().trim());
         user.setEmail(normalizedEmail);
+        user.setLanguage(normalizeLanguage(request.getLanguage()));
         user.setRoles(new HashSet<>(Set.of(role)));
         user.setProfiles(resolveProfiles(request.getProfileIds()));
         user.setPermissions(resolvePermissions(request.getPermissionIds()));
@@ -132,6 +134,14 @@ public class UserService {
         User user = findUserById(id);
 
         userRepository.delete(user);
+    }
+
+    private String normalizeLanguage(String language) {
+        if (language == null || language.isBlank()) {
+            return null;
+        }
+
+        return language.trim();
     }
 
     private User findUserById(UUID id) {
@@ -206,6 +216,7 @@ public class UserService {
         response.setTenantId(user.getTenant() != null ? user.getTenant().getId() : null);
         response.setName(user.getName());
         response.setEmail(user.getEmail());
+        response.setLanguage(user.getLanguage());
         response.setActive(user.getActive());
         response.setMasterUser(user.getMasterUser());
         response.setDeveloperUser(user.getDeveloperUser());

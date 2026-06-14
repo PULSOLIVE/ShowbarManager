@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { X } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 import { TenantService } from "../../services/tenant.service"
 import type { Internationalization } from "../../types/internationalization.types"
 import type { Tenant, UpdateTenantRequest } from "../../types/tenant.types"
@@ -13,40 +14,17 @@ interface EditTenantModalProps {
   onUpdated: () => void
 }
 
-interface TimezoneOption {
-  value: string
-  label: string
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
 }
 
-const countryTimezoneOptions: Record<string, TimezoneOption[]> = {
-  PT: [
-    { value: "Europe/Lisbon", label: "(UTC+00/+01) Europa/Lisboa" },
-    { value: "Atlantic/Madeira", label: "(UTC+00/+01) Atlântico/Madeira" },
-    { value: "Atlantic/Azores", label: "(UTC-01/+00) Atlântico/Açores" },
-  ],
-  BR: [
-    { value: "America/Noronha", label: "(UTC-02) América/Noronha" },
-    { value: "America/Sao_Paulo", label: "(UTC-03) América/São Paulo" },
-    { value: "America/Fortaleza", label: "(UTC-03) América/Fortaleza" },
-    { value: "America/Cuiaba", label: "(UTC-04) América/Cuiabá" },
-    { value: "America/Manaus", label: "(UTC-04) América/Manaus" },
-    { value: "America/Rio_Branco", label: "(UTC-05) América/Rio Branco" },
-  ],
-  ES: [
-    { value: "Europe/Madrid", label: "(UTC+01/+02) Europa/Madrid" },
-    { value: "Atlantic/Canary", label: "(UTC+00/+01) Atlântico/Canárias" },
-  ],
-  US: [
-    { value: "America/New_York", label: "(UTC-05/-04) América/Nova Iorque" },
-    { value: "America/Chicago", label: "(UTC-06/-05) América/Chicago" },
-    { value: "America/Denver", label: "(UTC-07/-06) América/Denver" },
-    { value: "America/Los_Angeles", label: "(UTC-08/-07) América/Los Angeles" },
-    { value: "America/Anchorage", label: "(UTC-09/-08) América/Anchorage" },
-    { value: "Pacific/Honolulu", label: "(UTC-10) Pacífico/Honolulu" },
-  ],
-  FR: [{ value: "Europe/Paris", label: "(UTC+01/+02) Europa/Paris" }],
-  DE: [{ value: "Europe/Berlin", label: "(UTC+01/+02) Europa/Berlim" }],
-  GB: [{ value: "Europe/London", label: "(UTC+00/+01) Europa/Londres" }],
+function getErrorMessage(error: unknown, fallback: string) {
+  const apiError = error as ApiErrorResponse
+  return apiError.response?.data?.message || fallback
 }
 
 function generateSlug(value: string) {
@@ -60,23 +38,112 @@ function generateSlug(value: string) {
     .replace(/-+/g, "-")
 }
 
+function sortInternationalizations(options: Internationalization[]) {
+  return [...options]
+    .filter((item) => item.active)
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority - b.priority
+      return a.countryName.localeCompare(b.countryName)
+    })
+}
+
 function getCountryOptions(options: Internationalization[]) {
-  return Array.from(
-    new Map(
-      options.map((item) => [
-        item.countryCode,
-        {
-          value: item.countryCode,
-          label: item.countryName,
-          flag: item.flagEmoji || "🌐",
-        },
-      ])
-    ).values()
+  const map = new Map<string, { value: string; label: string; flag: string }>()
+
+  sortInternationalizations(options).forEach((item) => {
+    if (!map.has(item.countryCode)) {
+      map.set(item.countryCode, {
+        value: item.countryCode,
+        label: item.countryName,
+        flag: item.flagEmoji || "🌐",
+      })
+    }
+  })
+
+  return Array.from(map.values())
+}
+
+function getLanguageOptionsByCountry(
+  options: Internationalization[],
+  countryCode: string
+) {
+  const map = new Map<string, Internationalization>()
+
+  sortInternationalizations(options)
+    .filter((item) => item.countryCode === countryCode)
+    .forEach((item) => {
+      if (!map.has(item.languageCode)) {
+        map.set(item.languageCode, item)
+      }
+    })
+
+  return Array.from(map.values())
+}
+
+function getTimezoneOptionsByCountryAndLanguage(
+  options: Internationalization[],
+  countryCode: string,
+  languageCode: string,
+  currentTimezone: string
+) {
+  const map = new Map<string, { value: string; label: string }>()
+
+  sortInternationalizations(options)
+    .filter(
+      (item) =>
+        item.countryCode === countryCode && item.languageCode === languageCode
+    )
+    .forEach((item) => {
+      if (!map.has(item.timezone)) {
+        map.set(item.timezone, {
+          value: item.timezone,
+          label: item.timezoneLabel,
+        })
+      }
+    })
+
+  if (currentTimezone && !map.has(currentTimezone)) {
+    map.set(currentTimezone, {
+      value: currentTimezone,
+      label: currentTimezone,
+    })
+  }
+
+  return Array.from(map.values())
+}
+
+function findFirstConfigByCountry(
+  options: Internationalization[],
+  countryCode: string
+) {
+  return sortInternationalizations(options).find(
+    (item) => item.countryCode === countryCode
   )
 }
 
-function getTimezoneOptionsByCountry(country: string) {
-  return countryTimezoneOptions[country] || []
+function findFirstConfigByCountryAndLanguage(
+  options: Internationalization[],
+  countryCode: string,
+  languageCode: string
+) {
+  return sortInternationalizations(options).find(
+    (item) =>
+      item.countryCode === countryCode && item.languageCode === languageCode
+  )
+}
+
+function findConfigByCountryLanguageAndTimezone(
+  options: Internationalization[],
+  countryCode: string,
+  languageCode: string,
+  timezone: string
+) {
+  return sortInternationalizations(options).find(
+    (item) =>
+      item.countryCode === countryCode &&
+      item.languageCode === languageCode &&
+      item.timezone === timezone
+  )
 }
 
 export function EditTenantModal({
@@ -86,40 +153,15 @@ export function EditTenantModal({
   onClose,
   onUpdated,
 }: EditTenantModalProps) {
-  if (!open || !tenant) {
-    return null
-  }
+  const { t } = useTranslation()
 
-  return (
-    <EditTenantModalContent
-      tenant={tenant}
-      internationalizationOptions={internationalizationOptions}
-      onClose={onClose}
-      onUpdated={onUpdated}
-    />
-  )
-}
-
-interface EditTenantModalContentProps {
-  tenant: Tenant
-  internationalizationOptions: Internationalization[]
-  onClose: () => void
-  onUpdated: () => void
-}
-
-function EditTenantModalContent({
-  tenant,
-  internationalizationOptions,
-  onClose,
-  onUpdated,
-}: EditTenantModalContentProps) {
-  const [name, setName] = useState(tenant.name)
-  const [slug, setSlug] = useState(tenant.slug)
-  const [country, setCountry] = useState(tenant.country)
-  const [currency, setCurrency] = useState(tenant.currency)
-  const [language, setLanguage] = useState(tenant.language)
-  const [timezone, setTimezone] = useState(tenant.timezone)
-  const [active, setActive] = useState(tenant.active)
+  const [name, setName] = useState("")
+  const [slug, setSlug] = useState("")
+  const [country, setCountry] = useState("")
+  const [currency, setCurrency] = useState("")
+  const [language, setLanguage] = useState("")
+  const [timezone, setTimezone] = useState("")
+  const [active, setActive] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -129,42 +171,35 @@ function EditTenantModalContent({
   )
 
   const availableLanguageOptions = useMemo(() => {
-    return internationalizationOptions.filter((item) => item.countryCode === country)
+    return getLanguageOptionsByCountry(internationalizationOptions, country)
   }, [country, internationalizationOptions])
 
   const availableTimezoneOptions = useMemo(() => {
-    const countryTimezones = getTimezoneOptionsByCountry(country)
-
-    if (!timezone) {
-      return countryTimezones
-    }
-
-    const timezoneExists = countryTimezones.some((item) => item.value === timezone)
-
-    if (timezoneExists) {
-      return countryTimezones
-    }
-
-    return [
-      ...countryTimezones,
-      {
-        value: timezone,
-        label: timezone,
-      },
-    ]
-  }, [country, timezone])
+    return getTimezoneOptionsByCountryAndLanguage(
+      internationalizationOptions,
+      country,
+      language,
+      timezone
+    )
+  }, [country, language, timezone, internationalizationOptions])
 
   useEffect(() => {
-    setName(tenant.name)
-    setSlug(tenant.slug)
-    setCountry(tenant.country)
-    setCurrency(tenant.currency)
-    setLanguage(tenant.language)
-    setTimezone(tenant.timezone)
-    setActive(tenant.active)
+    if (!open || !tenant) return
+
+    setName(tenant.name || "")
+    setSlug(tenant.slug || "")
+    setCountry(tenant.country || "")
+    setCurrency(tenant.currency || "")
+    setLanguage(tenant.language || "")
+    setTimezone(tenant.timezone || "")
+    setActive(Boolean(tenant.active))
     setLoading(false)
     setError(null)
-  }, [tenant])
+  }, [open, tenant])
+
+  if (!open || !tenant) return null
+
+  const currentTenant = tenant
 
   function handleNameChange(value: string) {
     setName(value)
@@ -172,29 +207,51 @@ function EditTenantModalContent({
   }
 
   function handleCountryChange(value: string) {
-    const selectedConfig = internationalizationOptions.find(
-      (item) => item.countryCode === value
+    const selectedConfig = findFirstConfigByCountry(
+      internationalizationOptions,
+      value
     )
-
-    const selectedTimezones = getTimezoneOptionsByCountry(value)
-    const selectedTimezone =
-      selectedTimezones[0]?.value || selectedConfig?.timezone || ""
 
     setCountry(value)
 
     if (selectedConfig) {
       setCurrency(selectedConfig.currencyCode)
       setLanguage(selectedConfig.languageCode)
-      setTimezone(selectedTimezone)
+      setTimezone(selectedConfig.timezone)
+    } else {
+      setCurrency("")
+      setLanguage("")
+      setTimezone("")
     }
   }
 
   function handleLanguageChange(value: string) {
-    const selectedConfig = internationalizationOptions.find(
-      (item) => item.countryCode === country && item.languageCode === value
+    const selectedConfig = findFirstConfigByCountryAndLanguage(
+      internationalizationOptions,
+      country,
+      value
     )
 
     setLanguage(value)
+
+    if (selectedConfig) {
+      setCurrency(selectedConfig.currencyCode)
+      setTimezone(selectedConfig.timezone)
+    } else {
+      setCurrency("")
+      setTimezone("")
+    }
+  }
+
+  function handleTimezoneChange(value: string) {
+    const selectedConfig = findConfigByCountryLanguageAndTimezone(
+      internationalizationOptions,
+      country,
+      language,
+      value
+    )
+
+    setTimezone(value)
 
     if (selectedConfig) {
       setCurrency(selectedConfig.currencyCode)
@@ -207,22 +264,35 @@ function EditTenantModalContent({
     setError(null)
 
     try {
+      const selectedConfig = findConfigByCountryLanguageAndTimezone(
+        internationalizationOptions,
+        country,
+        language,
+        timezone
+      )
+
+      if (!selectedConfig) {
+        setError(t("tenants.validCombinationRequired"))
+        setLoading(false)
+        return
+      }
+
       const payload: UpdateTenantRequest = {
         name: name.trim(),
         slug: slug.trim(),
-        country,
-        currency: currency.trim().toUpperCase(),
-        language,
-        timezone,
+        country: selectedConfig.countryCode,
+        currency: selectedConfig.currencyCode,
+        language: selectedConfig.languageCode,
+        timezone: selectedConfig.timezone,
         active,
       }
 
-      await TenantService.update(tenant.id, payload)
+      await TenantService.update(currentTenant.id, payload)
 
       onUpdated()
       onClose()
-    } catch {
-      setError("Não foi possível atualizar o ambiente. Verifique os dados e tente novamente.")
+    } catch (caughtError) {
+      setError(getErrorMessage(caughtError, t("tenants.updateError")))
     } finally {
       setLoading(false)
     }
@@ -234,15 +304,15 @@ function EditTenantModalContent({
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <span className="text-sm text-primary font-medium">
-              Editar ambiente
+              {t("tenants.editTenant")}
             </span>
 
             <h2 className="text-xl font-bold mt-1">
-              Alterar ambiente
+              {t("tenants.edit")}
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Atualize os dados do ambiente multiempresa.
+              {t("tenants.editDescription")}
             </p>
           </div>
 
@@ -250,7 +320,7 @@ function EditTenantModalContent({
             type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
-            title="Fechar"
+            title={t("common.close")}
           >
             <X size={17} />
           </button>
@@ -259,12 +329,12 @@ function EditTenantModalContent({
         <form onSubmit={handleSubmit} className="space-y-3">
           <label className="block">
             <span className="block text-xs text-muted mb-1.5">
-              Nome do ambiente
+              {t("tenants.name")}
             </span>
 
             <input
               className="field-input"
-              placeholder="Ex: Empresa Demo Portugal"
+              placeholder={t("tenants.tenantNamePlaceholder")}
               value={name}
               onChange={(event) => handleNameChange(event.target.value)}
               required
@@ -273,12 +343,12 @@ function EditTenantModalContent({
 
           <label className="block">
             <span className="block text-xs text-muted mb-1.5">
-              Slug automático
+              {t("tenants.slug")}
             </span>
 
             <input
               className="field-input"
-              placeholder="empresa-demo-portugal"
+              placeholder={t("tenants.slugPlaceholder")}
               value={slug}
               onChange={(event) => setSlug(generateSlug(event.target.value))}
               required
@@ -288,7 +358,7 @@ function EditTenantModalContent({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
               <span className="block text-xs text-muted mb-1.5">
-                País
+                {t("tenants.country")}
               </span>
 
               <select
@@ -297,11 +367,12 @@ function EditTenantModalContent({
                 onChange={(event) => handleCountryChange(event.target.value)}
                 required
               >
-                {!countryOptions.some((item) => item.value === country) && (
-                  <option value={country}>
-                    {country}
-                  </option>
-                )}
+                {!countryOptions.some((item) => item.value === country) &&
+                  country && (
+                    <option value={country}>
+                      {country}
+                    </option>
+                  )}
 
                 {countryOptions.map((item) => (
                   <option key={item.value} value={item.value}>
@@ -313,21 +384,21 @@ function EditTenantModalContent({
 
             <label className="block">
               <span className="block text-xs text-muted mb-1.5">
-                Moeda
+                {t("tenants.currency")}
               </span>
 
               <input
                 className="field-input"
                 placeholder="EUR"
                 value={currency}
-                onChange={(event) => setCurrency(event.target.value.toUpperCase())}
+                readOnly
                 required
               />
             </label>
 
             <label className="block">
               <span className="block text-xs text-muted mb-1.5">
-                Idioma
+                {t("tenants.language")}
               </span>
 
               <select
@@ -338,11 +409,12 @@ function EditTenantModalContent({
               >
                 {!availableLanguageOptions.some(
                   (item) => item.languageCode === language
-                ) && (
-                  <option value={language}>
-                    {language}
-                  </option>
-                )}
+                ) &&
+                  language && (
+                    <option value={language}>
+                      {language}
+                    </option>
+                  )}
 
                 {availableLanguageOptions.map((item) => (
                   <option key={`${item.id}-language`} value={item.languageCode}>
@@ -354,22 +426,23 @@ function EditTenantModalContent({
 
             <label className="block">
               <span className="block text-xs text-muted mb-1.5">
-                Fuso horário
+                {t("tenants.timezone")}
               </span>
 
               <select
                 className="field-input"
                 value={timezone}
-                onChange={(event) => setTimezone(event.target.value)}
+                onChange={(event) => handleTimezoneChange(event.target.value)}
                 required
               >
                 {!availableTimezoneOptions.some(
                   (item) => item.value === timezone
-                ) && (
-                  <option value={timezone}>
-                    {timezone}
-                  </option>
-                )}
+                ) &&
+                  timezone && (
+                    <option value={timezone}>
+                      {timezone}
+                    </option>
+                  )}
 
                 {availableTimezoneOptions.map((item) => (
                   <option key={item.value} value={item.value}>
@@ -382,7 +455,7 @@ function EditTenantModalContent({
 
           <label className="flex items-center justify-between surface-muted rounded-2xl px-4 py-2.5">
             <span className="text-sm text-muted">
-              Ambiente ativo
+              {t("tenants.active")}
             </span>
 
             <button
@@ -413,7 +486,7 @@ function EditTenantModalContent({
             disabled={loading || internationalizationOptions.length === 0}
             className="w-full bg-primary text-white font-semibold py-3 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Salvando alterações..." : "Salvar alterações"}
+            {loading ? t("tenants.savingChanges") : t("tenants.saveChanges")}
           </button>
         </form>
       </div>

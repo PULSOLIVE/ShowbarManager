@@ -7,35 +7,45 @@ import {
   RefreshCcw,
   ShieldCheck,
 } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 
-const auditItems = [
-  {
-    title: "Logs",
-    value: "0",
-    description: "Registros estruturados de ações do sistema.",
-    icon: Activity,
-  },
-  {
-    title: "Ações Críticas",
-    value: "0",
-    description: "Operações sensíveis que exigem rastreabilidade.",
-    icon: AlertTriangle,
-  },
-  {
-    title: "Auditorias",
-    value: "0",
-    description: "Consultas, revisões e verificações internas.",
-    icon: FileSearch,
-  },
-  {
-    title: "Compliance",
-    value: "100%",
-    description: "Base preparada para LGPD, RGPD e governança.",
-    icon: ShieldCheck,
-  },
-]
+interface AuditItem {
+  title: string
+  value: string
+  description: string
+  icon: LucideIcon
+}
 
 export function SettingsAuditPage() {
+  const { t } = useTranslation()
+
+  const auditItems: AuditItem[] = [
+    {
+      title: t("audit.logs"),
+      value: "0",
+      description: t("audit.logsDescription"),
+      icon: Activity,
+    },
+    {
+      title: t("audit.criticalActions"),
+      value: "0",
+      description: t("audit.criticalActionsDescription"),
+      icon: AlertTriangle,
+    },
+    {
+      title: t("audit.audits"),
+      value: "0",
+      description: t("audit.auditsDescription"),
+      icon: FileSearch,
+    },
+    {
+      title: "Compliance",
+      value: "100%",
+      description: t("audit.complianceDescription"),
+      icon: ShieldCheck,
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <section className="surface-premium rounded-2xl p-4 lg:p-5">
@@ -43,27 +53,27 @@ export function SettingsAuditPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <FileSearch size={16} />
-              Configurações
+              {t("settings.title")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Auditoria
+              {t("audit.title")}
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              Logs, rastreamento, ações críticas, compliance e observabilidade.
+              {t("audit.subtitle")}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <button className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm">
               <RefreshCcw size={15} />
-              Atualizar
+              {t("common.refresh")}
             </button>
 
             <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
               <Download size={15} />
-              Exportar logs
+              {t("audit.exportLogs")}
             </button>
           </div>
         </div>
@@ -83,12 +93,7 @@ function AuditCard({
   value,
   description,
   icon: Icon,
-}: {
-  title: string
-  value: string
-  description: string
-  icon: LucideIcon
-}) {
+}: AuditItem) {
   return (
     <article className="surface-premium rounded-2xl p-4 min-h-[146px] hover:border-primary/50 transition">
       <div className="flex items-start justify-between gap-3 mb-3">

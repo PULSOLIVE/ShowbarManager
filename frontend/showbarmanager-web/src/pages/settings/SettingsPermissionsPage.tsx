@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { CreatePermissionModal } from "../../components/settings/CreatePermissionModal"
 import { EditPermissionModal } from "../../components/settings/EditPermissionModal"
+import { useTranslation } from "../../hooks/useTranslation"
 import { PermissionService } from "../../services/permission.service"
 import type { Permission } from "../../types/permission.types"
 
@@ -68,40 +69,42 @@ const matrix = [
   },
 ]
 
-function getModuleLabel(value: string) {
+function getModuleLabel(value: string, t: (path: string, fallback?: string) => string) {
   const labels: Record<string, string> = {
-    AUDIT: "Auditoria",
-    BRANDING: "Branding",
-    HARDWARE: "Hardware",
-    INTEGRATIONS: "Integrações",
-    INTERNATIONALIZATION: "Internacionalização",
-    NETWORK: "Rede Local",
-    PERMISSIONS: "Permissões",
-    POLICIES: "Políticas",
-    PROFILES: "Perfis",
-    SECURITY: "Segurança",
-    SESSIONS: "Sessões",
-    SETTINGS: "Configurações",
-    TENANTS: "Ambientes",
-    USERS: "Usuários",
+    AUDIT: t("menu.audit"),
+    BRANDING: t("menu.branding"),
+    HARDWARE: t("menu.hardware"),
+    INTEGRATIONS: t("menu.integrations"),
+    INTERNATIONALIZATION: t("menu.internationalization"),
+    NETWORK: t("menu.network"),
+    PERMISSIONS: t("menu.permissions"),
+    POLICIES: t("menu.policies"),
+    PROFILES: t("menu.profiles"),
+    SECURITY: t("menu.security"),
+    SESSIONS: t("menu.sessions"),
+    SETTINGS: t("menu.settings"),
+    TENANTS: t("menu.tenants"),
+    USERS: t("menu.users"),
   }
 
   return labels[value] || value
 }
 
-function getActionLabel(value: string) {
+function getActionLabel(value: string, t: (path: string, fallback?: string) => string) {
   const labels: Record<string, string> = {
-    CREATE: "Criar",
-    DELETE: "Excluir",
-    MANAGE: "Gerir",
-    UPDATE: "Atualizar",
-    VIEW: "Visualizar",
+    CREATE: t("common.create"),
+    DELETE: t("common.delete"),
+    MANAGE: t("permissions.manage"),
+    UPDATE: t("common.update"),
+    VIEW: t("permissions.view"),
   }
 
   return labels[value] || value
 }
 
 export function SettingsPermissionsPage() {
+  const { t } = useTranslation()
+
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [moduleFilter, setModuleFilter] = useState("all")
@@ -145,8 +148,8 @@ export function SettingsPermissionsPage() {
     const term = search.trim().toLowerCase()
 
     return permissions.filter((permission) => {
-      const moduleLabel = getModuleLabel(permission.module).toLowerCase()
-      const actionLabel = getActionLabel(permission.action).toLowerCase()
+      const moduleLabel = getModuleLabel(permission.module, t).toLowerCase()
+      const actionLabel = getActionLabel(permission.action, t).toLowerCase()
 
       const matchesSearch =
         !term ||
@@ -170,12 +173,16 @@ export function SettingsPermissionsPage() {
 
       return matchesSearch && matchesStatus && matchesModule
     })
-  }, [permissions, search, statusFilter, moduleFilter])
+  }, [permissions, search, statusFilter, moduleFilter, t])
 
   function handleRefresh() {
-    refetch().catch(() => {
-      alert("Não foi possível atualizar as permissões.")
-    })
+    refetch()
+      .then(() => {
+        alert(t("permissions.listUpdated"))
+      })
+      .catch(() => {
+        alert(t("permissions.refreshError"))
+      })
   }
 
   function handleEdit(permission: Permission) {
@@ -185,12 +192,12 @@ export function SettingsPermissionsPage() {
 
   async function handleDelete(permission: Permission) {
     if (permission.systemPermission) {
-      alert("Permissões de sistema não podem ser excluídas.")
+      alert(t("permissions.systemDeleteBlocked"))
       return
     }
 
     const confirmed = window.confirm(
-      `Deseja realmente excluir a permissão ${permission.name}?`
+      `${t("permissions.deleteConfirm")} ${permission.name}?`
     )
 
     if (!confirmed) {
@@ -202,7 +209,7 @@ export function SettingsPermissionsPage() {
       await PermissionService.delete(permission.id)
       await refetch()
     } catch {
-      alert("Não foi possível excluir esta permissão.")
+      alert(t("permissions.deleteError"))
     } finally {
       setDeleteLoadingId(null)
     }
@@ -214,15 +221,15 @@ export function SettingsPermissionsPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <KeyRound size={16} />
-            Configurações
+            {t("settings.title")}
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Permissões
+            {t("permissions.title")}
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Controle avançado de permissões e RBAC por módulo, ação, campo e contexto.
+            {t("permissions.subtitle")}
           </p>
         </div>
 
@@ -231,15 +238,15 @@ export function SettingsPermissionsPage() {
           className="bg-primary text-white px-4 py-2.5 rounded-full font-semibold flex items-center justify-center gap-2 hover:shadow-neon transition text-sm"
         >
           <Plus size={16} />
-          Nova permissão
+          {t("permissions.new")}
         </button>
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <SummaryCard title="Total" value={String(permissions.length)} icon={<KeyRound size={18} />} />
-        <SummaryCard title="Ativas" value={String(activePermissionsCount)} icon={<CheckCircle2 size={18} />} />
-        <SummaryCard title="Sistema" value={String(systemPermissionsCount)} icon={<ShieldCheck size={18} />} />
-        <SummaryCard title="Filtradas" value={String(filteredPermissions.length)} icon={<Search size={18} />} />
+        <SummaryCard title={t("common.total")} value={String(permissions.length)} icon={<KeyRound size={18} />} />
+        <SummaryCard title={t("common.active")} value={String(activePermissionsCount)} icon={<CheckCircle2 size={18} />} />
+        <SummaryCard title={t("profiles.system")} value={String(systemPermissionsCount)} icon={<ShieldCheck size={18} />} />
+        <SummaryCard title={t("common.filtered")} value={String(filteredPermissions.length)} icon={<Search size={18} />} />
       </section>
 
       <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
@@ -247,7 +254,7 @@ export function SettingsPermissionsPage() {
           <Search size={15} className="text-muted shrink-0" />
 
           <input
-            placeholder="Pesquisar por código, nome, módulo ou ação..."
+            placeholder={t("permissions.searchPlaceholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="bg-transparent outline-none w-full text-sm placeholder:text-muted"
@@ -260,10 +267,10 @@ export function SettingsPermissionsPage() {
             value={moduleFilter}
             onChange={(event) => setModuleFilter(event.target.value)}
           >
-            <option value="all">Todos os módulos</option>
+            <option value="all">{t("permissions.allModules")}</option>
             {moduleOptions.map((module) => (
               <option key={module} value={module}>
-                {getModuleLabel(module)}
+                {getModuleLabel(module, t)}
               </option>
             ))}
           </select>
@@ -273,11 +280,11 @@ export function SettingsPermissionsPage() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="all">Todas</option>
-            <option value="active">Ativas</option>
-            <option value="inactive">Inativas</option>
-            <option value="system">Sistema</option>
-            <option value="custom">Personalizadas</option>
+            <option value="all">{t("common.all")}</option>
+            <option value="active">{t("common.active")}</option>
+            <option value="inactive">{t("common.inactive")}</option>
+            <option value="system">{t("profiles.system")}</option>
+            <option value="custom">{t("profiles.custom")}</option>
           </select>
 
           <button
@@ -285,20 +292,20 @@ export function SettingsPermissionsPage() {
             className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
-            Atualizar
+            {t("common.refresh")}
           </button>
         </div>
       </section>
 
       {isLoading && (
         <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
-          Carregando permissões...
+          {t("permissions.loading")}
         </div>
       )}
 
       {isError && (
         <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
-          Não foi possível carregar as permissões.
+          {t("permissions.error")}
         </div>
       )}
 
@@ -329,27 +336,27 @@ export function SettingsPermissionsPage() {
                 {permission.active ? (
                   <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
                     <CheckCircle2 size={14} />
-                    Ativa
+                    {t("common.active")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
                     <XCircle size={14} />
-                    Inativa
+                    {t("common.inactive")}
                   </span>
                 )}
               </div>
 
               <p className="text-sm text-muted mt-3 line-clamp-2 min-h-[40px]">
-                {permission.description || "Permissão do ecossistema"}
+                {permission.description || t("permissions.defaultDescription")}
               </p>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <InfoBox label="Módulo" value={getModuleLabel(permission.module)} />
-                <InfoBox label="Ação" value={getActionLabel(permission.action)} />
-                <InfoBox label="Prioridade" value={String(permission.priority)} />
+                <InfoBox label={t("permissions.module")} value={getModuleLabel(permission.module, t)} />
+                <InfoBox label={t("permissions.action")} value={getActionLabel(permission.action, t)} />
+                <InfoBox label={t("common.priority")} value={String(permission.priority)} />
                 <InfoBox
-                  label="Tipo"
-                  value={permission.systemPermission ? "Sistema" : "Personalizada"}
+                  label={t("users.type")}
+                  value={permission.systemPermission ? t("profiles.system") : t("profiles.custom")}
                   icon={permission.systemPermission ? <ShieldCheck size={14} className="text-primary" /> : undefined}
                 />
               </div>
@@ -363,7 +370,7 @@ export function SettingsPermissionsPage() {
                   <button
                     onClick={() => handleEdit(permission)}
                     className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-                    title="Editar"
+                    title={t("common.edit")}
                   >
                     <Edit size={14} />
                   </button>
@@ -371,12 +378,12 @@ export function SettingsPermissionsPage() {
                   <button
                     onClick={() => {
                       handleDelete(permission).catch(() => {
-                        alert("Erro inesperado ao excluir permissão.")
+                        alert(t("messages.unexpectedError"))
                       })
                     }}
                     disabled={deleteLoadingId === permission.id || permission.systemPermission}
                     className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Excluir"
+                    title={t("common.delete")}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -387,7 +394,7 @@ export function SettingsPermissionsPage() {
 
           {filteredPermissions.length === 0 && (
             <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
-              Nenhuma permissão encontrada.
+              {t("permissions.noResults")}
             </div>
           )}
         </section>
@@ -399,11 +406,11 @@ export function SettingsPermissionsPage() {
 
           <div>
             <h3 className="text-base font-semibold">
-              Matriz inicial de permissões
+              {t("permissions.initialMatrix")}
             </h3>
 
             <p className="text-xs text-muted">
-              Base visual para o RBAC do ShowbarManager.
+              {t("permissions.initialMatrixDescription")}
             </p>
           </div>
         </div>
@@ -411,12 +418,12 @@ export function SettingsPermissionsPage() {
         <div className="overflow-x-auto">
           <div className="min-w-[760px]">
             <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-3 border-b border-border text-xs uppercase tracking-wide text-muted">
-              <div>Perfil</div>
-              <div>Config.</div>
-              <div>Usuários</div>
-              <div>Ambientes</div>
-              <div>Auditoria</div>
-              <div>Excluir</div>
+              <div>{t("profiles.title")}</div>
+              <div>{t("permissions.settingsShort")}</div>
+              <div>{t("menu.users")}</div>
+              <div>{t("menu.tenants")}</div>
+              <div>{t("menu.audit")}</div>
+              <div>{t("common.delete")}</div>
             </div>
 
             {matrix.map((row) => (
@@ -425,11 +432,11 @@ export function SettingsPermissionsPage() {
                 className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-3 border-b border-border last:border-b-0 hover:bg-primarySoft transition text-sm"
               >
                 <strong>{row.profile}</strong>
-                <PermissionStatus allowed={row.settings} />
-                <PermissionStatus allowed={row.users} />
-                <PermissionStatus allowed={row.environments} />
-                <PermissionStatus allowed={row.audit} />
-                <PermissionStatus allowed={row.delete} />
+                <PermissionStatus allowed={row.settings} t={t} />
+                <PermissionStatus allowed={row.users} t={t} />
+                <PermissionStatus allowed={row.environments} t={t} />
+                <PermissionStatus allowed={row.audit} t={t} />
+                <PermissionStatus allowed={row.delete} t={t} />
               </div>
             ))}
           </div>
@@ -441,7 +448,7 @@ export function SettingsPermissionsPage() {
         onClose={() => setCreateModalOpen(false)}
         onCreated={() => {
           refetch().catch(() => {
-            alert("Permissão criada, mas não foi possível atualizar a lista.")
+            alert(t("permissions.createdRefreshError"))
           })
         }}
       />
@@ -455,7 +462,7 @@ export function SettingsPermissionsPage() {
         }}
         onUpdated={() => {
           refetch().catch(() => {
-            alert("Permissão atualizada, mas não foi possível atualizar a lista.")
+            alert(t("permissions.updatedRefreshError"))
           })
         }}
       />
@@ -519,15 +526,21 @@ function InfoBox({
   )
 }
 
-function PermissionStatus({ allowed }: { allowed: boolean }) {
+function PermissionStatus({
+  allowed,
+  t,
+}: {
+  allowed: boolean
+  t: (path: string, fallback?: string) => string
+}) {
   return allowed ? (
     <span className="inline-flex items-center gap-1 text-success text-sm">
       <CheckCircle2 size={14} />
-      Sim
+      {t("common.yes")}
     </span>
   ) : (
     <span className="text-muted text-sm">
-      Não
+      {t("common.no")}
     </span>
   )
 }

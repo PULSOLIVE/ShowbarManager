@@ -10,11 +10,13 @@ import {
   UserCircle,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "../../hooks/useTranslation"
 import { AuthService } from "../../services/auth.service"
 import { useAuthStore } from "../../store/auth.store"
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const setAuth = useAuthStore((state) => state.setAuth)
 
   const [email, setEmail] = useState("admin@demo.pt")
@@ -37,7 +39,7 @@ export function LoginPage() {
       setAuth(data)
       navigate("/dashboard")
     } catch {
-      setError("E-mail ou senha inválidos.")
+      setError(t("auth.invalidCredentials"))
     } finally {
       setLoading(false)
     }
@@ -52,17 +54,15 @@ export function LoginPage() {
           <div className="relative">
             <div className="inline-flex items-center gap-2 rounded-full bg-primarySoft px-3 py-1.5 text-primary text-xs font-semibold">
               <Sparkles size={14} />
-              Ecossistema ERP completo
+              {t("app.description")}
             </div>
 
             <h1 className="text-3xl xl:text-4xl font-black mt-5 leading-tight max-w-xl">
-              ShowbarManager Empresarial
+              {t("topbar.system")}
             </h1>
 
             <p className="text-muted mt-3 text-sm leading-relaxed max-w-2xl">
-              Plataforma executiva para gestão de ambientes, usuários,
-              permissões, produção operacional, configurações e governança SaaS
-              multiambiente.
+              {t("app.description")}
             </p>
           </div>
 
@@ -82,11 +82,11 @@ export function LoginPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <div className="text-xl sm:text-2xl font-black text-primary">
-                  ShowbarManager
+                  {t("app.name")}
                 </div>
 
                 <p className="text-xs text-muted mt-1">
-                  Ecossistema ERP completo
+                  {t("app.description")}
                 </p>
               </div>
 
@@ -97,18 +97,18 @@ export function LoginPage() {
 
             <div>
               <h2 className="text-xl sm:text-2xl font-bold">
-                Entrar no sistema
+                {t("auth.loginTitle")}
               </h2>
 
               <p className="text-muted text-sm mt-1.5">
-                Acesse o ambiente administrativo empresarial.
+                {t("auth.loginSubtitle")}
               </p>
             </div>
 
             <div className="space-y-3">
               <label className="block">
                 <span className="block text-xs text-muted mb-1.5">
-                  E-mail
+                  {t("auth.email")}
                 </span>
 
                 <div className="flex items-center field-input px-0 py-0 focus-within:border-primary">
@@ -129,7 +129,7 @@ export function LoginPage() {
 
               <label className="block">
                 <span className="block text-xs text-muted mb-1.5">
-                  Senha
+                  {t("auth.password")}
                 </span>
 
                 <div className="flex items-center field-input px-0 py-0 focus-within:border-primary">
@@ -139,7 +139,7 @@ export function LoginPage() {
 
                   <input
                     className="w-full bg-transparent py-2.5 pr-2 outline-none text-sm"
-                    placeholder="Digite sua senha"
+                    placeholder={t("auth.password")}
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
@@ -169,7 +169,7 @@ export function LoginPage() {
               disabled={loading}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? "A entrar..." : "Entrar no sistema"}
+              {loading ? t("auth.loggingIn") : t("auth.loginButton")}
               {!loading && <ArrowRight size={16} />}
             </button>
 
@@ -202,13 +202,9 @@ function FeatureCard({
 }) {
   return (
     <div className="surface-muted rounded-2xl p-3.5">
-      <p className="text-sm font-semibold">
-        {title}
-      </p>
+      <p className="text-sm font-semibold">{title}</p>
 
-      <p className="text-xs text-muted mt-1">
-        {description}
-      </p>
+      <p className="text-xs text-muted mt-1">{description}</p>
     </div>
   )
 }

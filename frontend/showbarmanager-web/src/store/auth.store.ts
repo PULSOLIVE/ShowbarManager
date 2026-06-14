@@ -26,11 +26,6 @@ interface AuthState {
   logout: () => void
 }
 
-type LoginResponseWithPermissions = LoginResponse & {
-  permissions?: string[]
-  effectivePermissions?: string[]
-}
-
 function normalizeRoles(roles: string[] = []) {
   return roles.map((role) => role.replace("ROLE_", ""))
 }
@@ -40,19 +35,18 @@ function normalizePermissions(permissions: string[] = []) {
 }
 
 function buildPermissions(user: LoginResponse | null) {
-  const currentUser = user as LoginResponseWithPermissions | null
-  const roles = normalizeRoles(currentUser?.roles || [])
+  const roles = normalizeRoles(user?.roles || [])
   const permissions = normalizePermissions([
-    ...(currentUser?.permissions || []),
-    ...(currentUser?.effectivePermissions || []),
+    ...(user?.permissions || []),
+    ...(user?.effectivePermissions || []),
   ])
 
   return {
     roles,
     permissions,
-    isMaster: !!currentUser?.masterUser || roles.includes("ADMIN_MASTER"),
+    isMaster: !!user?.masterUser || roles.includes("ADMIN_MASTER"),
     isDeveloper:
-      !!currentUser?.developerUser || roles.includes("DEVELOPER_MASTER"),
+      !!user?.developerUser || roles.includes("DEVELOPER_MASTER"),
   }
 }
 
@@ -126,7 +120,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const permissions = buildPermissions(data)
 
     localStorage.setItem("showbar_token", data.token)
-    localStorage.setItem("showbar_tenant_id", data.tenantId)
+
+    if (data.tenantId) {
+      localStorage.setItem("showbar_tenant_id", data.tenantId)
+    } else {
+      localStorage.removeItem("showbar_tenant_id")
+    }
+
     localStorage.setItem("showbar_user_id", data.userId)
     localStorage.setItem("showbar_user", JSON.stringify(data))
 

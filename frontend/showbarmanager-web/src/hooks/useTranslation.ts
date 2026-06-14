@@ -1,48 +1,47 @@
 import {
   defaultLanguage,
-  dictionaries,
+  getDictionary,
+  isLanguageCode,
 } from "../i18n"
 import { useLanguageStore } from "../store/language.store"
-import type { Dictionary } from "../i18n"
+import type { Dictionary, LanguageCode } from "../i18n"
 
 type TranslationPath = string
 
-function getNestedValue(
-  dictionary: Dictionary,
-  path: TranslationPath
-): string | null {
-  const keys = path.split(".")
-  let current: unknown = dictionary
-
-  for (const key of keys) {
-    if (
-      typeof current !== "object" ||
-      current === null ||
-      !(key in current)
-    ) {
-      return null
+function getNestedValue(dictionary: Dictionary, path: TranslationPath) {
+  return path.split(".").reduce<unknown>((current, key) => {
+    if (current && typeof current === "object" && key in current) {
+      return (current as Record<string, unknown>)[key]
     }
 
-    current = (current as Record<string, unknown>)[key]
-  }
-
-  return typeof current === "string" ? current : null
+    return undefined
+  }, dictionary)
 }
 
 export function useTranslation() {
   const language = useLanguageStore((state) => state.language)
-  const dictionary = dictionaries[language] || dictionaries[defaultLanguage]
 
-  function t(path: TranslationPath) {
-    return (
+  const safeLanguage: LanguageCode = isLanguageCode(language)
+    ? language
+    : defaultLanguage
+
+  const dictionary = getDictionary(safeLanguage)
+  const fallbackDictionary = getDictionary(defaultLanguage)
+
+  function t(path: TranslationPath, fallback?: string) {
+    const value =
       getNestedValue(dictionary, path) ||
-      getNestedValue(dictionaries[defaultLanguage], path) ||
-      path
-    )
+      getNestedValue(fallbackDictionary, path)
+
+    if (typeof value === "string") {
+      return value
+    }
+
+    return fallback || path
   }
 
   return {
     t,
-    language,
+    language: safeLanguage,
   }
 }

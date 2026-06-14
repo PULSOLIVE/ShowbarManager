@@ -20,5 +20,9 @@ public interface InternationalizationRepository
 
     List<Internationalization> findByActiveTrueOrderByPriorityAscCountryNameAsc();
 
+    List<Internationalization> findByActiveTrueAndCountryCodeOrderByPriorityAscLanguageNameAsc(
+            String countryCode
+    );
+
     Optional<Internationalization> findBySystemDefaultTrue();
 }

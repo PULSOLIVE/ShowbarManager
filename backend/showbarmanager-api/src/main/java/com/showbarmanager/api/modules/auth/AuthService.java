@@ -60,6 +60,8 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user);
+        String tenantLanguage = user.getTenant() != null ? user.getTenant().getLanguage() : null;
+        String resolvedLanguage = resolveLanguage(user.getLanguage(), tenantLanguage);
 
         authLoggingService.loginSuccess(
                 user.getEmail(),
@@ -73,6 +75,9 @@ public class AuthService {
         response.setTenantId(user.getTenant() != null ? user.getTenant().getId() : null);
         response.setName(user.getName());
         response.setEmail(user.getEmail());
+        response.setLanguage(user.getLanguage());
+        response.setTenantLanguage(tenantLanguage);
+        response.setResolvedLanguage(resolvedLanguage);
         response.setMasterUser(user.getMasterUser());
         response.setDeveloperUser(user.getDeveloperUser());
         response.setRoles(
@@ -86,5 +91,17 @@ public class AuthService {
         );
 
         return response;
+    }
+
+    private String resolveLanguage(String userLanguage, String tenantLanguage) {
+        if (userLanguage != null && !userLanguage.isBlank()) {
+            return userLanguage.trim();
+        }
+
+        if (tenantLanguage != null && !tenantLanguage.isBlank()) {
+            return tenantLanguage.trim();
+        }
+
+        return "pt-PT";
     }
 }

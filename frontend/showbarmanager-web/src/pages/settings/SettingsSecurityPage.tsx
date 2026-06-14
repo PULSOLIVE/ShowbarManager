@@ -7,35 +7,45 @@ import {
   ShieldCheck,
   Smartphone,
 } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 
-const securityItems = [
-  {
-    title: "MFA",
-    value: "Planejado",
-    description: "Autenticação multifator para acessos sensíveis.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Política de Senhas",
-    value: "Ativa",
-    description: "Regras mínimas de senha e segurança de login.",
-    icon: LockKeyhole,
-  },
-  {
-    title: "Fingerprint",
-    value: "Futuro",
-    description: "Identificação de dispositivo e contexto de acesso.",
-    icon: Fingerprint,
-  },
-  {
-    title: "Dispositivos",
-    value: "Monitorado",
-    description: "Controle de sessões por dispositivo autorizado.",
-    icon: Smartphone,
-  },
-]
+interface SecurityItem {
+  title: string
+  value: string
+  description: string
+  icon: LucideIcon
+}
 
 export function SettingsSecurityPage() {
+  const { t } = useTranslation()
+
+  const securityItems: SecurityItem[] = [
+    {
+      title: "MFA",
+      value: t("status.planned"),
+      description: t("security.mfaDescription"),
+      icon: ShieldCheck,
+    },
+    {
+      title: t("security.passwordPolicy"),
+      value: t("common.active"),
+      description: t("security.passwordPolicyDescription"),
+      icon: LockKeyhole,
+    },
+    {
+      title: "Fingerprint",
+      value: t("status.future"),
+      description: t("security.fingerprintDescription"),
+      icon: Fingerprint,
+    },
+    {
+      title: t("security.devices"),
+      value: t("status.monitored"),
+      description: t("security.devicesDescription"),
+      icon: Smartphone,
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <section className="surface-premium rounded-2xl p-4 lg:p-5">
@@ -43,21 +53,21 @@ export function SettingsSecurityPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <ShieldCheck size={16} />
-              Configurações
+              {t("settings.title")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Segurança
+              {t("security.title")}
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              Segurança avançada da plataforma, sessões, dispositivos e autenticação.
+              {t("security.subtitle")}
             </p>
           </div>
 
           <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
             <Save size={15} />
-            Salvar segurança
+            {t("security.saveSecurity")}
           </button>
         </div>
       </section>
@@ -76,12 +86,9 @@ function SecurityCard({
   value,
   description,
   icon: Icon,
-}: {
-  title: string
-  value: string
-  description: string
-  icon: LucideIcon
-}) {
+}: SecurityItem) {
+  const { t } = useTranslation()
+
   return (
     <div className="surface-premium rounded-2xl p-4 min-h-[150px] hover:border-primary/50 transition">
       <div className="flex items-start justify-between gap-3">
@@ -91,19 +98,15 @@ function SecurityCard({
 
         <button
           className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-          title="Editar"
+          title={t("common.edit")}
         >
           <Edit size={14} />
         </button>
       </div>
 
-      <h3 className="font-semibold mt-4">
-        {title}
-      </h3>
+      <h3 className="font-semibold mt-4">{title}</h3>
 
-      <p className="text-primary text-sm font-semibold mt-1">
-        {value}
-      </p>
+      <p className="text-primary text-sm font-semibold mt-1">{value}</p>
 
       <p className="text-xs text-muted mt-2 leading-relaxed line-clamp-2">
         {description}

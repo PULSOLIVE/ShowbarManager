@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
 import type { CreateProfileRequest } from "../../types/profile.types"
@@ -34,48 +35,52 @@ function generateProfileCodeFromName(value: string) {
   return normalizeProfileCode(value)
 }
 
-function translatePermissionPart(value: string) {
+function translatePermissionPart(value: string, t: (key: string) => string) {
   const dictionary: Record<string, string> = {
-    USERS: "Usuários",
-    USER: "Usuário",
-    TENANTS: "Ambientes",
-    TENANT: "Ambiente",
-    SETTINGS: "Configurações",
-    PROFILES: "Perfis",
-    PROFILE: "Perfil",
-    PERMISSIONS: "Permissões",
-    PERMISSION: "Permissão",
-    INTERNATIONALIZATION: "Internacionalização",
-    SECURITY: "Segurança",
-    SESSIONS: "Sessões",
-    SESSION: "Sessão",
-    AUDIT: "Auditoria",
-    BRANDING: "Identidade visual",
-    COUNTRIES: "Países",
-    COUNTRY: "País",
-    FISCAL: "Fiscal",
-    INTEGRATIONS: "Integrações",
-    INTEGRATION: "Integração",
-    NETWORK: "Rede local",
-    HARDWARE: "Equipamentos",
-    POLICIES: "Políticas",
-    POLICY: "Política",
-    VIEW: "Visualizar",
-    CREATE: "Criar",
-    UPDATE: "Atualizar",
-    DELETE: "Excluir",
-    MANAGE: "Gerir",
-    EXPORT: "Exportar",
-    IMPORT: "Importar",
-    APPROVE: "Aprovar",
-    CANCEL: "Cancelar",
+    USERS: t("menu.users"),
+    USER: t("users.commonUser"),
+    TENANTS: t("menu.tenants"),
+    TENANT: t("tenants.title"),
+    SETTINGS: t("menu.settings"),
+    PROFILES: t("menu.profiles"),
+    PROFILE: t("profiles.title"),
+    PERMISSIONS: t("menu.permissions"),
+    PERMISSION: t("permissions.title"),
+    INTERNATIONALIZATION: t("menu.internationalization"),
+    SECURITY: t("menu.security"),
+    SESSIONS: t("menu.sessions"),
+    SESSION: t("sessions.title"),
+    AUDIT: t("menu.audit"),
+    BRANDING: t("menu.branding"),
+    COUNTRIES: t("menu.countries"),
+    COUNTRY: t("common.country"),
+    FISCAL: t("countries.tax"),
+    INTEGRATIONS: t("menu.integrations"),
+    INTEGRATION: t("integrations.title"),
+    NETWORK: t("menu.network"),
+    HARDWARE: t("menu.hardware"),
+    POLICIES: t("menu.policies"),
+    POLICY: t("policies.title"),
+    VIEW: t("permissions.actions.view"),
+    CREATE: t("common.create"),
+    UPDATE: t("common.update"),
+    DELETE: t("common.delete"),
+    MANAGE: t("permissions.actions.manage"),
+    EXPORT: t("permissions.actions.export"),
+    IMPORT: t("permissions.actions.import"),
+    APPROVE: t("permissions.actions.approve"),
+    CANCEL: t("common.cancel"),
   }
 
   return dictionary[value] || value
 }
 
-function formatPermissionLabel(module: string, action: string) {
-  return `${translatePermissionPart(module)} · ${translatePermissionPart(action)}`
+function formatPermissionLabel(
+  module: string,
+  action: string,
+  t: (key: string) => string
+) {
+  return `${translatePermissionPart(module, t)} · ${translatePermissionPart(action, t)}`
 }
 
 export function CreateProfileModal({
@@ -83,6 +88,8 @@ export function CreateProfileModal({
   onClose,
   onCreated,
 }: CreateProfileModalProps) {
+  const { t } = useTranslation()
+
   const [code, setCode] = useState("")
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -170,13 +177,13 @@ export function CreateProfileModal({
     const normalizedCode = normalizeProfileCode(code)
 
     if (!normalizedCode) {
-      setError("Informe um código válido para o perfil.")
+      setError(t("profiles.validCodeRequired"))
       setLoading(false)
       return
     }
 
     if (!name.trim()) {
-      setError("Informe o nome do perfil.")
+      setError(t("profiles.nameRequired"))
       setLoading(false)
       return
     }
@@ -197,7 +204,7 @@ export function CreateProfileModal({
       onCreated()
       handleClose()
     } catch {
-      setError("Não foi possível criar o perfil. Verifique os dados.")
+      setError(t("profiles.createError"))
     } finally {
       setLoading(false)
     }
@@ -209,15 +216,15 @@ export function CreateProfileModal({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-              Novo perfil
+              {t("profiles.new")}
             </span>
 
             <h2 className="text-xl font-bold mt-1">
-              Criar perfil
+              {t("profiles.create")}
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Cadastre um perfil de acesso para governança, grupos e permissões.
+              {t("profiles.createDescription")}
             </p>
           </div>
 
@@ -225,7 +232,7 @@ export function CreateProfileModal({
             type="button"
             onClick={handleClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
-            title="Fechar"
+            title={t("common.close")}
           >
             <X size={17} />
           </button>
@@ -238,27 +245,27 @@ export function CreateProfileModal({
 
               <div>
                 <p className="text-sm font-semibold">
-                  Identificação do perfil
+                  {t("profiles.identification")}
                 </p>
 
                 <p className="text-xs text-muted">
-                  O código será usado como referência técnica no RBAC.
+                  {t("profiles.codeRbacReference")}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Nome do perfil">
+              <Field label={t("profiles.name")}>
                 <input
                   className="field-input"
-                  placeholder="Ex: Suporte nível 1"
+                  placeholder={t("profiles.namePlaceholder")}
                   value={name}
                   onChange={(event) => handleNameChange(event.target.value)}
                   required
                 />
               </Field>
 
-              <Field label="Código técnico">
+              <Field label={t("profiles.technicalCode")}>
                 <input
                   className="field-input"
                   placeholder="Ex: SUPPORT_N1"
@@ -270,23 +277,22 @@ export function CreateProfileModal({
             </div>
 
             <p className="text-[11px] text-muted mt-2">
-              Sugestão: use códigos curtos e padronizados, como ADMIN_MASTER,
-              SUPPORT_N1, FINANCIAL_MANAGER ou EVENT_ADMIN.
+              {t("profiles.codeSuggestion")}
             </p>
           </section>
 
           <section className="surface-muted rounded-2xl p-3">
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
-              <Field label="Descrição">
+              <Field label={t("common.description")}>
                 <textarea
                   className="field-input min-h-24 resize-none"
-                  placeholder="Descreva a finalidade e o nível de acesso deste perfil."
+                  placeholder={t("profiles.descriptionPlaceholder")}
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </Field>
 
-              <Field label="Prioridade">
+              <Field label={t("common.priority")}>
                 <input
                   className="field-input"
                   type="number"
@@ -299,13 +305,13 @@ export function CreateProfileModal({
           </section>
 
           <SelectionPanel
-            title="Permissões vinculadas"
-            description="Selecione as permissões herdadas por este perfil."
-            emptyLabel="Nenhuma permissão ativa encontrada."
+            title={t("profiles.linkedPermissions")}
+            description={t("profiles.linkedPermissionsDescription")}
+            emptyLabel={t("profiles.noActivePermissions")}
             items={permissionOptions.map((permission) => ({
               id: permission.id,
               code: permission.code,
-              label: formatPermissionLabel(permission.module, permission.action),
+              label: formatPermissionLabel(permission.module, permission.action, t),
             }))}
             selectedIds={permissionIds}
             onToggle={togglePermission}
@@ -313,15 +319,15 @@ export function CreateProfileModal({
 
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
-              label="Perfil ativo"
-              description="Permite uso imediato no sistema."
+              label={t("profiles.active")}
+              description={t("profiles.activeDescription")}
               active={active}
               onToggle={() => setActive((value) => !value)}
             />
 
             <ToggleField
-              label="Perfil de sistema"
-              description="Protegido para regras estruturais."
+              label={t("profiles.systemProfile")}
+              description={t("profiles.systemProfileDescription")}
               active={systemProfile}
               onToggle={() => setSystemProfile((value) => !value)}
             />
@@ -330,14 +336,14 @@ export function CreateProfileModal({
           {systemProfile && (
             <Notice
               type="warning"
-              message="Perfis de sistema devem ser usados apenas para regras estruturais do ERP. Evite marcar perfis comuns como sistema."
+              message={t("profiles.systemProfileWarning")}
             />
           )}
 
           {!active && (
             <Notice
               type="info"
-              message="Este perfil será criado como inativo e não deverá ser usado em novos vínculos até ser ativado."
+              message={t("profiles.inactiveProfileNotice")}
             />
           )}
 
@@ -353,7 +359,7 @@ export function CreateProfileModal({
               onClick={handleClose}
               className="w-full sm:w-auto bg-background border border-border text-muted font-semibold px-5 py-2.5 rounded-full hover:border-danger hover:text-danger transition text-sm"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
 
             <button
@@ -361,7 +367,7 @@ export function CreateProfileModal({
               disabled={loading}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? "Criando perfil..." : "Criar perfil"}
+              {loading ? t("profiles.creating") : t("profiles.create")}
             </button>
           </div>
         </form>

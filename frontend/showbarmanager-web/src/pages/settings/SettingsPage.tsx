@@ -18,6 +18,7 @@ import {
   Users,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "../../hooks/useTranslation"
 
 interface SettingsSection {
   title: string
@@ -27,109 +28,110 @@ interface SettingsSection {
   status: string
 }
 
-const settingsSections: SettingsSection[] = [
-  {
-    title: "Usuários",
-    description: "Acessos, status, perfis e permissões diretas.",
-    icon: Users,
-    path: "/settings/users",
-    status: "Ativo",
-  },
-  {
-    title: "Ambientes",
-    description: "Ambientes, isolamento, governança e multiempresa.",
-    icon: Building2,
-    path: "/settings/tenants",
-    status: "Ativo",
-  },
-  {
-    title: "Perfis e Grupos",
-    description: "Perfis, grupos, hierarquias e permissões herdadas.",
-    icon: UserCog,
-    path: "/settings/profiles",
-    status: "Ativo",
-  },
-  {
-    title: "Permissões",
-    description: "RBAC por módulo, ação, contexto e governança.",
-    icon: KeyRound,
-    path: "/settings/permissions",
-    status: "Ativo",
-  },
-  {
-    title: "Internacionalização",
-    description: "Países, moedas, idiomas, fusos e formatos regionais.",
-    icon: Languages,
-    path: "/settings/internationalization",
-    status: "Ativo",
-  },
-  {
-    title: "Segurança",
-    description: "MFA, senha, sessões, dispositivos e políticas de acesso.",
-    icon: ShieldCheck,
-    path: "/settings/security",
-    status: "Planejado",
-  },
-  {
-    title: "Sessões",
-    description: "Sessões ativas, rastreabilidade e acessos privilegiados.",
-    icon: Activity,
-    path: "/settings/sessions",
-    status: "Planejado",
-  },
-  {
-    title: "Branding",
-    description: "Logo, cores, domínio, tema visual e white label.",
-    icon: Palette,
-    path: "/settings/branding",
-    status: "Planejado",
-  },
-  {
-    title: "Países e Fiscal",
-    description: "Regras fiscais, documentos e campos obrigatórios.",
-    icon: Globe2,
-    path: "/settings/countries",
-    status: "Planejado",
-  },
-  {
-    title: "Integrações",
-    description: "APIs, pagamentos, POS, mensageria e webhooks.",
-    icon: PlugZap,
-    path: "/settings/integrations",
-    status: "Planejado",
-  },
-  {
-    title: "Rede Local",
-    description: "Links, roteadores, servidor local e agente local.",
-    icon: Network,
-    path: "/settings/network",
-    status: "Planejado",
-  },
-  {
-    title: "Hardware",
-    description: "POS, catracas, impressoras, leitores e IoT.",
-    icon: HardDrive,
-    path: "/settings/hardware",
-    status: "Planejado",
-  },
-  {
-    title: "Auditoria e Logs",
-    description: "Logs, ações críticas, segurança e observabilidade.",
-    icon: Activity,
-    path: "/settings/audit",
-    status: "Parcial",
-  },
-  {
-    title: "Políticas",
-    description: "LGPD, RGPD, backup, retenção e termos de uso.",
-    icon: FileText,
-    path: "/settings/policies",
-    status: "Planejado",
-  },
-]
-
 export function SettingsPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+
+  const settingsSections: SettingsSection[] = [
+    {
+      title: t("settings.usersTitle"),
+      description: t("settings.usersDescription"),
+      icon: Users,
+      path: "/settings/users",
+      status: t("common.active"),
+    },
+    {
+      title: t("settings.tenantsTitle"),
+      description: t("settings.tenantsDescription"),
+      icon: Building2,
+      path: "/settings/tenants",
+      status: t("common.active"),
+    },
+    {
+      title: t("settings.profilesGroupsTitle"),
+      description: t("settings.profilesGroupsDescription"),
+      icon: UserCog,
+      path: "/settings/profiles",
+      status: t("common.active"),
+    },
+    {
+      title: t("settings.permissionsTitle"),
+      description: t("settings.permissionsDescription"),
+      icon: KeyRound,
+      path: "/settings/permissions",
+      status: t("common.active"),
+    },
+    {
+      title: t("settings.internationalizationTitle"),
+      description: t("settings.internationalizationDescription"),
+      icon: Languages,
+      path: "/settings/internationalization",
+      status: t("common.active"),
+    },
+    {
+      title: t("settings.securityTitle"),
+      description: t("settings.securityDescription"),
+      icon: ShieldCheck,
+      path: "/settings/security",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.sessionsTitle"),
+      description: t("settings.sessionsDescription"),
+      icon: Activity,
+      path: "/settings/sessions",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.brandingTitle"),
+      description: t("settings.brandingDescription"),
+      icon: Palette,
+      path: "/settings/branding",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.countriesTitle"),
+      description: t("settings.countriesDescription"),
+      icon: Globe2,
+      path: "/settings/countries",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.integrationsTitle"),
+      description: t("settings.integrationsDescription"),
+      icon: PlugZap,
+      path: "/settings/integrations",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.networkTitle"),
+      description: t("settings.networkDescription"),
+      icon: Network,
+      path: "/settings/network",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.hardwareTitle"),
+      description: t("settings.hardwareDescription"),
+      icon: HardDrive,
+      path: "/settings/hardware",
+      status: t("settings.statusPlanned"),
+    },
+    {
+      title: t("settings.auditLogsTitle"),
+      description: t("settings.auditLogsDescription"),
+      icon: Activity,
+      path: "/settings/audit",
+      status: t("settings.statusPartial"),
+    },
+    {
+      title: t("settings.policiesTitle"),
+      description: t("settings.policiesDescription"),
+      icon: FileText,
+      path: "/settings/policies",
+      status: t("settings.statusPlanned"),
+    },
+  ]
 
   return (
     <div className="space-y-4">
@@ -137,17 +139,15 @@ export function SettingsPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <Settings size={16} />
-            Núcleo de Governança
+            {t("settings.governanceCore")}
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Configurações
+            {t("settings.title")}
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Central executiva para usuários, perfis, permissões, ambientes,
-            internacionalização, segurança, branding, integrações, auditoria,
-            compliance e governança global do ShowbarManager.
+            {t("settings.fullDescription")}
           </p>
         </div>
 
@@ -156,15 +156,34 @@ export function SettingsPage() {
           className="bg-card border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
         >
           <Activity size={15} />
-          Ver auditoria
+          {t("settings.viewAudit")}
         </button>
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <SummaryCard title="Governança" value="14 módulos" icon={SlidersHorizontal} />
-        <SummaryCard title="Segurança" value="JWT + RBAC" icon={ShieldCheck} />
-        <SummaryCard title="Compliance" value="LGPD/RGPD" icon={FileText} />
-        <SummaryCard title="Operação" value="Enterprise" icon={CheckCircle2} />
+        <SummaryCard
+          title={t("settings.governance")}
+          value="14 módulos"
+          icon={SlidersHorizontal}
+        />
+
+        <SummaryCard
+          title={t("settings.security")}
+          value="JWT + RBAC"
+          icon={ShieldCheck}
+        />
+
+        <SummaryCard
+          title={t("settings.compliance")}
+          value="LGPD/RGPD"
+          icon={FileText}
+        />
+
+        <SummaryCard
+          title={t("settings.operation")}
+          value="Enterprise"
+          icon={CheckCircle2}
+        />
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-3">

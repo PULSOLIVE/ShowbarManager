@@ -7,7 +7,9 @@ import com.showbarmanager.api.modules.settings.internationalization.dto.Internat
 import com.showbarmanager.api.modules.settings.internationalization.dto.UpdateInternationalizationRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -78,6 +80,44 @@ public class InternationalizationService {
     public List<InternationalizationResponse> findActive() {
         return internationalizationRepository
                 .findByActiveTrueOrderByPriorityAscCountryNameAsc()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<InternationalizationResponse> findActiveCountries() {
+        Map<String, Internationalization> countries = new LinkedHashMap<>();
+
+        internationalizationRepository
+                .findByActiveTrueOrderByPriorityAscCountryNameAsc()
+                .forEach(item -> countries.putIfAbsent(item.getCountryCode(), item));
+
+        return countries.values()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<InternationalizationResponse> findActiveLanguages() {
+        Map<String, Internationalization> languages = new LinkedHashMap<>();
+
+        internationalizationRepository
+                .findByActiveTrueOrderByPriorityAscCountryNameAsc()
+                .forEach(item -> languages.putIfAbsent(item.getLanguageCode(), item));
+
+        return languages.values()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<InternationalizationResponse> findActiveByCountryCode(String countryCode) {
+        String normalizedCountryCode = normalizeCountryCode(countryCode);
+
+        return internationalizationRepository
+                .findByActiveTrueAndCountryCodeOrderByPriorityAscLanguageNameAsc(
+                        normalizedCountryCode
+                )
                 .stream()
                 .map(this::toResponse)
                 .toList();

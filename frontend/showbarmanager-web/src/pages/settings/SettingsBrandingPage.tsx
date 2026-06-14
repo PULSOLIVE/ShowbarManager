@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import type { ChangeEvent } from "react"
+import type { ChangeEvent, ComponentType } from "react"
 import {
   CheckCircle2,
   FileImage,
@@ -12,91 +12,100 @@ import {
   Upload,
 } from "lucide-react"
 import { BrandingService } from "../../services/branding.service"
+import { useTranslation } from "../../hooks/useTranslation"
 import type {
   BrandingAsset,
   BrandingSettings,
 } from "../../types/branding.types"
 
-const assetTemplates: BrandingAsset[] = [
-  {
-    key: "sidebarLogoUrl",
-    title: "Logo sidebar aberta",
-    description: "Logo horizontal exibida no menu lateral aberto.",
-    recommendedSize: "320 x 80 px",
-    acceptedFormats: "PNG, SVG ou WEBP",
-    maxSize: "Até 500 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-  {
-    key: "sidebarCollapsedLogoUrl",
-    title: "Ícone sidebar recolhida",
-    description: "Símbolo compacto exibido quando o menu está recolhido.",
-    recommendedSize: "96 x 96 px",
-    acceptedFormats: "PNG, SVG ou WEBP",
-    maxSize: "Até 250 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-  {
-    key: "darkLogoUrl",
-    title: "Logo modo escuro",
-    description: "Versão da marca para fundos escuros.",
-    recommendedSize: "320 x 100 px",
-    acceptedFormats: "PNG, SVG ou WEBP",
-    maxSize: "Até 500 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-  {
-    key: "lightLogoUrl",
-    title: "Logo modo claro",
-    description: "Versão da marca para fundos claros.",
-    recommendedSize: "320 x 100 px",
-    acceptedFormats: "PNG, SVG ou WEBP",
-    maxSize: "Até 500 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-  {
-    key: "reportLogoUrl",
-    title: "Logo relatórios",
-    description: "Logo usada em PDF, contratos, relatórios e documentos.",
-    recommendedSize: "600 x 180 px",
-    acceptedFormats: "PNG ou SVG",
-    maxSize: "Até 800 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-  {
-    key: "mobileLogoUrl",
-    title: "Logo mobile/app",
-    description: "Marca usada em PWA, aplicativos e telas mobile.",
-    recommendedSize: "512 x 512 px",
-    acceptedFormats: "PNG ou WEBP",
-    maxSize: "Até 500 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-  {
-    key: "faviconUrl",
-    title: "Favicon",
-    description: "Ícone exibido ao lado do título do site no navegador.",
-    recommendedSize: "32 x 32 px ou 64 x 64 px",
-    acceptedFormats: "ICO, PNG ou SVG",
-    maxSize: "Até 100 KB",
-    previewUrl: null,
-    fileName: null,
-  },
-]
+function buildAssetTemplates(t: (path: string, fallback?: string) => string): BrandingAsset[] {
+  return [
+    {
+      key: "sidebarLogoUrl",
+      title: t("branding.sidebarLogo"),
+      description: t("branding.sidebarLogoDescription"),
+      recommendedSize: "320 x 80 px",
+      acceptedFormats: "PNG, SVG ou WEBP",
+      maxSize: t("branding.maxSize500"),
+      previewUrl: null,
+      fileName: null,
+    },
+    {
+      key: "sidebarCollapsedLogoUrl",
+      title: t("branding.sidebarCollapsedLogo"),
+      description: t("branding.sidebarCollapsedLogoDescription"),
+      recommendedSize: "96 x 96 px",
+      acceptedFormats: "PNG, SVG ou WEBP",
+      maxSize: t("branding.maxSize250"),
+      previewUrl: null,
+      fileName: null,
+    },
+    {
+      key: "darkLogoUrl",
+      title: t("branding.darkLogo"),
+      description: t("branding.darkLogoDescription"),
+      recommendedSize: "320 x 100 px",
+      acceptedFormats: "PNG, SVG ou WEBP",
+      maxSize: t("branding.maxSize500"),
+      previewUrl: null,
+      fileName: null,
+    },
+    {
+      key: "lightLogoUrl",
+      title: t("branding.lightLogo"),
+      description: t("branding.lightLogoDescription"),
+      recommendedSize: "320 x 100 px",
+      acceptedFormats: "PNG, SVG ou WEBP",
+      maxSize: t("branding.maxSize500"),
+      previewUrl: null,
+      fileName: null,
+    },
+    {
+      key: "reportLogoUrl",
+      title: t("branding.reportLogo"),
+      description: t("branding.reportLogoDescription"),
+      recommendedSize: "600 x 180 px",
+      acceptedFormats: "PNG ou SVG",
+      maxSize: t("branding.maxSize800"),
+      previewUrl: null,
+      fileName: null,
+    },
+    {
+      key: "mobileLogoUrl",
+      title: t("branding.mobileLogo"),
+      description: t("branding.mobileLogoDescription"),
+      recommendedSize: "512 x 512 px",
+      acceptedFormats: "PNG ou WEBP",
+      maxSize: t("branding.maxSize500"),
+      previewUrl: null,
+      fileName: null,
+    },
+    {
+      key: "faviconUrl",
+      title: "Favicon",
+      description: t("branding.faviconDescription"),
+      recommendedSize: "32 x 32 px ou 64 x 64 px",
+      acceptedFormats: "ICO, PNG ou SVG",
+      maxSize: t("branding.maxSize100"),
+      previewUrl: null,
+      fileName: null,
+    },
+  ]
+}
 
 export function SettingsBrandingPage() {
+  const { t } = useTranslation()
+  const assetTemplates = useMemo(() => buildAssetTemplates(t), [t])
   const [settings, setSettings] = useState<BrandingSettings>(
     BrandingService.getDefaultSettings()
   )
   const [assets, setAssets] = useState<BrandingAsset[]>(assetTemplates)
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setAssets(assetTemplates)
+  }, [assetTemplates])
 
   useEffect(() => {
     BrandingService.getSettings()
@@ -196,7 +205,7 @@ export function SettingsBrandingPage() {
 
       setSaved(true)
     } catch {
-      alert("Não foi possível salvar o branding.")
+      alert(t("branding.saveError"))
     } finally {
       setLoading(false)
     }
@@ -217,16 +226,15 @@ export function SettingsBrandingPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <Palette size={16} />
-              Configurações
+              {t("settings.title")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Branding e Identidade Visual
+              {t("branding.title")}
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              Configure marca, logos, favicon, variações por tema, relatórios,
-              mobile e identidade white label por ambiente.
+              {t("branding.subtitle")}
             </p>
           </div>
 
@@ -236,7 +244,7 @@ export function SettingsBrandingPage() {
               className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
             >
               <RotateCcw size={15} />
-              Restaurar
+              {t("branding.restore")}
             </button>
 
             <button
@@ -245,23 +253,23 @@ export function SettingsBrandingPage() {
               className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Save size={15} />
-              {loading ? "Salvando..." : "Salvar branding"}
+              {loading ? t("branding.saving") : t("branding.saveBranding")}
             </button>
           </div>
         </div>
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <SummaryCard title="Marca pública" value={settings.publicName} icon={Image} />
+        <SummaryCard title={t("branding.publicBrand")} value={settings.publicName} icon={Image} />
         <SummaryCard title="Assets" value={`${uploadedAssetsCount}/${assets.length}`} icon={FileImage} />
-        <SummaryCard title="Cor primária" value={settings.primaryColor} icon={Palette} />
-        <SummaryCard title="White label" value="Preparado" icon={MonitorSmartphone} />
+        <SummaryCard title={t("branding.primaryColor")} value={settings.primaryColor} icon={Palette} />
+        <SummaryCard title="White label" value={t("status.prepared")} icon={MonitorSmartphone} />
       </section>
 
       {saved && (
         <div className="bg-success/10 border border-success/25 text-success rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
           <CheckCircle2 size={16} />
-          Branding salvo com sucesso.
+          {t("branding.savedSuccess")}
         </div>
       )}
 
@@ -271,33 +279,33 @@ export function SettingsBrandingPage() {
             <Globe2 size={17} className="text-primary" />
 
             <h3 className="font-semibold">
-              Dados da marca
+              {t("branding.brandData")}
             </h3>
           </div>
 
           <div className="space-y-3">
             <Field
-              label="Nome público"
+              label={t("branding.publicName")}
               value={settings.publicName}
               onChange={(value) => updateSetting("publicName", value)}
               placeholder="ShowbarManager"
             />
 
             <ColorField
-              label="Cor primária"
+              label={t("branding.primaryColor")}
               value={settings.primaryColor}
               onChange={(value) => updateSetting("primaryColor", value)}
             />
 
             <ColorField
-              label="Cor secundária"
+              label={t("branding.secondaryColor")}
               value={settings.secondaryColor}
               onChange={(value) => updateSetting("secondaryColor", value)}
             />
 
             <div className="bg-cardSoft border border-border rounded-2xl p-4">
               <p className="text-xs uppercase tracking-wide text-muted">
-                Prévia rápida
+                {t("branding.quickPreview")}
               </p>
 
               <div className="mt-4 rounded-2xl bg-card border border-border p-4">
@@ -328,12 +336,11 @@ export function SettingsBrandingPage() {
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
               <h3 className="font-semibold">
-                Logos e arquivos visuais
+                {t("branding.visualFiles")}
               </h3>
 
               <p className="text-sm text-muted mt-1">
-                Upload local com preview. A próxima etapa será persistir estes
-                arquivos no backend, banco e storage por tenant.
+                {t("branding.visualFilesDescription")}
               </p>
             </div>
 
@@ -365,7 +372,7 @@ function SummaryCard({
 }: {
   title: string
   value: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: ComponentType<{ size?: number; className?: string }>
 }) {
   return (
     <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
@@ -460,6 +467,8 @@ function AssetUploadCard({
   ) => void
   onRemove: (asset: BrandingAsset) => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <article className="bg-cardSoft border border-border rounded-2xl p-4">
       <div className="flex items-start justify-between gap-3">
@@ -487,27 +496,27 @@ function AssetUploadCard({
           />
         ) : (
           <div className="text-center text-muted text-xs p-4">
-            Nenhum arquivo enviado
+            {t("branding.noFileUploaded")}
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-        <Info label="Tamanho" value={asset.recommendedSize} />
-        <Info label="Formato" value={asset.acceptedFormats} />
-        <Info label="Limite" value={asset.maxSize} />
+        <Info label={t("branding.size")} value={asset.recommendedSize} />
+        <Info label={t("branding.format")} value={asset.acceptedFormats} />
+        <Info label={t("branding.limit")} value={asset.maxSize} />
       </div>
 
       {asset.fileName && (
         <p className="text-xs text-muted mt-3 truncate">
-          Arquivo: {asset.fileName}
+          {t("branding.file")}: {asset.fileName}
         </p>
       )}
 
       <div className="flex flex-col sm:flex-row gap-2 mt-4">
         <label className="flex-1 bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm cursor-pointer">
           <Upload size={15} />
-          Enviar arquivo
+          {t("branding.uploadFile")}
 
           <input
             type="file"
@@ -523,7 +532,7 @@ function AssetUploadCard({
           disabled={!asset.previewUrl}
           className="bg-card border border-border px-4 py-2.5 rounded-full hover:border-danger hover:text-danger transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Remover
+          {t("branding.remove")}
         </button>
       </div>
     </article>

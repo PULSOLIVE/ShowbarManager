@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
-import type { FormEvent, ReactNode } from "react"
+import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   CheckCircle2,
@@ -11,304 +10,17 @@ import {
   Search,
   Star,
   Trash2,
-  X,
   XCircle,
 } from "lucide-react"
-import { apiClient } from "../../api/apiClient"
-import type { ApiResponse } from "../../types/auth.types"
-
-interface Internationalization {
-  id: string
-  code: string
-  countryCode: string
-  countryName: string
-  languageCode: string
-  languageName: string
-  currencyCode: string
-  currencySymbol: string
-  timezone: string
-  timezoneLabel: string
-  dateFormat: string
-  timeFormat: string
-  flagEmoji: string | null
-  flagIconUrl: string | null
-  active: boolean
-  systemDefault: boolean
-  priority: number
-  createdAt: string
-  updatedAt: string | null
-}
-
-interface InternationalizationPayload {
-  code: string
-  countryCode: string
-  countryName: string
-  languageCode: string
-  languageName: string
-  currencyCode: string
-  currencySymbol: string
-  timezone: string
-  timezoneLabel: string
-  dateFormat: string
-  timeFormat: string
-  flagEmoji: string | null
-  flagIconUrl: string | null
-  active: boolean
-  systemDefault: boolean
-  priority: number
-}
-
-interface CountryPreset {
-  code: string
-  name: string
-  flagEmoji: string
-  languageCode: string
-  languageName: string
-  currencyCode: string
-  currencySymbol: string
-  dateFormat: string
-  timeFormat: string
-  timezones: {
-    value: string
-    label: string
-  }[]
-}
-
-const countryPresets: CountryPreset[] = [
-  {
-    code: "PT",
-    name: "Portugal",
-    flagEmoji: "🇵🇹",
-    languageCode: "pt-PT",
-    languageName: "Português (Portugal)",
-    currencyCode: "EUR",
-    currencySymbol: "€",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "HH:mm",
-    timezones: [
-      { value: "Europe/Lisbon", label: "(UTC+00/+01) Europa/Lisboa" },
-      { value: "Atlantic/Madeira", label: "(UTC+00/+01) Atlântico/Madeira" },
-      { value: "Atlantic/Azores", label: "(UTC-01/+00) Atlântico/Açores" },
-    ],
-  },
-  {
-    code: "BR",
-    name: "Brasil",
-    flagEmoji: "🇧🇷",
-    languageCode: "pt-BR",
-    languageName: "Português (Brasil)",
-    currencyCode: "BRL",
-    currencySymbol: "R$",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "HH:mm",
-    timezones: [
-      { value: "America/Noronha", label: "(UTC-02) América/Noronha" },
-      { value: "America/Sao_Paulo", label: "(UTC-03) América/São Paulo" },
-      { value: "America/Fortaleza", label: "(UTC-03) América/Fortaleza" },
-      { value: "America/Cuiaba", label: "(UTC-04) América/Cuiabá" },
-      { value: "America/Manaus", label: "(UTC-04) América/Manaus" },
-      { value: "America/Rio_Branco", label: "(UTC-05) América/Rio Branco" },
-    ],
-  },
-  {
-    code: "ES",
-    name: "Espanha",
-    flagEmoji: "🇪🇸",
-    languageCode: "es-ES",
-    languageName: "Español (España)",
-    currencyCode: "EUR",
-    currencySymbol: "€",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "HH:mm",
-    timezones: [
-      { value: "Europe/Madrid", label: "(UTC+01/+02) Europa/Madrid" },
-      { value: "Atlantic/Canary", label: "(UTC+00/+01) Atlântico/Canárias" },
-    ],
-  },
-  {
-    code: "US",
-    name: "Estados Unidos",
-    flagEmoji: "🇺🇸",
-    languageCode: "en-US",
-    languageName: "English (United States)",
-    currencyCode: "USD",
-    currencySymbol: "$",
-    dateFormat: "MM/dd/yyyy",
-    timeFormat: "hh:mm a",
-    timezones: [
-      { value: "America/New_York", label: "(UTC-05/-04) América/Nova Iorque" },
-      { value: "America/Chicago", label: "(UTC-06/-05) América/Chicago" },
-      { value: "America/Denver", label: "(UTC-07/-06) América/Denver" },
-      { value: "America/Los_Angeles", label: "(UTC-08/-07) América/Los Angeles" },
-      { value: "America/Anchorage", label: "(UTC-09/-08) América/Anchorage" },
-      { value: "Pacific/Honolulu", label: "(UTC-10) Pacífico/Honolulu" },
-    ],
-  },
-  {
-    code: "FR",
-    name: "França",
-    flagEmoji: "🇫🇷",
-    languageCode: "fr-FR",
-    languageName: "Français",
-    currencyCode: "EUR",
-    currencySymbol: "€",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "HH:mm",
-    timezones: [
-      { value: "Europe/Paris", label: "(UTC+01/+02) Europa/Paris" },
-    ],
-  },
-  {
-    code: "DE",
-    name: "Alemanha",
-    flagEmoji: "🇩🇪",
-    languageCode: "de-DE",
-    languageName: "Deutsch (Deutschland)",
-    currencyCode: "EUR",
-    currencySymbol: "€",
-    dateFormat: "dd.MM.yyyy",
-    timeFormat: "HH:mm",
-    timezones: [
-      { value: "Europe/Berlin", label: "(UTC+01/+02) Europa/Berlim" },
-    ],
-  },
-  {
-    code: "GB",
-    name: "Reino Unido",
-    flagEmoji: "🇬🇧",
-    languageCode: "en-GB",
-    languageName: "English (United Kingdom)",
-    currencyCode: "GBP",
-    currencySymbol: "£",
-    dateFormat: "dd/MM/yyyy",
-    timeFormat: "HH:mm",
-    timezones: [
-      { value: "Europe/London", label: "(UTC+00/+01) Europa/Londres" },
-    ],
-  },
-]
-
-const utcTimezoneOptions = [
-  { value: "UTC", label: "(UTC+00) Universal Coordinated Time" },
-  { value: "Etc/GMT-1", label: "(UTC+01) GMT+1" },
-  { value: "Etc/GMT-2", label: "(UTC+02) GMT+2" },
-  { value: "Etc/GMT-3", label: "(UTC+03) GMT+3" },
-  { value: "Etc/GMT+1", label: "(UTC-01) GMT-1" },
-  { value: "Etc/GMT+2", label: "(UTC-02) GMT-2" },
-  { value: "Etc/GMT+3", label: "(UTC-03) GMT-3" },
-  { value: "Etc/GMT+4", label: "(UTC-04) GMT-4" },
-  { value: "Etc/GMT+5", label: "(UTC-05) GMT-5" },
-]
-
-const InternationalizationService = {
-  async list(): Promise<Internationalization[]> {
-    const response = await apiClient.get<ApiResponse<Internationalization[]>>(
-      "/settings/internationalization"
-    )
-
-    return response.data.data
-  },
-
-  async create(payload: InternationalizationPayload): Promise<Internationalization> {
-    const response = await apiClient.post<ApiResponse<Internationalization>>(
-      "/settings/internationalization",
-      payload
-    )
-
-    return response.data.data
-  },
-
-  async update(
-    id: string,
-    payload: InternationalizationPayload
-  ): Promise<Internationalization> {
-    const response = await apiClient.put<ApiResponse<Internationalization>>(
-      `/settings/internationalization/${id}`,
-      payload
-    )
-
-    return response.data.data
-  },
-
-  async delete(id: string): Promise<void> {
-    await apiClient.delete<ApiResponse<null>>(
-      `/settings/internationalization/${id}`
-    )
-  },
-}
-
-const emptyPayload: InternationalizationPayload = {
-  code: "",
-  countryCode: "",
-  countryName: "",
-  languageCode: "",
-  languageName: "",
-  currencyCode: "",
-  currencySymbol: "",
-  timezone: "",
-  timezoneLabel: "",
-  dateFormat: "dd/MM/yyyy",
-  timeFormat: "HH:mm",
-  flagEmoji: "",
-  flagIconUrl: "",
-  active: true,
-  systemDefault: false,
-  priority: 0,
-}
-
-function toPayload(item: Internationalization): InternationalizationPayload {
-  return {
-    code: item.code,
-    countryCode: item.countryCode,
-    countryName: item.countryName,
-    languageCode: item.languageCode,
-    languageName: item.languageName,
-    currencyCode: item.currencyCode,
-    currencySymbol: item.currencySymbol,
-    timezone: item.timezone,
-    timezoneLabel: item.timezoneLabel,
-    dateFormat: item.dateFormat,
-    timeFormat: item.timeFormat,
-    flagEmoji: item.flagEmoji || "",
-    flagIconUrl: item.flagIconUrl || "",
-    active: item.active,
-    systemDefault: item.systemDefault,
-    priority: item.priority,
-  }
-}
-
-function normalizeCode(value: string) {
-  return value.trim().toUpperCase().replace(/\s+/g, "_")
-}
-
-function getCountryPreset(countryCode: string) {
-  return countryPresets.find(
-    (preset) => preset.code.toLowerCase() === countryCode.toLowerCase()
-  )
-}
-
-function getTimezoneLabel(countryCode: string, timezone: string) {
-  const preset = getCountryPreset(countryCode)
-
-  const countryTimezone = preset?.timezones.find(
-    (item) => item.value === timezone
-  )
-
-  if (countryTimezone) {
-    return countryTimezone.label
-  }
-
-  const utcTimezone = utcTimezoneOptions.find((item) => item.value === timezone)
-
-  return utcTimezone?.label || timezone
-}
-
-function makeCode(countryCode: string, languageCode: string) {
-  const languagePart = languageCode.split("-")[0] || languageCode
-  return normalizeCode(`${countryCode}_${languagePart}`)
-}
+import { CreateInternationalizationModal } from "../../components/settings/CreateInternationalizationModal"
+import { EditInternationalizationModal } from "../../components/settings/EditInternationalizationModal"
+import { InternationalizationService } from "../../services/internationalization.service"
+import { useTranslation } from "../../hooks/useTranslation"
+import type { Internationalization } from "../../types/internationalization.types"
 
 export function SettingsInternationalizationPage() {
+  const { t } = useTranslation()
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Internationalization | null>(null)
@@ -327,6 +39,18 @@ export function SettingsInternationalizationPage() {
     queryFn: InternationalizationService.list,
   })
 
+  const activeCount = useMemo(() => {
+    return data.filter((item) => item.active).length
+  }, [data])
+
+  const languageCount = useMemo(() => {
+    return new Set(data.map((item) => item.languageCode)).size
+  }, [data])
+
+  const countryCount = useMemo(() => {
+    return new Set(data.map((item) => item.countryCode)).size
+  }, [data])
+
   const filteredItems = useMemo(() => {
     const searchTerm = search.trim().toLowerCase()
 
@@ -335,8 +59,11 @@ export function SettingsInternationalizationPage() {
         !searchTerm ||
         item.code.toLowerCase().includes(searchTerm) ||
         item.countryName.toLowerCase().includes(searchTerm) ||
+        item.countryCode.toLowerCase().includes(searchTerm) ||
         item.languageName.toLowerCase().includes(searchTerm) ||
+        item.languageCode.toLowerCase().includes(searchTerm) ||
         item.currencyCode.toLowerCase().includes(searchTerm) ||
+        item.currencySymbol.toLowerCase().includes(searchTerm) ||
         item.timezoneLabel.toLowerCase().includes(searchTerm) ||
         item.timezone.toLowerCase().includes(searchTerm)
 
@@ -350,6 +77,16 @@ export function SettingsInternationalizationPage() {
     })
   }, [data, search, statusFilter])
 
+  function handleRefresh() {
+    refetch()
+      .then(() => {
+        alert(t("internationalization.listUpdated"))
+      })
+      .catch(() => {
+        alert(t("internationalization.refreshError"))
+      })
+  }
+
   function handleEdit(item: Internationalization) {
     setSelectedItem(item)
     setEditOpen(true)
@@ -357,12 +94,12 @@ export function SettingsInternationalizationPage() {
 
   async function handleDelete(item: Internationalization) {
     if (item.systemDefault) {
-      alert("A configuração padrão do sistema não pode ser excluída.")
+      alert(t("internationalization.defaultDeleteBlocked"))
       return
     }
 
     const confirmed = window.confirm(
-      `Deseja realmente excluir ${item.countryName} / ${item.languageName}?`
+      `${t("internationalization.deleteConfirm")} ${item.countryName} / ${item.languageName}?`
     )
 
     if (!confirmed) {
@@ -374,7 +111,7 @@ export function SettingsInternationalizationPage() {
       await InternationalizationService.delete(item.id)
       await refetch()
     } catch {
-      alert("Não foi possível excluir esta configuração.")
+      alert(t("internationalization.deleteError"))
     } finally {
       setDeleteLoadingId(null)
     }
@@ -387,16 +124,15 @@ export function SettingsInternationalizationPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <Languages size={16} />
-              Configurações
+              {t("settings.title")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Internacionalização
+              {t("internationalization.title")}
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              Gestão dinâmica de países, idiomas, moedas, fusos horários,
-              formatos regionais e bandeiras do ShowbarManager.
+              {t("internationalization.subtitle")}
             </p>
           </div>
 
@@ -406,31 +142,26 @@ export function SettingsInternationalizationPage() {
             className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto flex items-center justify-center gap-2 text-sm"
           >
             <Plus size={16} />
-            Nova configuração
+            {t("internationalization.new")}
           </button>
         </div>
       </section>
 
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <SummaryCard title="Total" value={String(data.length)} />
-        <SummaryCard
-          title="Ativas"
-          value={String(data.filter((item) => item.active).length)}
-        />
-        <SummaryCard
-          title="Padrão"
-          value={data.find((item) => item.systemDefault)?.code || "-"}
-        />
-        <SummaryCard title="Filtradas" value={String(filteredItems.length)} />
+      <section className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+        <SummaryCard title={t("common.total")} value={String(data.length)} />
+        <SummaryCard title={t("common.active")} value={String(activeCount)} />
+        <SummaryCard title={t("internationalization.countries")} value={String(countryCount)} />
+        <SummaryCard title={t("internationalization.languages")} value={String(languageCount)} />
+        <SummaryCard title={t("common.filtered")} value={String(filteredItems.length)} />
       </section>
 
       <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
-        <div className="flex items-center gap-2 bg-cardSoft border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
+        <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2.5 w-full xl:max-w-md">
           <Search size={15} className="text-muted shrink-0" />
 
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Buscar por país, idioma, moeda ou fuso..."
+            placeholder={t("internationalization.searchPlaceholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -438,41 +169,36 @@ export function SettingsInternationalizationPage() {
 
         <div className="flex flex-col sm:flex-row gap-2">
           <select
-            className="field-input rounded-full"
+            className="bg-background border border-border rounded-full px-4 py-2.5 outline-none text-sm"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="all">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
-            <option value="default">Padrão</option>
+            <option value="all">{t("common.all")}</option>
+            <option value="active">{t("common.active")}</option>
+            <option value="inactive">{t("common.inactive")}</option>
+            <option value="default">{t("common.default")}</option>
           </select>
 
           <button
             type="button"
-            onClick={() => {
-              refetch().catch(() => {
-                alert("Não foi possível atualizar a lista.")
-              })
-            }}
-            className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
+            onClick={handleRefresh}
+            className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
-            Atualizar
+            {t("common.refresh")}
           </button>
         </div>
       </section>
 
       {isLoading && (
         <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
-          Carregando configurações internacionais...
+          {t("internationalization.loading")}
         </div>
       )}
 
       {isError && (
         <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
-          Não foi possível carregar as configurações internacionais. Verifique se
-          a API está online e se a sessão está ativa.
+          {t("internationalization.error")}
         </div>
       )}
 
@@ -485,8 +211,8 @@ export function SettingsInternationalizationPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-primarySoft flex items-center justify-center text-xl shrink-0">
-                    {item.flagEmoji || "🌐"}
+                  <div className="icon-tile text-lg">
+                    {item.flagEmoji || <Globe2 size={18} />}
                   </div>
 
                   <div className="min-w-0">
@@ -496,9 +222,9 @@ export function SettingsInternationalizationPage() {
                       </strong>
 
                       {item.systemDefault && (
-                        <span className="inline-flex items-center gap-1 text-warning text-xs bg-warning/10 border border-warning/20 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-warning text-xs bg-warning/10 px-2 py-0.5 rounded-full">
                           <Star size={12} />
-                          Padrão
+                          {t("common.default")}
                         </span>
                       )}
                     </div>
@@ -513,8 +239,8 @@ export function SettingsInternationalizationPage() {
                   <button
                     type="button"
                     onClick={() => handleEdit(item)}
-                    className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-                    title="Editar"
+                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
+                    title={t("common.edit")}
                   >
                     <Edit size={14} />
                   </button>
@@ -523,12 +249,12 @@ export function SettingsInternationalizationPage() {
                     type="button"
                     onClick={() => {
                       handleDelete(item).catch(() => {
-                        alert("Erro inesperado ao excluir configuração.")
+                        alert(t("messages.unexpectedError"))
                       })
                     }}
                     disabled={deleteLoadingId === item.id || item.systemDefault}
-                    className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Excluir"
+                    className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={t("common.delete")}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -536,18 +262,35 @@ export function SettingsInternationalizationPage() {
               </div>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                <InfoBox label="Idioma" value={`${item.languageName} (${item.languageCode})`} />
-                <InfoBox label="Moeda" value={`${item.currencySymbol} ${item.currencyCode}`} />
-                <InfoBox label="Data/Hora" value={`${item.dateFormat} · ${item.timeFormat}`} />
-                <InfoBox label="Prioridade" value={String(item.priority)} />
+                <InfoBox
+                  label={t("internationalization.languageName")}
+                  value={`${item.languageName} (${item.languageCode})`}
+                />
+
+                <InfoBox
+                  label={t("common.currency")}
+                  value={`${item.currencySymbol} ${item.currencyCode}`}
+                />
+
+                <InfoBox
+                  label={t("internationalization.dateTime")}
+                  value={`${item.dateFormat} · ${item.timeFormat}`}
+                />
+
+                <InfoBox
+                  label={t("common.priority")}
+                  value={String(item.priority)}
+                />
               </div>
 
-              <div className="mt-3 bg-cardSoft border border-border rounded-2xl p-3">
+              <div className="mt-3 surface-muted rounded-2xl p-3">
                 <div className="flex items-start gap-2">
                   <Globe2 size={15} className="text-primary mt-0.5 shrink-0" />
 
                   <div className="min-w-0">
-                    <p className="text-xs text-muted">Fuso horário</p>
+                    <p className="text-xs text-muted">
+                      {t("common.timezone")}
+                    </p>
 
                     <strong className="text-sm block truncate">
                       {item.timezoneLabel}
@@ -564,12 +307,12 @@ export function SettingsInternationalizationPage() {
                 {item.active ? (
                   <span className="inline-flex items-center gap-2 text-success text-sm">
                     <CheckCircle2 size={15} />
-                    Ativo
+                    {t("common.active")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-2 text-danger text-sm">
                     <XCircle size={15} />
-                    Inativo
+                    {t("common.inactive")}
                   </span>
                 )}
 
@@ -582,41 +325,33 @@ export function SettingsInternationalizationPage() {
 
           {filteredItems.length === 0 && (
             <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
-              Nenhuma configuração internacional encontrada.
+              {t("internationalization.noResults")}
             </div>
           )}
         </section>
       )}
 
-      <InternationalizationModal
+      <CreateInternationalizationModal
         open={createOpen}
-        title="Criar configuração"
-        initialData={emptyPayload}
         onClose={() => setCreateOpen(false)}
-        onSubmit={async (payload) => {
-          await InternationalizationService.create(payload)
-          await refetch()
-          setCreateOpen(false)
+        onCreated={() => {
+          refetch().catch(() => {
+            alert(t("internationalization.createdRefreshError"))
+          })
         }}
       />
 
-      <InternationalizationModal
+      <EditInternationalizationModal
         open={editOpen}
-        title="Editar configuração"
-        initialData={selectedItem ? toPayload(selectedItem) : emptyPayload}
+        internationalization={selectedItem}
         onClose={() => {
           setEditOpen(false)
           setSelectedItem(null)
         }}
-        onSubmit={async (payload) => {
-          if (!selectedItem) {
-            return
-          }
-
-          await InternationalizationService.update(selectedItem.id, payload)
-          await refetch()
-          setEditOpen(false)
-          setSelectedItem(null)
+        onUpdated={() => {
+          refetch().catch(() => {
+            alert(t("internationalization.updatedRefreshError"))
+          })
         }}
       />
     </div>
@@ -645,7 +380,7 @@ function InfoBox({
   value: string
 }) {
   return (
-    <div className="bg-cardSoft border border-border rounded-2xl p-3 min-w-0">
+    <div className="surface-muted rounded-2xl p-3 min-w-0">
       <p className="text-[11px] uppercase tracking-wide text-muted">
         {label}
       </p>
@@ -654,435 +389,5 @@ function InfoBox({
         {value}
       </strong>
     </div>
-  )
-}
-
-interface InternationalizationModalProps {
-  open: boolean
-  title: string
-  initialData: InternationalizationPayload
-  onClose: () => void
-  onSubmit: (payload: InternationalizationPayload) => Promise<void>
-}
-
-function InternationalizationModal({
-  open,
-  title,
-  initialData,
-  onClose,
-  onSubmit,
-}: InternationalizationModalProps) {
-  const [form, setForm] = useState<InternationalizationPayload>(initialData)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const selectedCountryPreset = getCountryPreset(form.countryCode)
-
-  const timezoneOptions = [
-    ...(selectedCountryPreset?.timezones || []),
-    ...utcTimezoneOptions,
-  ].filter(
-    (item, index, list) =>
-      list.findIndex((option) => option.value === item.value) === index
-  )
-
-  useEffect(() => {
-    if (open) {
-      setForm(initialData)
-      setError(null)
-      setLoading(false)
-    }
-  }, [initialData, open])
-
-  if (!open) {
-    return null
-  }
-
-  function updateField<K extends keyof InternationalizationPayload>(
-    field: K,
-    value: InternationalizationPayload[K]
-  ) {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }))
-  }
-
-  function handleCountryChange(countryCode: string) {
-    const preset = getCountryPreset(countryCode)
-
-    if (!preset) {
-      updateField("countryCode", countryCode)
-      return
-    }
-
-    const firstTimezone = preset.timezones[0]
-
-    setForm((current) => ({
-      ...current,
-      code: makeCode(preset.code, preset.languageCode),
-      countryCode: preset.code,
-      countryName: preset.name,
-      languageCode: preset.languageCode,
-      languageName: preset.languageName,
-      currencyCode: preset.currencyCode,
-      currencySymbol: preset.currencySymbol,
-      timezone: firstTimezone.value,
-      timezoneLabel: firstTimezone.label,
-      dateFormat: preset.dateFormat,
-      timeFormat: preset.timeFormat,
-      flagEmoji: preset.flagEmoji,
-    }))
-  }
-
-  function handleTimezoneChange(timezone: string) {
-    setForm((current) => ({
-      ...current,
-      timezone,
-      timezoneLabel: getTimezoneLabel(current.countryCode, timezone),
-    }))
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      await onSubmit({
-        ...form,
-        code: normalizeCode(form.code),
-        countryCode: form.countryCode.trim().toUpperCase(),
-        currencyCode: form.currencyCode.trim().toUpperCase(),
-        flagEmoji: form.flagEmoji?.trim() || null,
-        flagIconUrl: form.flagIconUrl?.trim() || null,
-      })
-    } catch {
-      setError("Não foi possível salvar a configuração. Verifique os dados e tente novamente.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-[820px] max-h-[90vh] overflow-y-auto app-scrollbar surface-premium rounded-2xl p-4 shadow-neon">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-              Internacionalização
-            </span>
-
-            <h2 className="text-xl font-bold mt-1">
-              {title}
-            </h2>
-
-            <p className="text-muted text-sm mt-1">
-              Configure país, idioma, moeda, fuso horário e formato regional.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
-          >
-            <X size={17} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <FormGroup title="País e identificação">
-            <SelectField
-              label="País cadastrado"
-              value={form.countryCode}
-              onChange={handleCountryChange}
-              options={[
-                { label: "Selecione um país", value: "" },
-                ...countryPresets.map((preset) => ({
-                  label: `${preset.flagEmoji} ${preset.name} (${preset.code})`,
-                  value: preset.code,
-                })),
-              ]}
-              required
-            />
-
-            <TextField
-              label="Código"
-              placeholder="PT_PT"
-              value={form.code}
-              onChange={(value) => updateField("code", value)}
-              required
-            />
-
-            <TextField
-              label="Código do país"
-              placeholder="PT"
-              value={form.countryCode}
-              onChange={(value) => updateField("countryCode", value)}
-              required
-            />
-
-            <TextField
-              label="País"
-              placeholder="Portugal"
-              value={form.countryName}
-              onChange={(value) => updateField("countryName", value)}
-              required
-            />
-          </FormGroup>
-
-          <FormGroup title="Idioma e moeda">
-            <TextField
-              label="Código do idioma"
-              placeholder="pt-PT"
-              value={form.languageCode}
-              onChange={(value) => updateField("languageCode", value)}
-              required
-            />
-
-            <TextField
-              label="Idioma"
-              placeholder="Português (Portugal)"
-              value={form.languageName}
-              onChange={(value) => updateField("languageName", value)}
-              required
-            />
-
-            <TextField
-              label="Código da moeda"
-              placeholder="EUR"
-              value={form.currencyCode}
-              onChange={(value) => updateField("currencyCode", value)}
-              required
-            />
-
-            <TextField
-              label="Símbolo"
-              placeholder="€"
-              value={form.currencySymbol}
-              onChange={(value) => updateField("currencySymbol", value)}
-              required
-            />
-          </FormGroup>
-
-          <FormGroup title="Fuso e formatos">
-            <SelectField
-              label="Timezone"
-              value={form.timezone}
-              onChange={handleTimezoneChange}
-              options={[
-                { label: "Selecione um timezone", value: "" },
-                ...timezoneOptions.map((timezone) => ({
-                  label: `${timezone.label} · ${timezone.value}`,
-                  value: timezone.value,
-                })),
-              ]}
-              required
-            />
-
-            <TextField
-              label="Nome do timezone"
-              placeholder="Europa/Lisboa"
-              value={form.timezoneLabel}
-              onChange={(value) => updateField("timezoneLabel", value)}
-              required
-            />
-
-            <TextField
-              label="Formato da data"
-              placeholder="dd/MM/yyyy"
-              value={form.dateFormat}
-              onChange={(value) => updateField("dateFormat", value)}
-              required
-            />
-
-            <TextField
-              label="Formato da hora"
-              placeholder="HH:mm"
-              value={form.timeFormat}
-              onChange={(value) => updateField("timeFormat", value)}
-              required
-            />
-          </FormGroup>
-
-          <FormGroup title="Bandeira e controle">
-            <TextField
-              label="Bandeira"
-              placeholder="🇵🇹"
-              value={form.flagEmoji || ""}
-              onChange={(value) => updateField("flagEmoji", value)}
-            />
-
-            <TextField
-              label="URL do ícone"
-              placeholder="https://..."
-              value={form.flagIconUrl || ""}
-              onChange={(value) => updateField("flagIconUrl", value)}
-            />
-
-            <TextField
-              label="Prioridade"
-              placeholder="1"
-              type="number"
-              value={String(form.priority)}
-              onChange={(value) => updateField("priority", Number(value))}
-              required
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <ToggleField
-                label="Configuração ativa"
-                value={form.active}
-                onChange={() => updateField("active", !form.active)}
-              />
-
-              <ToggleField
-                label="Padrão do sistema"
-                value={form.systemDefault}
-                onChange={() => updateField("systemDefault", !form.systemDefault)}
-              />
-            </div>
-          </FormGroup>
-
-          {error && (
-            <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl px-4 py-3 text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-          >
-            {loading ? "Salvando..." : "Salvar configuração"}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function FormGroup({
-  title,
-  children,
-}: {
-  title: string
-  children: ReactNode
-}) {
-  return (
-    <fieldset className="bg-cardSoft border border-border rounded-2xl p-4">
-      <legend className="px-2 text-xs uppercase tracking-wide text-muted">
-        {title}
-      </legend>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {children}
-      </div>
-    </fieldset>
-  )
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required = false,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  type?: string
-  required?: boolean
-}) {
-  return (
-    <label className="space-y-1.5">
-      <span className="text-xs text-muted">
-        {label}
-      </span>
-
-      <input
-        className="field-input bg-card"
-        placeholder={placeholder}
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required={required}
-      />
-    </label>
-  )
-}
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  required = false,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  options: {
-    label: string
-    value: string
-  }[]
-  required?: boolean
-}) {
-  return (
-    <label className="space-y-1.5">
-      <span className="text-xs text-muted">
-        {label}
-      </span>
-
-      <select
-        className="field-input bg-card"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required={required}
-      >
-        {options.map((option) => (
-          <option key={`${label}-${option.value}`} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  )
-}
-
-function ToggleField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: boolean
-  onChange: () => void
-}) {
-  return (
-    <label className="flex items-center justify-between bg-card border border-border rounded-2xl px-4 py-2.5">
-      <span className="text-sm text-muted">{label}</span>
-
-      <button
-        type="button"
-        onClick={onChange}
-        className={[
-          "relative w-12 h-7 rounded-full transition-all",
-          value ? "bg-primary" : "bg-cardSoft border border-border",
-        ].join(" ")}
-      >
-        <span
-          className={[
-            "absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-card",
-            value ? "left-6" : "left-1",
-          ].join(" ")}
-        />
-      </button>
-    </label>
   )
 }

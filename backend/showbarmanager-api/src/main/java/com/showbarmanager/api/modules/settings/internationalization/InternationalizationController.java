@@ -51,6 +51,35 @@ public class InternationalizationController {
         );
     }
 
+    @GetMapping("/countries")
+    public ApiResponse<List<InternationalizationResponse>> findActiveCountries() {
+        return new ApiResponse<>(
+                true,
+                "Países ativos listados com sucesso",
+                internationalizationService.findActiveCountries()
+        );
+    }
+
+    @GetMapping("/languages")
+    public ApiResponse<List<InternationalizationResponse>> findActiveLanguages() {
+        return new ApiResponse<>(
+                true,
+                "Idiomas ativos listados com sucesso",
+                internationalizationService.findActiveLanguages()
+        );
+    }
+
+    @GetMapping("/country/{countryCode}")
+    public ApiResponse<List<InternationalizationResponse>> findActiveByCountryCode(
+            @PathVariable String countryCode
+    ) {
+        return new ApiResponse<>(
+                true,
+                "Configurações do país listadas com sucesso",
+                internationalizationService.findActiveByCountryCode(countryCode)
+        );
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<InternationalizationResponse> findById(
             @PathVariable UUID id

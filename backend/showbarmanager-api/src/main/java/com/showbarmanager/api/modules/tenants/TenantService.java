@@ -2,6 +2,8 @@ package com.showbarmanager.api.modules.tenants;
 
 import com.showbarmanager.api.exceptions.BusinessException;
 import com.showbarmanager.api.exceptions.ResourceNotFoundException;
+import com.showbarmanager.api.modules.settings.internationalization.Internationalization;
+import com.showbarmanager.api.modules.settings.internationalization.InternationalizationRepository;
 import com.showbarmanager.api.modules.tenants.dto.CreateTenantRequest;
 import com.showbarmanager.api.modules.tenants.dto.TenantResponse;
 import com.showbarmanager.api.modules.tenants.dto.UpdateTenantRequest;
@@ -14,9 +16,14 @@ import java.util.UUID;
 public class TenantService {
 
     private final TenantRepository tenantRepository;
+    private final InternationalizationRepository internationalizationRepository;
 
-    public TenantService(TenantRepository tenantRepository) {
+    public TenantService(
+            TenantRepository tenantRepository,
+            InternationalizationRepository internationalizationRepository
+    ) {
         this.tenantRepository = tenantRepository;
+        this.internationalizationRepository = internationalizationRepository;
     }
 
     public TenantResponse create(CreateTenantRequest request) {
@@ -26,31 +33,34 @@ public class TenantService {
             throw new BusinessException("Já existe um tenant com este slug.");
         }
 
+        Internationalization internationalization = resolveInternationalization(
+                request.getCountry(),
+                request.getLanguage(),
+                request.getTimezone()
+        );
+
         Tenant tenant = new Tenant();
+
         tenant.setName(normalizeText(request.getName()));
         tenant.setSlug(normalizedSlug);
-        tenant.setCountry(normalizeCountry(request.getCountry()));
-        tenant.setCurrency(normalizeCurrency(request.getCurrency()));
-        tenant.setLanguage(normalizeLanguage(request.getLanguage()));
-        tenant.setTimezone(normalizeTimezone(request.getTimezone()));
+        tenant.setCountry(internationalization.getCountryCode());
+        tenant.setCurrency(internationalization.getCurrencyCode());
+        tenant.setLanguage(internationalization.getLanguageCode());
+        tenant.setTimezone(internationalization.getTimezone());
         tenant.setActive(request.getActive() != null ? request.getActive() : true);
 
-        Tenant savedTenant = tenantRepository.save(tenant);
-
-        return toResponse(savedTenant);
+        return toResponse(tenantRepository.save(tenant));
     }
 
     public List<TenantResponse> findAll() {
-        return tenantRepository.findAll()
+        return tenantRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public TenantResponse findById(UUID id) {
-        Tenant tenant = findTenantById(id);
-
-        return toResponse(tenant);
+        return toResponse(findTenantById(id));
     }
 
     public TenantResponse update(UUID id, UpdateTenantRequest request) {
@@ -58,27 +68,31 @@ public class TenantService {
 
         String normalizedSlug = normalizeSlug(request.getSlug());
 
-        boolean slugChanged = normalizedSlug != null
-                && !normalizedSlug.equalsIgnoreCase(tenant.getSlug());
+        boolean slugChanged =
+                !normalizedSlug.equalsIgnoreCase(tenant.getSlug());
 
         if (slugChanged && tenantRepository.existsBySlug(normalizedSlug)) {
             throw new BusinessException("Já existe outro tenant com este slug.");
         }
 
+        Internationalization internationalization = resolveInternationalization(
+                request.getCountry(),
+                request.getLanguage(),
+                request.getTimezone()
+        );
+
         tenant.setName(normalizeText(request.getName()));
         tenant.setSlug(normalizedSlug);
-        tenant.setCountry(normalizeCountry(request.getCountry()));
-        tenant.setCurrency(normalizeCurrency(request.getCurrency()));
-        tenant.setLanguage(normalizeLanguage(request.getLanguage()));
-        tenant.setTimezone(normalizeTimezone(request.getTimezone()));
+        tenant.setCountry(internationalization.getCountryCode());
+        tenant.setCurrency(internationalization.getCurrencyCode());
+        tenant.setLanguage(internationalization.getLanguageCode());
+        tenant.setTimezone(internationalization.getTimezone());
 
         if (request.getActive() != null) {
             tenant.setActive(request.getActive());
         }
 
-        Tenant savedTenant = tenantRepository.save(tenant);
-
-        return toResponse(savedTenant);
+        return toResponse(tenantRepository.save(tenant));
     }
 
     public void delete(UUID id) {
@@ -92,13 +106,47 @@ public class TenantService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tenant não encontrado."));
     }
 
+    private Internationalization resolveInternationalization(
+            String country,
+            String language,
+            String timezone
+    ) {
+        String normalizedCountry = normalizeCountry(country);
+        String normalizedLanguage = normalizeLanguage(language);
+        String normalizedTimezone = normalizeTimezone(timezone);
+
+        List<Internationalization> countryOptions =
+                internationalizationRepository
+                        .findByActiveTrueAndCountryCodeOrderByPriorityAscLanguageNameAsc(
+                                normalizedCountry
+                        );
+
+        if (countryOptions.isEmpty()) {
+            throw new BusinessException("País não está ativo na internacionalização.");
+        }
+
+        return countryOptions.stream()
+                .filter(item -> item.getLanguageCode().equalsIgnoreCase(normalizedLanguage))
+                .filter(item -> item.getTimezone().equalsIgnoreCase(normalizedTimezone))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(
+                        "Idioma ou fuso horário não está disponível para este país."
+                ));
+    }
+
     private String normalizeText(String value) {
-        return value == null ? null : value.trim();
+        if (value == null) {
+            return null;
+        }
+
+        String normalized = value.trim();
+
+        return normalized.isBlank() ? null : normalized;
     }
 
     private String normalizeSlug(String slug) {
-        if (slug == null) {
-            return null;
+        if (slug == null || slug.isBlank()) {
+            throw new BusinessException("O slug do tenant é obrigatório.");
         }
 
         return slug.trim().toLowerCase();
@@ -110,14 +158,6 @@ public class TenantService {
         }
 
         return country.trim().toUpperCase();
-    }
-
-    private String normalizeCurrency(String currency) {
-        if (currency == null || currency.isBlank()) {
-            return "EUR";
-        }
-
-        return currency.trim().toUpperCase();
     }
 
     private String normalizeLanguage(String language) {

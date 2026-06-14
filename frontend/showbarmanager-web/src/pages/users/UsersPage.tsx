@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Crown,
   Edit,
+  Globe2,
   RefreshCcw,
   Search,
   ShieldCheck,
@@ -15,11 +16,34 @@ import {
 } from "lucide-react"
 import { CreateUserModal } from "../../components/users/CreateUserModal"
 import { EditUserModal } from "../../components/users/EditUserModal"
+import { InternationalizationService } from "../../services/internationalization.service"
 import { UserService } from "../../services/user.service"
 import { useAuthStore } from "../../store/auth.store"
+import { useTranslation } from "../../hooks/useTranslation"
+import type { Internationalization } from "../../types/internationalization.types"
 import type { User } from "../../types/user.types"
 
+function getLanguageLabel(
+  options: Internationalization[],
+  languageCode: string | null | undefined,
+  defaultLabel: string
+) {
+  if (!languageCode) {
+    return defaultLabel
+  }
+
+  const found = options.find((item) => item.languageCode === languageCode)
+
+  if (!found) {
+    return languageCode
+  }
+
+  return `${found.flagEmoji || "🌐"} ${found.languageName}`
+}
+
 export function UsersPage() {
+  const { t } = useTranslation()
+
   const [modalOpen, setModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -41,6 +65,11 @@ export function UsersPage() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: UserService.list,
+  })
+
+  const { data: internationalizationOptions = [] } = useQuery({
+    queryKey: ["users-language-options"],
+    queryFn: InternationalizationService.listActive,
   })
 
   const activeUsersCount = useMemo(() => {
@@ -66,6 +95,12 @@ export function UsersPage() {
         .join(" ")
         .toLowerCase()
 
+      const languageLabel = getLanguageLabel(
+        internationalizationOptions,
+        user.languageCode,
+        t("users.useTenantLanguage")
+      ).toLowerCase()
+
       const matchesSearch =
         !searchTerm ||
         user.name.toLowerCase().includes(searchTerm) ||
@@ -73,7 +108,9 @@ export function UsersPage() {
         roles.includes(searchTerm) ||
         profiles.includes(searchTerm) ||
         permissions.includes(searchTerm) ||
-        effectivePermissions.includes(searchTerm)
+        effectivePermissions.includes(searchTerm) ||
+        languageLabel.includes(searchTerm) ||
+        (user.languageCode || "").toLowerCase().includes(searchTerm)
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -84,12 +121,16 @@ export function UsersPage() {
 
       return matchesSearch && matchesStatus
     })
-  }, [data, search, statusFilter])
+  }, [data, internationalizationOptions, search, statusFilter, t])
 
   function handleRefresh() {
-    refetch().catch(() => {
-      alert("Não foi possível atualizar os usuários.")
-    })
+    refetch()
+      .then(() => {
+        alert(t("users.listUpdated"))
+      })
+      .catch(() => {
+        alert(t("users.error"))
+      })
   }
 
   function handleEdit(user: User) {
@@ -99,17 +140,17 @@ export function UsersPage() {
 
   async function handleDelete(user: User) {
     if (user.id === currentUserId) {
-      alert("Você não pode excluir o próprio usuário logado.")
+      alert(t("users.cannotDeleteSelf"))
       return
     }
 
     if (user.masterUser) {
-      alert("Usuários master devem ser removidos apenas por fluxo administrativo seguro.")
+      alert(t("users.masterDeleteBlocked"))
       return
     }
 
     const confirmed = window.confirm(
-      `Deseja realmente excluir o usuário ${user.name}?`
+      `${t("users.deleteConfirm")} ${user.name}?`
     )
 
     if (!confirmed) {
@@ -121,7 +162,7 @@ export function UsersPage() {
       await UserService.delete(user.id)
       await refetch()
     } catch {
-      alert("Não foi possível excluir este usuário.")
+      alert(t("users.deleteError"))
     } finally {
       setDeleteLoadingId(null)
     }
@@ -133,15 +174,15 @@ export function UsersPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <ShieldCheck size={16} />
-            Controle de Acesso
+            {t("users.accessControl")}
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Usuários
+            {t("users.title")}
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão de usuários, perfis, permissões diretas e permissões efetivas da plataforma.
+            {t("users.subtitle")}
           </p>
         </div>
 
@@ -150,17 +191,17 @@ export function UsersPage() {
             onClick={() => setModalOpen(true)}
             className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
           >
-            Novo usuário
+            {t("users.new")}
           </button>
         )}
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-        <SummaryCard title="Total" value={String(data.length)} icon={<Users size={18} />} />
-        <SummaryCard title="Ativos" value={String(activeUsersCount)} icon={<CheckCircle2 size={18} />} />
-        <SummaryCard title="Master" value={String(masterUsersCount)} icon={<Crown size={18} />} />
-        <SummaryCard title="Dev" value={String(developerUsersCount)} icon={<ShieldCheck size={18} />} />
-        <SummaryCard title="Filtrados" value={String(filteredUsers.length)} icon={<Search size={18} />} />
+        <SummaryCard title={t("common.total")} value={String(data.length)} icon={<Users size={18} />} />
+        <SummaryCard title={t("common.active")} value={String(activeUsersCount)} icon={<CheckCircle2 size={18} />} />
+        <SummaryCard title={t("users.masterShort", "Master")} value={String(masterUsersCount)} icon={<Crown size={18} />} />
+        <SummaryCard title={t("users.developerShort", "Dev")} value={String(developerUsersCount)} icon={<ShieldCheck size={18} />} />
+        <SummaryCard title={t("common.filtered")} value={String(filteredUsers.length)} icon={<Search size={18} />} />
       </section>
 
       <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
@@ -169,7 +210,7 @@ export function UsersPage() {
 
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Buscar por nome, e-mail, perfil ou permissão..."
+            placeholder={t("users.searchPlaceholder", "Buscar por nome, e-mail, perfil, permissão ou idioma...")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -181,11 +222,11 @@ export function UsersPage() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="all">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
-            <option value="master">Master</option>
-            <option value="developer">Desenvolvedor</option>
+            <option value="all">{t("common.all", "Todos")}</option>
+            <option value="active">{t("common.active")}</option>
+            <option value="inactive">{t("common.inactive")}</option>
+            <option value="master">{t("users.masterShort", "Master")}</option>
+            <option value="developer">{t("users.developerUser")}</option>
           </select>
 
           <button
@@ -193,20 +234,20 @@ export function UsersPage() {
             className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
-            Atualizar
+            {t("common.refresh")}
           </button>
         </div>
       </section>
 
       {isLoading && (
         <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
-          Carregando usuários...
+          {t("users.loading")}
         </div>
       )}
 
       {isError && (
         <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
-          Não foi possível carregar os usuários. Verifique se a API está online e se a sessão está ativa.
+          {t("users.error")}
         </div>
       )}
 
@@ -235,7 +276,7 @@ export function UsersPage() {
 
                       {user.id === currentUserId && (
                         <span className="text-[11px] bg-primarySoft text-primary rounded-full px-2 py-0.5 shrink-0">
-                          Você
+                          {t("users.you")}
                         </span>
                       )}
                     </div>
@@ -249,25 +290,25 @@ export function UsersPage() {
                 {user.active ? (
                   <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
                     <CheckCircle2 size={14} />
-                    Ativo
+                    {t("common.active")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
                     <XCircle size={14} />
-                    Inativo
+                    {t("common.inactive")}
                   </span>
                 )}
               </div>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <InfoBox
-                  label="Tipo"
+                  label={t("users.type")}
                   value={
                     user.masterUser
-                      ? "Usuário Master"
+                      ? t("users.masterUser")
                       : user.developerUser
-                        ? "Desenvolvedor"
-                        : "Usuário comum"
+                        ? t("users.developerUser")
+                        : t("users.commonUser")
                   }
                   icon={
                     user.masterUser || user.developerUser ? (
@@ -276,24 +317,34 @@ export function UsersPage() {
                   }
                 />
 
+                <InfoBox
+                  label={t("common.language")}
+                  value={getLanguageLabel(
+                    internationalizationOptions,
+                    user.languageCode,
+                    t("users.useTenantLanguage")
+                  )}
+                  icon={<Globe2 size={14} className="text-primary" />}
+                />
+
                 <InfoBox label="ID" value={user.id.slice(0, 8)} />
               </div>
 
               <AccessBox
-                title="Perfis"
-                emptyLabel="Nenhum perfil vinculado"
+                title={t("users.profiles")}
+                emptyLabel={t("users.noProfiles")}
                 items={user.profiles ?? user.roles ?? []}
               />
 
               <AccessBox
-                title="Permissões diretas"
-                emptyLabel="Nenhuma permissão direta"
+                title={t("users.directPermissions")}
+                emptyLabel={t("users.noDirectPermissions")}
                 items={user.permissions ?? []}
               />
 
               <AccessBox
-                title="Permissões efetivas"
-                emptyLabel="Nenhuma permissão efetiva"
+                title={t("users.effectivePermissions")}
+                emptyLabel={t("users.noEffectivePermissions")}
                 items={user.effectivePermissions ?? []}
               />
 
@@ -307,7 +358,7 @@ export function UsersPage() {
                     <button
                       onClick={() => handleEdit(user)}
                       className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-                      title="Alterar"
+                      title={t("common.edit")}
                     >
                       <Edit size={14} />
                     </button>
@@ -315,7 +366,7 @@ export function UsersPage() {
                     <button
                       onClick={() => {
                         handleDelete(user).catch(() => {
-                          alert("Erro inesperado ao excluir usuário.")
+                          alert(t("messages.unexpectedError"))
                         })
                       }}
                       disabled={
@@ -324,7 +375,7 @@ export function UsersPage() {
                         user.masterUser
                       }
                       className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Excluir"
+                      title={t("common.delete")}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -336,7 +387,7 @@ export function UsersPage() {
 
           {filteredUsers.length === 0 && (
             <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
-              Nenhum usuário encontrado com os filtros atuais.
+              {t("users.noResults")}
             </div>
           )}
         </section>
@@ -348,7 +399,7 @@ export function UsersPage() {
         onClose={() => setModalOpen(false)}
         onCreated={() => {
           refetch().catch(() => {
-            alert("Usuário criado, mas não foi possível atualizar a lista.")
+            alert(t("users.createdRefreshError", "Usuário criado, mas não foi possível atualizar a lista."))
           })
         }}
       />
@@ -362,7 +413,7 @@ export function UsersPage() {
         }}
         onUpdated={() => {
           refetch().catch(() => {
-            alert("Usuário atualizado, mas não foi possível atualizar a lista.")
+            alert(t("users.updatedRefreshError", "Usuário atualizado, mas não foi possível atualizar a lista."))
           })
         }}
       />

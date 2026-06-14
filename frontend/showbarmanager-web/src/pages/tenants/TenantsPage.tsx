@@ -16,29 +16,47 @@ import { EditTenantModal } from "../../components/tenants/EditTenantModal"
 import { InternationalizationService } from "../../services/internationalization.service"
 import { TenantService } from "../../services/tenant.service"
 import { useAuthStore } from "../../store/auth.store"
+import { useTranslation } from "../../hooks/useTranslation"
 import type { Internationalization } from "../../types/internationalization.types"
 import type { Tenant } from "../../types/tenant.types"
 
 function getInternationalizationLabel(
   options: Internationalization[],
-  value: string,
+  tenant: Tenant,
   field: "country" | "language" | "timezone"
 ) {
+  const found = options.find(
+    (item) =>
+      item.countryCode === tenant.country &&
+      item.languageCode === tenant.language &&
+      item.timezone === tenant.timezone
+  )
+
   if (field === "country") {
-    const found = options.find((item) => item.countryCode === value)
-    return found ? `${found.flagEmoji || "🌐"} ${found.countryName}` : value
+    const countryFound =
+      found || options.find((item) => item.countryCode === tenant.country)
+
+    return countryFound
+      ? `${countryFound.flagEmoji || "🌐"} ${countryFound.countryName}`
+      : tenant.country
   }
 
   if (field === "language") {
-    const found = options.find((item) => item.languageCode === value)
-    return found ? found.languageName : value
+    const languageFound =
+      found || options.find((item) => item.languageCode === tenant.language)
+
+    return languageFound ? languageFound.languageName : tenant.language
   }
 
-  const found = options.find((item) => item.timezone === value)
-  return found ? found.timezoneLabel : value
+  const timezoneFound =
+    found || options.find((item) => item.timezone === tenant.timezone)
+
+  return timezoneFound ? timezoneFound.timezoneLabel : tenant.timezone
 }
 
 export function TenantsPage() {
+  const { t } = useTranslation()
+
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null)
@@ -74,19 +92,19 @@ export function TenantsPage() {
     return data.filter((tenant) => {
       const countryLabel = getInternationalizationLabel(
         internationalizationOptions,
-        tenant.country,
+        tenant,
         "country"
       ).toLowerCase()
 
       const languageLabel = getInternationalizationLabel(
         internationalizationOptions,
-        tenant.language,
+        tenant,
         "language"
       ).toLowerCase()
 
       const timezoneLabel = getInternationalizationLabel(
         internationalizationOptions,
-        tenant.timezone,
+        tenant,
         "timezone"
       ).toLowerCase()
 
@@ -112,9 +130,13 @@ export function TenantsPage() {
   }, [data, internationalizationOptions, search, statusFilter])
 
   function handleRefresh() {
-    refetch().catch(() => {
-      alert("Não foi possível atualizar os ambientes.")
-    })
+    refetch()
+      .then(() => {
+        alert(t("tenants.listUpdated", t("messages.listUpdated")))
+      })
+      .catch(() => {
+        alert(t("tenants.refreshError", t("tenants.error")))
+      })
   }
 
   function handleEdit(tenant: Tenant) {
@@ -124,19 +146,17 @@ export function TenantsPage() {
 
   async function handleDelete(tenant: Tenant) {
     const confirmed = window.confirm(
-      `Deseja realmente excluir o ambiente ${tenant.name}?`
+      `${t("tenants.deleteConfirm", "Deseja realmente excluir o ambiente")} ${tenant.name}?`
     )
 
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
 
     try {
       setDeleteLoadingId(tenant.id)
       await TenantService.delete(tenant.id)
       await refetch()
     } catch {
-      alert("Não foi possível excluir este ambiente.")
+      alert(t("tenants.deleteError", "Não foi possível excluir este ambiente."))
     } finally {
       setDeleteLoadingId(null)
     }
@@ -148,15 +168,15 @@ export function TenantsPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <Building2 size={16} />
-            Multiambientes
+            {t("tenants.multiTenants", "Multiambientes")}
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Ambientes
+            {t("tenants.title")}
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão de empresas, clientes e ambientes isolados do ecossistema.
+            {t("tenants.subtitle")}
           </p>
         </div>
 
@@ -165,15 +185,15 @@ export function TenantsPage() {
             onClick={() => setCreateModalOpen(true)}
             className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full hover:shadow-neon transition w-full sm:w-auto text-sm"
           >
-            Novo ambiente
+            {t("tenants.new")}
           </button>
         )}
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-        <SummaryCard title="Total" value={String(data.length)} icon={<Building2 size={18} />} />
-        <SummaryCard title="Ativos" value={String(activeTenantsCount)} icon={<CheckCircle2 size={18} />} />
-        <SummaryCard title="Filtrados" value={String(filteredTenants.length)} icon={<Search size={18} />} />
+        <SummaryCard title={t("common.total")} value={String(data.length)} icon={<Building2 size={18} />} />
+        <SummaryCard title={t("common.active")} value={String(activeTenantsCount)} icon={<CheckCircle2 size={18} />} />
+        <SummaryCard title={t("common.filtered")} value={String(filteredTenants.length)} icon={<Search size={18} />} />
       </section>
 
       <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
@@ -182,7 +202,7 @@ export function TenantsPage() {
 
           <input
             className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
-            placeholder="Buscar por nome, slug, país, idioma ou fuso..."
+            placeholder={t("tenants.searchPlaceholder", "Buscar por nome, slug, país, idioma ou fuso...")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -194,9 +214,9 @@ export function TenantsPage() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="all">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
+            <option value="all">{t("common.all", "Todos")}</option>
+            <option value="active">{t("common.active")}</option>
+            <option value="inactive">{t("common.inactive")}</option>
           </select>
 
           <button
@@ -204,20 +224,20 @@ export function TenantsPage() {
             className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
-            Atualizar
+            {t("common.refresh")}
           </button>
         </div>
       </section>
 
       {isLoading && (
         <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
-          Carregando ambientes...
+          {t("tenants.loading")}
         </div>
       )}
 
       {isError && (
         <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
-          Não foi possível carregar os ambientes. Verifique se a API está online e se a sessão está ativa.
+          {t("tenants.error")}
         </div>
       )}
 
@@ -248,42 +268,42 @@ export function TenantsPage() {
                 {tenant.active ? (
                   <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
                     <CheckCircle2 size={14} />
-                    Ativo
+                    {t("common.active")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
                     <XCircle size={14} />
-                    Inativo
+                    {t("common.inactive")}
                   </span>
                 )}
               </div>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <InfoBox
-                  label="País"
+                  label={t("common.country")}
                   value={getInternationalizationLabel(
                     internationalizationOptions,
-                    tenant.country,
+                    tenant,
                     "country"
                   )}
                 />
 
-                <InfoBox label="Moeda" value={tenant.currency} />
+                <InfoBox label={t("common.currency")} value={tenant.currency} />
 
                 <InfoBox
-                  label="Idioma"
+                  label={t("common.language")}
                   value={getInternationalizationLabel(
                     internationalizationOptions,
-                    tenant.language,
+                    tenant,
                     "language"
                   )}
                 />
 
                 <InfoBox
-                  label="Fuso horário"
+                  label={t("common.timezone")}
                   value={getInternationalizationLabel(
                     internationalizationOptions,
-                    tenant.timezone,
+                    tenant,
                     "timezone"
                   )}
                   icon={<Globe2 size={14} className="text-primary" />}
@@ -300,7 +320,7 @@ export function TenantsPage() {
                     <button
                       onClick={() => handleEdit(tenant)}
                       className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-                      title="Alterar"
+                      title={t("common.edit")}
                     >
                       <Edit size={14} />
                     </button>
@@ -308,12 +328,12 @@ export function TenantsPage() {
                     <button
                       onClick={() => {
                         handleDelete(tenant).catch(() => {
-                          alert("Erro inesperado ao excluir ambiente.")
+                          alert(t("messages.unexpectedError"))
                         })
                       }}
                       disabled={deleteLoadingId === tenant.id}
                       className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Excluir"
+                      title={t("common.delete")}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -325,7 +345,7 @@ export function TenantsPage() {
 
           {filteredTenants.length === 0 && (
             <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
-              Nenhum ambiente encontrado com os filtros atuais.
+              {t("tenants.noResults")}
             </div>
           )}
         </section>
@@ -337,7 +357,7 @@ export function TenantsPage() {
         onClose={() => setCreateModalOpen(false)}
         onCreated={() => {
           refetch().catch(() => {
-            alert("Ambiente criado, mas não foi possível atualizar a lista.")
+            alert(t("tenants.createdRefreshError", "Ambiente criado, mas não foi possível atualizar a lista."))
           })
         }}
       />
@@ -352,7 +372,7 @@ export function TenantsPage() {
         }}
         onUpdated={() => {
           refetch().catch(() => {
-            alert("Ambiente atualizado, mas não foi possível atualizar a lista.")
+            alert(t("tenants.updatedRefreshError", "Ambiente atualizado, mas não foi possível atualizar a lista."))
           })
         }}
       />

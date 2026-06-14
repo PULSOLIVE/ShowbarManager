@@ -10,10 +10,13 @@ import {
   Wifi,
 } from "lucide-react"
 import { MetricCard } from "../../components/dashboard/MetricCard"
+import { useTranslation } from "../../hooks/useTranslation"
 import { DashboardService } from "../../services/dashboard.service"
 import { HealthService } from "../../services/health.service"
 
 export function DashboardPage() {
+  const { t } = useTranslation()
+
   const {
     data: healthData,
     isLoading: healthLoading,
@@ -32,10 +35,10 @@ export function DashboardPage() {
   })
 
   const apiStatus = healthLoading
-    ? "A verificar"
+    ? t("dashboard.checking")
     : healthError
-      ? "Offline"
-      : "Online"
+      ? t("dashboard.offline")
+      : t("dashboard.online")
 
   const apiStatusType = healthLoading
     ? "warning"
@@ -50,30 +53,28 @@ export function DashboardPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <Gauge size={16} />
-              Visão geral empresarial
+              {t("dashboard.executiveOverview")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Painel operacional
+              {t("dashboard.operationalPanel")}
             </h2>
 
             <p className="text-muted max-w-4xl mt-2 text-sm leading-relaxed">
-              Monitorização executiva do ecossistema ShowbarManager ERP:
-              infraestrutura, ambientes, usuários, autenticação, disponibilidade
-              e operação SaaS multiambiente.
+              {t("dashboard.operationalDescription")}
             </p>
           </div>
 
           <div className="surface-muted rounded-2xl px-4 py-3 min-w-[240px]">
             <span className="text-[11px] text-muted uppercase tracking-wide">
-              Ambiente
+              {t("dashboard.environment")}
             </span>
 
             <div className="flex items-center gap-3 mt-2">
               <div className="w-2.5 h-2.5 rounded-full bg-success" />
 
               <strong className="text-success text-sm leading-tight">
-                Produção empresarial local
+                {t("dashboard.localEnterpriseProduction")}
               </strong>
             </div>
           </div>
@@ -82,33 +83,33 @@ export function DashboardPage() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
         <MetricCard
-          title="Estado da API"
+          title={t("dashboard.apiStatus")}
           value={apiStatus}
-          description={healthData || "A monitorizar a disponibilidade do backend"}
+          description={healthData || t("dashboard.monitoringBackend")}
           icon={Wifi}
           status={apiStatusType}
         />
 
         <MetricCard
-          title="Ambientes"
+          title={t("dashboard.environments")}
           value={statsLoading ? "..." : String(stats?.totalTenants || 0)}
-          description={`${stats?.activeTenants || 0} ambientes ativos`}
+          description={`${stats?.activeTenants || 0} ${t("dashboard.activeEnvironments")}`}
           icon={Building2}
           status="neutral"
         />
 
         <MetricCard
-          title="Usuários"
+          title={t("dashboard.users")}
           value={statsLoading ? "..." : String(stats?.totalUsers || 0)}
-          description={`${stats?.activeUsers || 0} usuários ativos`}
+          description={`${stats?.activeUsers || 0} ${t("dashboard.activeUsers")}`}
           icon={Users}
           status="neutral"
         />
 
         <MetricCard
-          title="Segurança"
+          title={t("dashboard.security")}
           value="JWT + RBAC"
-          description="Autenticação protegida com Bearer Token e permissões"
+          description={t("dashboard.securityDescription")}
           icon={ShieldCheck}
           status="neutral"
         />
@@ -120,11 +121,11 @@ export function DashboardPage() {
             <div>
               <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
                 <Activity size={16} />
-                Resumo operacional
+                {t("dashboard.operationalSummary")}
               </span>
 
               <h3 className="text-xl font-bold mt-1">
-                Infraestrutura SaaS
+                {t("dashboard.saasInfrastructure")}
               </h3>
             </div>
 
@@ -135,27 +136,27 @@ export function DashboardPage() {
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             <StatusBox
-              title="Backend empresarial"
+              title={t("dashboard.enterpriseBackend")}
               value="Spring Boot + JWT"
-              status="Online"
+              status={t("dashboard.online")}
             />
 
             <StatusBox
-              title="Banco de dados"
+              title={t("dashboard.database")}
               value="PostgreSQL 16"
-              status="Operacional"
+              status={t("dashboard.operational")}
             />
 
             <StatusBox
-              title="Cache e armazenamento"
+              title={t("dashboard.cacheStorage")}
               value="Redis + MinIO"
-              status="Sincronizado"
+              status={t("dashboard.synchronized")}
             />
 
             <StatusBox
-              title="Frontend empresarial"
+              title={t("dashboard.enterpriseFrontend")}
               value="React + TypeScript"
-              status="Ativo"
+              status={t("dashboard.active")}
             />
           </div>
         </div>
@@ -165,11 +166,11 @@ export function DashboardPage() {
             <div>
               <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
                 <Crown size={16} />
-                Sistema
+                {t("dashboard.system")}
               </span>
 
               <h3 className="text-xl font-bold mt-1">
-                Núcleo ERP
+                {t("dashboard.erpCore")}
               </h3>
             </div>
 
@@ -179,10 +180,10 @@ export function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-1 gap-3">
-            <SmallBox title="Multiambiente" value="Ativado" />
-            <SmallBox title="Segurança" value="JWT + RBAC" />
-            <SmallBox title="Arquitetura" value="SaaS empresarial" />
-            <SmallBox title="Experiência visual" value="ERP premium" />
+            <SmallBox title={t("dashboard.multiEnvironment")} value={t("common.enabled")} />
+            <SmallBox title={t("dashboard.security")} value="JWT + RBAC" />
+            <SmallBox title={t("dashboard.architecture")} value={t("dashboard.enterpriseSaas")} />
+            <SmallBox title={t("dashboard.visualExperience")} value={t("dashboard.premiumErp")} />
           </div>
         </div>
       </section>

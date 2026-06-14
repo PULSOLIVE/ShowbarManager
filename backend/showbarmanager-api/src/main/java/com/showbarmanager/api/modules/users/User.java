@@ -30,6 +30,9 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
+    @Column(length = 10)
+    private String language;
+
     @Column(nullable = false)
     private Boolean active = true;
 
@@ -77,149 +80,50 @@ public class User {
         this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
 
-        if (this.active == null) {
-            this.active = true;
-        }
-
-        if (this.masterUser == null) {
-            this.masterUser = false;
-        }
-
-        if (this.developerUser == null) {
-            this.developerUser = false;
-        }
-
-        if (this.roles == null) {
-            this.roles = new HashSet<>();
-        }
-
-        if (this.profiles == null) {
-            this.profiles = new HashSet<>();
-        }
-
-        if (this.permissions == null) {
-            this.permissions = new HashSet<>();
-        }
+        if (this.active == null) this.active = true;
+        if (this.masterUser == null) this.masterUser = false;
+        if (this.developerUser == null) this.developerUser = false;
+        if (this.roles == null) this.roles = new HashSet<>();
+        if (this.profiles == null) this.profiles = new HashSet<>();
+        if (this.permissions == null) this.permissions = new HashSet<>();
     }
 
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
 
-        if (this.roles == null) {
-            this.roles = new HashSet<>();
-        }
-
-        if (this.profiles == null) {
-            this.profiles = new HashSet<>();
-        }
-
-        if (this.permissions == null) {
-            this.permissions = new HashSet<>();
-        }
+        if (this.roles == null) this.roles = new HashSet<>();
+        if (this.profiles == null) this.profiles = new HashSet<>();
+        if (this.permissions == null) this.permissions = new HashSet<>();
     }
 
-    public UUID getId() {
-        return id;
-    }
+    public UUID getId() { return id; }
+    public Tenant getTenant() { return tenant; }
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
+    public String getLanguage() { return language; }
+    public Boolean getActive() { return active; }
+    public Boolean getMasterUser() { return masterUser; }
+    public Boolean getDeveloperUser() { return developerUser; }
+    public Set<Role> getRoles() { return roles; }
+    public Set<Profile> getProfiles() { return profiles; }
+    public Set<Permission> getPermissions() { return permissions; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public Boolean getMasterUser() {
-        return masterUser;
-    }
-
-    public Boolean getDeveloperUser() {
-        return developerUser;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public Set<Profile> getProfiles() {
-        return profiles;
-    }
-
-    public Set<Permission> getPermissions() {
-        return permissions;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public void setMasterUser(Boolean masterUser) {
-        this.masterUser = masterUser;
-    }
-
-    public void setDeveloperUser(Boolean developerUser) {
-        this.developerUser = developerUser;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
-    public void setProfiles(Set<Profile> profiles) {
-        this.profiles = profiles;
-    }
-
-    public void setPermissions(Set<Permission> permissions) {
-        this.permissions = permissions;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public void setId(UUID id) { this.id = id; }
+    public void setTenant(Tenant tenant) { this.tenant = tenant; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPassword(String password) { this.password = password; }
+    public void setLanguage(String language) { this.language = language; }
+    public void setActive(Boolean active) { this.active = active; }
+    public void setMasterUser(Boolean masterUser) { this.masterUser = masterUser; }
+    public void setDeveloperUser(Boolean developerUser) { this.developerUser = developerUser; }
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
+    public void setProfiles(Set<Profile> profiles) { this.profiles = profiles; }
+    public void setPermissions(Set<Permission> permissions) { this.permissions = permissions; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

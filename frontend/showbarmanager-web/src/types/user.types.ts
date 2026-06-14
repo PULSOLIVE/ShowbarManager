@@ -1,6 +1,6 @@
 export interface User {
   id: string
-  tenantId: string
+  tenantId: string | null
   name: string
   email: string
   active: boolean
@@ -12,6 +12,7 @@ export interface User {
   effectivePermissions?: string[]
   profileIds?: string[]
   permissionIds?: string[]
+  languageCode?: string | null
   createdAt: string
   updatedAt: string | null
 }
@@ -24,6 +25,7 @@ export interface CreateUserRequest {
   role: string
   profileIds?: string[]
   permissionIds?: string[]
+  languageCode?: string | null
 }
 
 export interface UpdateUserRequest {
@@ -33,4 +35,5 @@ export interface UpdateUserRequest {
   active: boolean
   profileIds?: string[]
   permissionIds?: string[]
+  languageCode?: string | null
 }

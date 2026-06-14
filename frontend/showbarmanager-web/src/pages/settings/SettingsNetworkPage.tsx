@@ -9,47 +9,57 @@ import {
   Trash2,
   Wifi,
 } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 
-const networkItems = [
-  {
-    title: "Link principal",
-    value: "Preparado",
-    description: "Conexão principal para operação do ambiente.",
-    icon: Wifi,
-  },
-  {
-    title: "Link backup",
-    value: "Preparado",
-    description: "Contingência para operação crítica.",
-    icon: Wifi,
-  },
-  {
-    title: "Roteador",
-    value: "Planejado",
-    description: "Controle de rede local e dispositivos.",
-    icon: Router,
-  },
-  {
-    title: "Servidor local",
-    value: "Planejado",
-    description: "Processamento local para eventos e operação offline.",
-    icon: Server,
-  },
-  {
-    title: "Agente local",
-    value: "Planejado",
-    description: "Sincronização entre hardware, rede e ERP.",
-    icon: Network,
-  },
-  {
-    title: "Failover",
-    value: "Futuro",
-    description: "Troca automática entre links e serviços críticos.",
-    icon: Network,
-  },
-]
+interface NetworkItem {
+  title: string
+  value: string
+  description: string
+  icon: LucideIcon
+}
 
 export function SettingsNetworkPage() {
+  const { t } = useTranslation()
+
+  const networkItems: NetworkItem[] = [
+    {
+      title: t("network.mainLink"),
+      value: t("status.prepared"),
+      description: t("network.mainLinkDescription"),
+      icon: Wifi,
+    },
+    {
+      title: t("network.backupLink"),
+      value: t("status.prepared"),
+      description: t("network.backupLinkDescription"),
+      icon: Wifi,
+    },
+    {
+      title: t("network.router"),
+      value: t("status.planned"),
+      description: t("network.routerDescription"),
+      icon: Router,
+    },
+    {
+      title: t("network.localServer"),
+      value: t("status.planned"),
+      description: t("network.localServerDescription"),
+      icon: Server,
+    },
+    {
+      title: t("network.localAgent"),
+      value: t("status.planned"),
+      description: t("network.localAgentDescription"),
+      icon: Network,
+    },
+    {
+      title: t("network.failover"),
+      value: t("status.future"),
+      description: t("network.failoverDescription"),
+      icon: Network,
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <section className="surface-premium rounded-2xl p-4 lg:p-5">
@@ -57,27 +67,27 @@ export function SettingsNetworkPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <Network size={16} />
-              Configurações
+              {t("settings.title")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Rede Local
+              {t("network.title")}
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              Links, roteadores, servidores locais, agente local, contingência e failover.
+              {t("network.subtitle")}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <button className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm">
               <Plus size={15} />
-              Novo dispositivo
+              {t("network.newDevice")}
             </button>
 
             <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
               <Save size={15} />
-              Salvar rede
+              {t("network.saveNetwork")}
             </button>
           </div>
         </div>
@@ -97,12 +107,9 @@ function NetworkCard({
   value,
   description,
   icon: Icon,
-}: {
-  title: string
-  value: string
-  description: string
-  icon: LucideIcon
-}) {
+}: NetworkItem) {
+  const { t } = useTranslation()
+
   return (
     <article className="surface-premium rounded-2xl p-4 min-h-[150px] hover:border-primary/50 transition">
       <div className="flex items-start justify-between gap-3">
@@ -113,27 +120,23 @@ function NetworkCard({
         <div className="flex items-center gap-1">
           <button
             className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-            title="Editar"
+            title={t("common.edit")}
           >
             <Edit size={14} />
           </button>
 
           <button
             className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition"
-            title="Excluir"
+            title={t("common.delete")}
           >
             <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      <h3 className="font-semibold mt-4">
-        {title}
-      </h3>
+      <h3 className="font-semibold mt-4">{title}</h3>
 
-      <p className="text-primary text-sm font-semibold mt-1">
-        {value}
-      </p>
+      <p className="text-primary text-sm font-semibold mt-1">{value}</p>
 
       <p className="text-xs text-muted mt-2 leading-relaxed line-clamp-2">
         {description}

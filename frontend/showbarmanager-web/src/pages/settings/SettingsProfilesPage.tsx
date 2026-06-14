@@ -16,10 +16,13 @@ import {
 } from "lucide-react"
 import { CreateProfileModal } from "../../components/settings/CreateProfileModal"
 import { EditProfileModal } from "../../components/settings/EditProfileModal"
+import { useTranslation } from "../../hooks/useTranslation"
 import { ProfileService } from "../../services/profile.service"
 import type { Profile } from "../../types/profile.types"
 
 export function SettingsProfilesPage() {
+  const { t } = useTranslation()
+
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [createModalOpen, setCreateModalOpen] = useState(false)
@@ -71,9 +74,13 @@ export function SettingsProfilesPage() {
   }, [profiles, search, statusFilter])
 
   function handleRefresh() {
-    refetch().catch(() => {
-      alert("Não foi possível atualizar os perfis.")
-    })
+    refetch()
+      .then(() => {
+        alert(t("profiles.listUpdated"))
+      })
+      .catch(() => {
+        alert(t("profiles.refreshError"))
+      })
   }
 
   function handleEdit(profile: Profile) {
@@ -83,12 +90,12 @@ export function SettingsProfilesPage() {
 
   async function handleDelete(profile: Profile) {
     if (profile.systemProfile) {
-      alert("Perfis de sistema não podem ser excluídos.")
+      alert(t("profiles.systemDeleteBlocked"))
       return
     }
 
     const confirmed = window.confirm(
-      `Deseja realmente excluir o perfil ${profile.name}?`
+      `${t("profiles.deleteConfirm")} ${profile.name}?`
     )
 
     if (!confirmed) {
@@ -100,7 +107,7 @@ export function SettingsProfilesPage() {
       await ProfileService.delete(profile.id)
       await refetch()
     } catch {
-      alert("Não foi possível excluir este perfil.")
+      alert(t("profiles.deleteError"))
     } finally {
       setDeleteLoadingId(null)
     }
@@ -112,15 +119,15 @@ export function SettingsProfilesPage() {
         <div>
           <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
             <UserCog size={16} />
-            Configurações
+            {t("settings.title")}
           </span>
 
           <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-            Perfis e grupos
+            {t("profiles.title")}
           </h2>
 
           <p className="text-muted mt-2 text-sm max-w-4xl">
-            Gestão completa de perfis, grupos, hierarquias, permissões e níveis de acesso.
+            {t("profiles.subtitle")}
           </p>
         </div>
 
@@ -129,15 +136,15 @@ export function SettingsProfilesPage() {
           className="bg-primary text-white px-4 py-2.5 rounded-full font-semibold flex items-center justify-center gap-2 hover:shadow-neon transition text-sm"
         >
           <Plus size={16} />
-          Novo perfil
+          {t("profiles.new")}
         </button>
       </section>
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <SummaryCard title="Total" value={String(profiles.length)} icon={<UserCog size={18} />} />
-        <SummaryCard title="Ativos" value={String(activeProfilesCount)} icon={<CheckCircle2 size={18} />} />
-        <SummaryCard title="Sistema" value={String(systemProfilesCount)} icon={<Crown size={18} />} />
-        <SummaryCard title="Filtrados" value={String(filteredProfiles.length)} icon={<Search size={18} />} />
+        <SummaryCard title={t("common.total")} value={String(profiles.length)} icon={<UserCog size={18} />} />
+        <SummaryCard title={t("common.active")} value={String(activeProfilesCount)} icon={<CheckCircle2 size={18} />} />
+        <SummaryCard title={t("profiles.system")} value={String(systemProfilesCount)} icon={<Crown size={18} />} />
+        <SummaryCard title={t("common.filtered")} value={String(filteredProfiles.length)} icon={<Search size={18} />} />
       </section>
 
       <section className="surface-premium rounded-2xl p-3 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
@@ -145,7 +152,7 @@ export function SettingsProfilesPage() {
           <Search size={15} className="text-muted shrink-0" />
 
           <input
-            placeholder="Pesquisar por nome, código, descrição ou permissões..."
+            placeholder={t("profiles.searchPlaceholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="bg-transparent outline-none w-full text-sm placeholder:text-muted"
@@ -158,11 +165,11 @@ export function SettingsProfilesPage() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="all">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
-            <option value="system">Sistema</option>
-            <option value="custom">Personalizados</option>
+            <option value="all">{t("common.all")}</option>
+            <option value="active">{t("common.active")}</option>
+            <option value="inactive">{t("common.inactive")}</option>
+            <option value="system">{t("profiles.system")}</option>
+            <option value="custom">{t("profiles.custom")}</option>
           </select>
 
           <button
@@ -170,20 +177,20 @@ export function SettingsProfilesPage() {
             className="bg-background border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm"
           >
             <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
-            Atualizar
+            {t("common.refresh")}
           </button>
         </div>
       </section>
 
       {isLoading && (
         <div className="surface-premium rounded-2xl p-4 text-muted text-sm">
-          Carregando perfis...
+          {t("profiles.loading")}
         </div>
       )}
 
       {isError && (
         <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl p-4 text-sm">
-          Não foi possível carregar os perfis.
+          {t("profiles.error")}
         </div>
       )}
 
@@ -218,31 +225,31 @@ export function SettingsProfilesPage() {
                 {profile.active ? (
                   <span className="inline-flex items-center gap-1 text-success text-xs shrink-0">
                     <CheckCircle2 size={14} />
-                    Ativo
+                    {t("common.active")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-danger text-xs shrink-0">
                     <XCircle size={14} />
-                    Inativo
+                    {t("common.inactive")}
                   </span>
                 )}
               </div>
 
               <p className="text-sm text-muted mt-3 line-clamp-2 min-h-[40px]">
-                {profile.description || "Perfil do ecossistema"}
+                {profile.description || t("profiles.defaultDescription")}
               </p>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <InfoBox label="Prioridade" value={String(profile.priority)} />
+                <InfoBox label={t("common.priority")} value={String(profile.priority)} />
 
                 <InfoBox
-                  label="Tipo"
-                  value={profile.systemProfile ? "Sistema" : "Personalizado"}
+                  label={t("users.type")}
+                  value={profile.systemProfile ? t("profiles.system") : t("profiles.custom")}
                   icon={profile.systemProfile ? <ShieldCheck size={14} className="text-primary" /> : undefined}
                 />
 
                 <InfoBox
-                  label="Permissões"
+                  label={t("profiles.permissions")}
                   value={String(profile.permissionIds?.length || 0)}
                   icon={<KeyRound size={14} className="text-primary" />}
                 />
@@ -257,7 +264,7 @@ export function SettingsProfilesPage() {
                   <button
                     onClick={() => handleEdit(profile)}
                     className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-                    title="Editar"
+                    title={t("common.edit")}
                   >
                     <Edit size={14} />
                   </button>
@@ -265,12 +272,12 @@ export function SettingsProfilesPage() {
                   <button
                     onClick={() => {
                       handleDelete(profile).catch(() => {
-                        alert("Erro inesperado ao excluir perfil.")
+                        alert(t("messages.unexpectedError"))
                       })
                     }}
                     disabled={deleteLoadingId === profile.id || profile.systemProfile}
                     className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Excluir"
+                    title={t("common.delete")}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -281,7 +288,7 @@ export function SettingsProfilesPage() {
 
           {filteredProfiles.length === 0 && (
             <div className="xl:col-span-2 2xl:col-span-3 surface-premium rounded-2xl p-8 text-center text-muted">
-              Nenhum perfil encontrado.
+              {t("profiles.noResults")}
             </div>
           )}
         </section>
@@ -292,7 +299,7 @@ export function SettingsProfilesPage() {
         onClose={() => setCreateModalOpen(false)}
         onCreated={() => {
           refetch().catch(() => {
-            alert("Perfil criado, mas não foi possível atualizar a lista.")
+            alert(t("profiles.createdRefreshError"))
           })
         }}
       />
@@ -306,7 +313,7 @@ export function SettingsProfilesPage() {
         }}
         onUpdated={() => {
           refetch().catch(() => {
-            alert("Perfil atualizado, mas não foi possível atualizar a lista.")
+            alert(t("profiles.updatedRefreshError"))
           })
         }}
       />

@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "../../hooks/useTranslation"
 import { useAuthStore } from "../../store/auth.store"
 
 interface SidebarProps {
@@ -27,7 +28,7 @@ interface SidebarProps {
 }
 
 interface SidebarItem {
-  label: string
+  labelKey: string
   path: string
   icon: ComponentType<{ size?: number }>
   roles?: string[]
@@ -38,108 +39,101 @@ const appVersion = import.meta.env.VITE_APP_VERSION || "0.0.0"
 
 const mainMenu: SidebarItem[] = [
   {
-    label: "Painel",
+    labelKey: "menu.dashboard",
     path: "/dashboard",
     icon: LayoutDashboard,
     roles: [],
   },
   {
-    label: "Ambientes",
+    labelKey: "menu.tenants",
     path: "/tenants",
     icon: Building2,
     roles: ["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"],
     permissions: ["TENANTS_VIEW"],
   },
-  {
-    label: "Usuários",
-    path: "/users",
-    icon: Users,
-    roles: ["ADMIN_MASTER", "DEVELOPER_MASTER", "TENANT_ADMIN"],
-    permissions: ["USERS_VIEW"],
-  },
 ]
 
 const settingsMenu: SidebarItem[] = [
   {
-    label: "Usuários",
+    labelKey: "menu.users",
     path: "/settings/users",
     icon: Users,
     permissions: ["USERS_VIEW"],
   },
   {
-    label: "Ambientes",
+    labelKey: "menu.tenants",
     path: "/settings/tenants",
     icon: Building2,
     permissions: ["TENANTS_VIEW"],
   },
   {
-    label: "Perfis",
+    labelKey: "menu.profiles",
     path: "/settings/profiles",
     icon: Users,
     permissions: ["PROFILES_VIEW"],
   },
   {
-    label: "Permissões",
+    labelKey: "menu.permissions",
     path: "/settings/permissions",
     icon: KeyRound,
     permissions: ["PERMISSIONS_VIEW"],
   },
   {
-    label: "Internacionalização",
+    labelKey: "menu.internationalization",
     path: "/settings/internationalization",
     icon: Globe2,
     permissions: ["INTERNATIONALIZATION_VIEW"],
   },
   {
-    label: "Segurança",
+    labelKey: "menu.security",
     path: "/settings/security",
     icon: ShieldCheck,
     permissions: ["SECURITY_VIEW"],
   },
   {
-    label: "Sessões",
+    labelKey: "menu.sessions",
     path: "/settings/sessions",
     icon: Activity,
     permissions: ["SESSIONS_VIEW"],
   },
   {
-    label: "Auditoria",
+    labelKey: "menu.audit",
     path: "/settings/audit",
     icon: FileText,
     permissions: ["AUDIT_VIEW"],
   },
   {
-    label: "Identidade Visual",
+    labelKey: "menu.branding",
     path: "/settings/branding",
     icon: Palette,
     permissions: ["BRANDING_VIEW"],
   },
   {
-    label: "Países e Fiscal",
+    labelKey: "menu.countries",
     path: "/settings/countries",
     icon: Globe2,
     permissions: ["SETTINGS_VIEW"],
   },
   {
-    label: "Integrações",
+    labelKey: "menu.integrations",
     path: "/settings/integrations",
     icon: PlugZap,
     permissions: ["INTEGRATIONS_VIEW"],
   },
   {
-    label: "Rede Local",
+    labelKey: "menu.network",
     path: "/settings/network",
     icon: Network,
     permissions: ["NETWORK_VIEW"],
   },
   {
-    label: "Hardware",
+    labelKey: "menu.hardware",
     path: "/settings/hardware",
     icon: HardDrive,
     permissions: ["HARDWARE_VIEW"],
   },
   {
-    label: "Políticas",
+    labelKey: "menu.policies",
     path: "/settings/policies",
     icon: FileText,
     permissions: ["POLICIES_VIEW"],
@@ -149,6 +143,7 @@ const settingsMenu: SidebarItem[] = [
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const hasAnyRole = useAuthStore((state) => state.hasAnyRole)
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission)
   const canViewSettings = useAuthStore((state) => state.canViewSettings)
@@ -181,6 +176,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   })
 
   const settingsActive = location.pathname.startsWith("/settings")
+  const settingsExactActive = location.pathname === "/settings"
   const showSettingsMenu = canViewSettings() || visibleSettingsMenu.length > 0
 
   useEffect(() => {
@@ -217,11 +213,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-lg font-black text-primary leading-tight truncate">
-                  ShowbarManager
+                  {t("app.name")}
                 </div>
 
                 <div className="text-[11px] text-muted mt-1 truncate">
-                  Ecossistema ERP Completo
+                  {t("app.description")}
                 </div>
               </div>
 
@@ -240,7 +236,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
         <div className="px-3 pb-3 flex-1 min-h-0 overflow-y-auto sidebar-scrollbar">
           <nav className="space-y-5">
-            <MenuGroup title="Principal" collapsed={collapsed}>
+            <MenuGroup title={t("menu.main")} collapsed={collapsed}>
               {visibleMainMenu.map((item) => (
                 <SidebarLink
                   key={item.path}
@@ -251,7 +247,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </MenuGroup>
 
             {showSettingsMenu && (
-              <MenuGroup title="Administração" collapsed={collapsed}>
+              <MenuGroup title={t("menu.administration")} collapsed={collapsed}>
                 <button
                   type="button"
                   onClick={handleSettingsClick}
@@ -261,18 +257,20 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                       ? "justify-center px-0 py-2.5"
                       : "gap-3 px-3 py-2.5",
                     "text-sm font-semibold",
-                    settingsActive
+                    settingsExactActive
                       ? "bg-primary text-white shadow-neon"
-                      : "text-muted hover:text-text hover:bg-background",
+                      : settingsActive
+                        ? "bg-primarySoft text-primary"
+                        : "text-muted hover:text-text hover:bg-background",
                   ].join(" ")}
-                  title={collapsed ? "Configurações" : undefined}
+                  title={collapsed ? t("menu.settings") : undefined}
                 >
                   <Settings size={17} />
 
                   {!collapsed && (
                     <>
                       <span className="truncate flex-1 text-left">
-                        Configurações
+                        {t("menu.settings")}
                       </span>
 
                       <ChevronDown
@@ -307,11 +305,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           {!collapsed ? (
             <div className="rounded-2xl border border-border bg-background/70 px-3 py-3 shadow-card">
               <p className="text-[10px] uppercase tracking-wide text-muted">
-                ShowbarManager ERP
+                {t("app.name")} ERP
               </p>
 
               <strong className="text-sm text-primary block mt-1">
-                v{appVersion} Enterprise
+                v{appVersion} {t("app.enterprise")}
               </strong>
 
               <p className="text-[10px] text-muted mt-2 leading-relaxed">
@@ -384,11 +382,13 @@ function SidebarLink({
   compact?: boolean
 }) {
   const Icon = item.icon
+  const { t } = useTranslation()
+  const label = t(item.labelKey)
 
   return (
     <NavLink
       to={item.path}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
       className={({ isActive }) =>
         [
           "flex items-center rounded-2xl transition-all duration-200",
@@ -406,7 +406,7 @@ function SidebarLink({
     >
       <Icon size={compact ? 15 : 17} />
 
-      {!collapsed && <span className="truncate">{item.label}</span>}
+      {!collapsed && <span className="truncate">{label}</span>}
     </NavLink>
   )
 }

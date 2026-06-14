@@ -6,21 +6,24 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react"
-
-const policies = [
-  "LGPD",
-  "RGPD",
-  "Retenção documental",
-  "Retenção de logs",
-  "Políticas de acesso",
-  "Políticas de exportação",
-  "Políticas financeiras",
-  "Políticas fiscais",
-  "Políticas de rede",
-  "Políticas de backup",
-]
+import { useTranslation } from "../../hooks/useTranslation"
 
 export function SettingsPoliciesPage() {
+  const { t } = useTranslation()
+
+  const policies = [
+    "LGPD",
+    "RGPD",
+    t("policies.documentRetention"),
+    t("policies.logRetention"),
+    t("policies.accessPolicies"),
+    t("policies.exportPolicies"),
+    t("policies.financialPolicies"),
+    t("policies.fiscalPolicies"),
+    t("policies.networkPolicies"),
+    t("policies.backupPolicies"),
+  ]
+
   return (
     <div className="space-y-4">
       <section className="surface-premium rounded-2xl p-4 lg:p-5">
@@ -28,27 +31,27 @@ export function SettingsPoliciesPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <FileText size={16} />
-              Configurações
+              {t("settings.title")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              Políticas
+              {t("policies.title")}
             </h2>
 
             <p className="text-muted mt-2 text-sm max-w-4xl">
-              LGPD, RGPD, retenção, auditoria, backup, exportação e governança.
+              {t("policies.subtitle")}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <button className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm">
               <Plus size={15} />
-              Nova política
+              {t("policies.newPolicy")}
             </button>
 
             <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
               <Save size={15} />
-              Salvar políticas
+              {t("policies.savePolicies")}
             </button>
           </div>
         </div>
@@ -64,6 +67,8 @@ export function SettingsPoliciesPage() {
 }
 
 function PolicyCard({ policy }: { policy: string }) {
+  const { t } = useTranslation()
+
   return (
     <article className="surface-premium rounded-2xl p-4 hover:border-primary/50 transition">
       <div className="flex items-center justify-between gap-4">
@@ -73,12 +78,10 @@ function PolicyCard({ policy }: { policy: string }) {
           </div>
 
           <div className="min-w-0">
-            <h3 className="font-semibold truncate">
-              {policy}
-            </h3>
+            <h3 className="font-semibold truncate">{policy}</h3>
 
             <p className="text-sm text-muted mt-1">
-              Política enterprise configurável.
+              {t("policies.configurablePolicy")}
             </p>
           </div>
         </div>
@@ -86,14 +89,14 @@ function PolicyCard({ policy }: { policy: string }) {
         <div className="flex items-center gap-1 shrink-0">
           <button
             className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
-            title="Editar"
+            title={t("common.edit")}
           >
             <Edit size={14} />
           </button>
 
           <button
             className="w-8 h-8 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition"
-            title="Excluir"
+            title={t("common.delete")}
           >
             <Trash2 size={14} />
           </button>

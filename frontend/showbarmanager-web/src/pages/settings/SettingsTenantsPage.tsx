@@ -1,4 +1,6 @@
+import { useMemo, useState } from "react"
 import type { LucideIcon } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
 import {
   Building2,
   CheckCircle2,
@@ -6,10 +8,17 @@ import {
   Eye,
   Globe2,
   Plus,
-  Save,
+  RefreshCcw,
+  Search,
   ShieldCheck,
   Trash2,
+  XCircle,
 } from "lucide-react"
+import { CreateTenantEnvironmentRuleModal } from "../../components/settings/CreateTenantEnvironmentRuleModal"
+import { DeleteTenantEnvironmentRuleModal } from "../../components/settings/DeleteTenantEnvironmentRuleModal"
+import { EditTenantEnvironmentRuleModal } from "../../components/settings/EditTenantEnvironmentRuleModal"
+import { TenantEnvironmentRuleService } from "../../services/tenantEnvironmentRule.service"
+import type { TenantEnvironmentRule } from "../../types/tenantEnvironmentRule.types"
 
 const tenantSettings = [
   {
@@ -32,13 +41,104 @@ const tenantSettings = [
   },
 ]
 
-const tenantRules = [
-  "Ambiente ativo obrigatório",
-  "Empresa vinculada obrigatória",
-  "Fuso horário por ambiente",
-]
-
 export function SettingsTenantsPage() {
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [selectedRule, setSelectedRule] = useState<TenantEnvironmentRule | null>(null)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [toggleLoadingId, setToggleLoadingId] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const {
+    data = [],
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["tenant-environment-rules"],
+    queryFn: TenantEnvironmentRuleService.list,
+  })
+
+  const activeRulesCount = useMemo(() => {
+    return data.filter((rule) => rule.enabled).length
+  }, [data])
+
+  const filteredRules = useMemo(() => {
+    const searchTerm = search.trim().toLowerCase()
+
+    return data
+      .filter((rule) => {
+        const status = rule.enabled ? "ativo" : "inativo"
+
+        const matchesSearch =
+          !searchTerm ||
+          rule.ruleKey.toLowerCase().includes(searchTerm) ||
+          rule.name.toLowerCase().includes(searchTerm) ||
+          rule.description.toLowerCase().includes(searchTerm) ||
+          status.includes(searchTerm)
+
+        const matchesStatus =
+          statusFilter === "all" ||
+          (statusFilter === "active" && rule.enabled) ||
+          (statusFilter === "inactive" && !rule.enabled)
+
+        return matchesSearch && matchesStatus
+      })
+      .sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority
+        return a.name.localeCompare(b.name)
+      })
+  }, [data, search, statusFilter])
+
+  async function handleRefresh() {
+    setSuccessMessage(null)
+
+    try {
+      await refetch()
+      setSuccessMessage("Lista atualizada com sucesso.")
+
+      window.setTimeout(() => {
+        setSuccessMessage(null)
+      }, 3000)
+    } catch {
+      alert("Não foi possível atualizar as regras de ambiente.")
+    }
+  }
+
+  function handleEdit(rule: TenantEnvironmentRule) {
+    setSelectedRule(rule)
+    setEditOpen(true)
+  }
+
+  function handleDelete(rule: TenantEnvironmentRule) {
+    setSelectedRule(rule)
+    setDeleteOpen(true)
+  }
+
+  async function handleToggleActive(rule: TenantEnvironmentRule) {
+    try {
+      setToggleLoadingId(rule.id)
+
+      await TenantEnvironmentRuleService.update(rule.id, {
+        name: rule.name,
+        description: rule.description,
+        ruleKey: rule.ruleKey,
+        enabled: !rule.enabled,
+        priority: rule.priority,
+        systemRule: rule.systemRule,
+      })
+
+      await refetch()
+    } catch {
+      alert("Não foi possível alterar o status da regra.")
+    } finally {
+      setToggleLoadingId(null)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <section className="surface-premium rounded-2xl p-4 lg:p-5">
@@ -59,12 +159,34 @@ export function SettingsTenantsPage() {
             </p>
           </div>
 
-          <button className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm">
-            <Save size={15} />
-            Salvar regras
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="bg-primary text-white font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:shadow-neon transition text-sm"
+            >
+              <Plus size={15} />
+              Nova regra
+            </button>
+
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="bg-cardSoft border border-border px-4 py-2.5 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <RefreshCcw size={15} className={isFetching ? "animate-spin" : ""} />
+              {isFetching ? "Atualizando..." : "Atualizar"}
+            </button>
+          </div>
         </div>
       </section>
+
+      {successMessage && (
+        <div className="surface-muted rounded-2xl px-4 py-3 text-sm text-success">
+          {successMessage}
+        </div>
+      )}
 
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-3">
         {tenantSettings.map((item) => (
@@ -72,8 +194,14 @@ export function SettingsTenantsPage() {
         ))}
       </section>
 
+      <section className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+        <SummaryCard title="Total de regras" value={String(data.length)} />
+        <SummaryCard title="Regras ativas" value={String(activeRulesCount)} />
+        <SummaryCard title="Filtradas" value={String(filteredRules.length)} />
+      </section>
+
       <section className="surface-premium rounded-2xl p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-4">
           <div>
             <h3 className="text-lg font-semibold">
               Regras de ambiente
@@ -84,18 +212,105 @@ export function SettingsTenantsPage() {
             </p>
           </div>
 
-          <button className="bg-cardSoft border border-border px-4 py-2 rounded-full flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition text-sm">
-            <Plus size={15} />
-            Nova regra
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex items-center gap-2 bg-background border border-border rounded-full px-4 py-2 w-full sm:min-w-[280px]">
+              <Search size={15} className="text-muted shrink-0" />
+
+              <input
+                className="bg-transparent outline-none text-sm w-full placeholder:text-muted"
+                placeholder="Buscar regra..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+
+            <select
+              className="bg-background border border-border rounded-full px-4 py-2 outline-none text-sm"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="all">Todas</option>
+              <option value="active">Ativas</option>
+              <option value="inactive">Inativas</option>
+            </select>
+          </div>
         </div>
 
-        <div className="space-y-2.5">
-          {tenantRules.map((rule) => (
-            <RuleRow key={rule} title={rule} />
-          ))}
-        </div>
+        {isLoading && (
+          <div className="surface-muted rounded-2xl p-4 text-muted text-sm">
+            Carregando regras de ambiente...
+          </div>
+        )}
+
+        {isError && (
+          <div className="surface-muted rounded-2xl p-4 text-sm text-danger">
+            Não foi possível carregar as regras. Verifique se a API está online e se a sessão está ativa.
+          </div>
+        )}
+
+        {!isLoading && !isError && (
+          <div className="space-y-2.5">
+            {filteredRules.map((rule) => (
+              <RuleRow
+                key={rule.id}
+                rule={rule}
+                toggleLoading={toggleLoadingId === rule.id}
+                onEdit={() => handleEdit(rule)}
+                onDelete={() => handleDelete(rule)}
+                onToggleActive={() => {
+                  handleToggleActive(rule).catch(() => {
+                    alert("Erro inesperado ao alterar status da regra.")
+                  })
+                }}
+              />
+            ))}
+
+            {filteredRules.length === 0 && (
+              <div className="surface-muted rounded-2xl p-8 text-center text-muted">
+                Nenhuma regra de ambiente encontrada.
+              </div>
+            )}
+          </div>
+        )}
       </section>
+
+      <CreateTenantEnvironmentRuleModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => {
+          refetch().catch(() => {
+            alert("Regra criada, mas não foi possível atualizar a lista.")
+          })
+        }}
+      />
+
+      <EditTenantEnvironmentRuleModal
+        open={editOpen}
+        rule={selectedRule}
+        onClose={() => {
+          setEditOpen(false)
+          setSelectedRule(null)
+        }}
+        onUpdated={() => {
+          refetch().catch(() => {
+            alert("Regra atualizada, mas não foi possível atualizar a lista.")
+          })
+        }}
+      />
+
+      <DeleteTenantEnvironmentRuleModal
+        open={deleteOpen}
+        rule={selectedRule}
+        onClose={() => {
+          setDeleteOpen(false)
+          setSelectedRule(null)
+        }}
+        onDeleted={() => {
+          refetch().catch(() => {
+            alert("Regra excluída, mas não foi possível atualizar a lista.")
+          })
+        }}
+      />
     </div>
   )
 }
@@ -118,7 +333,7 @@ function TenantCard({
           <Icon size={19} />
         </div>
 
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-success bg-success/10 rounded-full px-2.5 py-1">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-success">
           <CheckCircle2 size={12} />
           {status}
         </span>
@@ -135,21 +350,77 @@ function TenantCard({
   )
 }
 
-function RuleRow({ title }: { title: string }) {
+function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="bg-cardSoft border border-border rounded-2xl p-3 flex items-center justify-between gap-4 shadow-card">
-      <div className="min-w-0">
-        <strong className="text-sm block truncate">
-          {title}
-        </strong>
+    <div className="surface-premium rounded-2xl p-3 hover:border-primary/50 transition">
+      <p className="text-[11px] uppercase tracking-wide text-muted">
+        {title}
+      </p>
 
-        <p className="text-xs text-muted mt-1">
-          Regra operacional enterprise.
+      <strong className="text-xl text-primary block mt-1 truncate">
+        {value}
+      </strong>
+    </div>
+  )
+}
+
+function RuleRow({
+  rule,
+  toggleLoading,
+  onEdit,
+  onDelete,
+  onToggleActive,
+}: {
+  rule: TenantEnvironmentRule
+  toggleLoading: boolean
+  onEdit: () => void
+  onDelete: () => void
+  onToggleActive: () => void
+}) {
+  return (
+    <div className="surface-muted rounded-2xl p-3 flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <strong className="text-sm block truncate">
+            {rule.name}
+          </strong>
+
+          {rule.enabled ? (
+            <span className="inline-flex items-center gap-1 text-success text-xs">
+              <CheckCircle2 size={12} />
+              Ativa
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-danger text-xs">
+              <XCircle size={12} />
+              Inativa
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-muted mt-1 line-clamp-2">
+          {rule.description}
+        </p>
+
+        <p className="text-[11px] text-muted mt-1">
+          {rule.ruleKey} · {rule.enabled ? "Ativo" : "Inativo"} · Prioridade {rule.priority}
         </p>
       </div>
 
       <div className="flex items-center gap-1.5 shrink-0">
         <button
+          type="button"
+          onClick={onToggleActive}
+          disabled={toggleLoading}
+          className="h-8 rounded-full bg-background border border-border px-3 flex items-center justify-center hover:border-primary hover:text-primary transition disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+          title={rule.enabled ? "Desativar" : "Ativar"}
+        >
+          {rule.enabled ? "Desativar" : "Ativar"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onEdit}
           className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-primary hover:text-primary transition"
           title="Editar"
         >
@@ -157,6 +428,8 @@ function RuleRow({ title }: { title: string }) {
         </button>
 
         <button
+          type="button"
+          onClick={onDelete}
           className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition"
           title="Excluir"
         >

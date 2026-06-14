@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "react"
 import type { FormEvent, ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Eye, EyeOff, ShieldCheck, X } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
+import { InternationalizationService } from "../../services/internationalization.service"
 import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
 import { UserService } from "../../services/user.service"
+import type { Internationalization } from "../../types/internationalization.types"
 import type { CreateUserRequest } from "../../types/user.types"
 
 interface CreateUserModalProps {
@@ -17,27 +20,45 @@ interface CreateUserModalProps {
 type CreateUserPayload = CreateUserRequest & {
   profileIds?: string[]
   permissionIds?: string[]
+  language?: string | null
 }
 
 const fallbackUserRoles = [
-  { value: "ADMIN_MASTER", label: "Administrador Master" },
-  { value: "DEVELOPER_MASTER", label: "Desenvolvedor Master" },
-  { value: "SUPPORT_N1", label: "Suporte Nível 1" },
-  { value: "SUPPORT_N2", label: "Suporte Nível 2" },
-  { value: "SUPPORT_N3", label: "Suporte Nível 3" },
-  { value: "COMPLIANCE", label: "Compliance" },
-  { value: "AUDITOR", label: "Auditor" },
-  { value: "TENANT_ADMIN", label: "Administrador do Ambiente" },
-  { value: "EVENT_ADMIN", label: "Administrador de Evento" },
-  { value: "FINANCIAL_MANAGER", label: "Gestor Financeiro" },
-  { value: "TICKET_MANAGER", label: "Gestor de Bilheteria" },
-  { value: "SECURITY_MANAGER", label: "Gestor de Segurança" },
-  { value: "HEALTH_MANAGER", label: "Gestor de Saúde" },
-  { value: "LOGISTICS_MANAGER", label: "Gestor de Logística" },
-  { value: "BAR_MANAGER", label: "Gestor de Bar" },
-  { value: "TECHNICAL_MANAGER", label: "Gestor Técnico" },
-  { value: "OPERATOR", label: "Operador" },
+  "ADMIN_MASTER",
+  "DEVELOPER_MASTER",
+  "SUPPORT_N1",
+  "SUPPORT_N2",
+  "SUPPORT_N3",
+  "COMPLIANCE",
+  "AUDITOR",
+  "TENANT_ADMIN",
+  "EVENT_ADMIN",
+  "FINANCIAL_MANAGER",
+  "TICKET_MANAGER",
+  "SECURITY_MANAGER",
+  "HEALTH_MANAGER",
+  "LOGISTICS_MANAGER",
+  "BAR_MANAGER",
+  "TECHNICAL_MANAGER",
+  "OPERATOR",
 ]
+
+function buildLanguageOptions(items: Internationalization[]) {
+  const map = new Map<string, Internationalization>()
+
+  items
+    .filter((item) => item.active)
+    .forEach((item) => {
+      if (!map.has(item.languageCode)) {
+        map.set(item.languageCode, item)
+      }
+    })
+
+  return Array.from(map.values()).sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority
+    return a.languageName.localeCompare(b.languageName)
+  })
+}
 
 export function CreateUserModal({
   open,
@@ -45,10 +66,13 @@ export function CreateUserModal({
   onClose,
   onCreated,
 }: CreateUserModalProps) {
+  const { t } = useTranslation()
+
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("123456")
   const [role, setRole] = useState("")
+  const [language, setLanguage] = useState("")
   const [profileIds, setProfileIds] = useState<string[]>([])
   const [permissionIds, setPermissionIds] = useState<string[]>([])
   const [showPassword, setShowPassword] = useState(false)
@@ -66,6 +90,16 @@ export function CreateUserModal({
     queryFn: PermissionService.findAll,
     enabled: open,
   })
+
+  const { data: internationalizations = [] } = useQuery({
+    queryKey: ["user-modal-languages"],
+    queryFn: InternationalizationService.listActive,
+    enabled: open,
+  })
+
+  const languageOptions = useMemo(() => {
+    return buildLanguageOptions(internationalizations)
+  }, [internationalizations])
 
   const profileOptions = useMemo(() => {
     return profiles
@@ -89,14 +123,17 @@ export function CreateUserModal({
 
   const roleOptions = useMemo(() => {
     if (profileOptions.length === 0) {
-      return fallbackUserRoles
+      return fallbackUserRoles.map((value) => ({
+        value,
+        label: t(`roles.${value}`, value),
+      }))
     }
 
     return profileOptions.map((profile) => ({
       value: profile.code,
       label: profile.name,
     }))
-  }, [profileOptions])
+  }, [profileOptions, t])
 
   useEffect(() => {
     if (!open) return
@@ -105,6 +142,7 @@ export function CreateUserModal({
     setEmail("")
     setPassword("123456")
     setRole("")
+    setLanguage("")
     setProfileIds([])
     setPermissionIds([])
     setShowPassword(false)
@@ -113,9 +151,7 @@ export function CreateUserModal({
   }, [open])
 
   useEffect(() => {
-    if (!open || role || roleOptions.length === 0) {
-      return
-    }
+    if (!open || role || roleOptions.length === 0) return
 
     const operatorRole = roleOptions.find((item) => item.value === "OPERATOR")
     setRole(operatorRole ? operatorRole.value : roleOptions[0].value)
@@ -147,19 +183,19 @@ export function CreateUserModal({
     setError(null)
 
     if (!tenantId) {
-      setError("Ambiente não identificado. Faça login novamente.")
+      setError(t("users.tenantNotIdentified"))
       setLoading(false)
       return
     }
 
     if (!role) {
-      setError("Selecione um perfil principal para o usuário.")
+      setError(t("users.selectMainProfile"))
       setLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError("A senha inicial precisa ter pelo menos 6 caracteres.")
+      setError(t("users.passwordMinLength"))
       setLoading(false)
       return
     }
@@ -171,6 +207,7 @@ export function CreateUserModal({
         email: email.trim().toLowerCase(),
         password,
         role,
+        language: language || null,
         ...(profileIds.length > 0 ? { profileIds } : {}),
         ...(permissionIds.length > 0 ? { permissionIds } : {}),
       }
@@ -179,7 +216,7 @@ export function CreateUserModal({
       onCreated()
       onClose()
     } catch {
-      setError("Não foi possível criar o usuário. Verifique os dados e tente novamente.")
+      setError(t("users.createError"))
     } finally {
       setLoading(false)
     }
@@ -191,15 +228,15 @@ export function CreateUserModal({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-              Novo acesso
+              {t("users.newAccess")}
             </span>
 
             <h2 className="text-xl font-bold mt-1">
-              Criar usuário
+              {t("users.create")}
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Cadastre o usuário, perfil principal e permissões adicionais.
+              {t("users.createDescription")}
             </p>
           </div>
 
@@ -207,6 +244,7 @@ export function CreateUserModal({
             type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-cardSoft border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
+            title={t("common.close")}
           >
             <X size={17} />
           </button>
@@ -214,20 +252,20 @@ export function CreateUserModal({
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Nome completo">
+            <Field label={t("users.fullName")}>
               <input
                 className="field-input"
-                placeholder="Ex: Italo Gonçalves"
+                placeholder={t("users.fullNamePlaceholder")}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
               />
             </Field>
 
-            <Field label="E-mail">
+            <Field label={t("common.email")}>
               <input
                 className="field-input"
-                placeholder="usuario@empresa.com"
+                placeholder={t("users.emailPlaceholder")}
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
@@ -237,11 +275,11 @@ export function CreateUserModal({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Senha inicial">
+            <Field label={t("users.initialPassword")}>
               <div className="flex items-center field-input px-0 py-0">
                 <input
                   className="w-full bg-transparent px-4 py-2.5 outline-none text-sm"
-                  placeholder="Senha inicial"
+                  placeholder={t("users.initialPassword")}
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
@@ -252,13 +290,18 @@ export function CreateUserModal({
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
                   className="w-10 h-10 flex items-center justify-center text-muted hover:text-primary transition"
+                  title={
+                    showPassword
+                      ? t("common.hidePassword")
+                      : t("common.showPassword")
+                  }
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </Field>
 
-            <Field label="Perfil principal">
+            <Field label={t("users.mainProfile")}>
               <select
                 className="field-input"
                 value={role}
@@ -267,7 +310,7 @@ export function CreateUserModal({
               >
                 {roleOptions.length === 0 && (
                   <option value="">
-                    Nenhum perfil disponível
+                    {t("users.noProfileAvailable")}
                   </option>
                 )}
 
@@ -280,10 +323,28 @@ export function CreateUserModal({
             </Field>
           </div>
 
+          <Field label={t("users.userLanguage")}>
+            <select
+              className="field-input"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+            >
+              <option value="">
+                {t("users.useTenantLanguage")}
+              </option>
+
+              {languageOptions.map((item) => (
+                <option key={item.languageCode} value={item.languageCode}>
+                  {item.flagEmoji || "🌐"} {item.languageName} · {item.languageCode}
+                </option>
+              ))}
+            </select>
+          </Field>
+
           <SelectionPanel
-            title="Perfis vinculados"
-            description="Selecione perfis adicionais para este usuário."
-            emptyLabel="Nenhum perfil ativo encontrado."
+            title={t("users.linkedProfiles")}
+            description={t("users.linkedProfilesDescription")}
+            emptyLabel={t("users.noActiveProfile")}
             items={profileOptions.map((profile) => ({
               id: profile.id,
               code: profile.code,
@@ -294,9 +355,9 @@ export function CreateUserModal({
           />
 
           <SelectionPanel
-            title="Permissões extras"
-            description="Permissões individuais além dos perfis vinculados."
-            emptyLabel="Nenhuma permissão ativa encontrada."
+            title={t("users.extraPermissions")}
+            description={t("users.extraPermissionsDescription")}
+            emptyLabel={t("users.noActivePermission")}
             items={permissionOptions.map((permission) => ({
               id: permission.id,
               code: permission.code,
@@ -317,7 +378,7 @@ export function CreateUserModal({
             disabled={loading || !role}
             className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
           >
-            {loading ? "Criando usuário..." : "Criar usuário"}
+            {loading ? t("users.creating") : t("users.create")}
           </button>
         </form>
       </div>
@@ -402,7 +463,9 @@ function SelectionPanel({
                   {item.label}
                 </span>
 
-                <span className={selected ? "block mt-1 text-white/75" : "block mt-1 text-muted"}>
+                <span
+                  className={selected ? "block mt-1 text-white/75" : "block mt-1 text-muted"}
+                >
                   {item.code}
                 </span>
               </button>

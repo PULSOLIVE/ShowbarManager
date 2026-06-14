@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react"
+import { useTranslation } from "../../hooks/useTranslation"
 import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
 import type { Profile, UpdateProfileRequest } from "../../types/profile.types"
@@ -19,48 +20,52 @@ interface EditProfileModalProps {
   onUpdated: () => void
 }
 
-function translatePermissionPart(value: string) {
+function translatePermissionPart(value: string, t: (path: string, fallback?: string) => string) {
   const dictionary: Record<string, string> = {
-    USERS: "Usuários",
-    USER: "Usuário",
-    TENANTS: "Ambientes",
-    TENANT: "Ambiente",
-    SETTINGS: "Configurações",
-    PROFILES: "Perfis",
-    PROFILE: "Perfil",
-    PERMISSIONS: "Permissões",
-    PERMISSION: "Permissão",
-    INTERNATIONALIZATION: "Internacionalização",
-    SECURITY: "Segurança",
-    SESSIONS: "Sessões",
-    SESSION: "Sessão",
-    AUDIT: "Auditoria",
-    BRANDING: "Identidade visual",
-    COUNTRIES: "Países",
-    COUNTRY: "País",
-    FISCAL: "Fiscal",
-    INTEGRATIONS: "Integrações",
-    INTEGRATION: "Integração",
-    NETWORK: "Rede local",
-    HARDWARE: "Equipamentos",
-    POLICIES: "Políticas",
-    POLICY: "Política",
-    VIEW: "Visualizar",
-    CREATE: "Criar",
-    UPDATE: "Atualizar",
-    DELETE: "Excluir",
-    MANAGE: "Gerir",
-    EXPORT: "Exportar",
-    IMPORT: "Importar",
-    APPROVE: "Aprovar",
-    CANCEL: "Cancelar",
+    USERS: t("menu.users"),
+    USER: t("users.commonUser"),
+    TENANTS: t("menu.tenants"),
+    TENANT: t("tenants.title"),
+    SETTINGS: t("menu.settings"),
+    PROFILES: t("menu.profiles"),
+    PROFILE: t("profiles.title"),
+    PERMISSIONS: t("menu.permissions"),
+    PERMISSION: t("permissions.title"),
+    INTERNATIONALIZATION: t("menu.internationalization"),
+    SECURITY: t("menu.security"),
+    SESSIONS: t("menu.sessions"),
+    SESSION: t("sessions.title"),
+    AUDIT: t("menu.audit"),
+    BRANDING: t("menu.branding"),
+    COUNTRIES: t("menu.countries"),
+    COUNTRY: t("common.country"),
+    FISCAL: t("countries.tax"),
+    INTEGRATIONS: t("menu.integrations"),
+    INTEGRATION: t("integrations.title"),
+    NETWORK: t("menu.network"),
+    HARDWARE: t("menu.hardware"),
+    POLICIES: t("menu.policies"),
+    POLICY: t("policies.title"),
+    VIEW: t("common.view", "Visualizar"),
+    CREATE: t("common.create"),
+    UPDATE: t("common.update"),
+    DELETE: t("common.delete"),
+    MANAGE: t("common.manage", "Gerir"),
+    EXPORT: t("common.export", "Exportar"),
+    IMPORT: t("common.import", "Importar"),
+    APPROVE: t("common.approve", "Aprovar"),
+    CANCEL: t("common.cancel"),
   }
 
   return dictionary[value] || value
 }
 
-function formatPermissionLabel(module: string, action: string) {
-  return `${translatePermissionPart(module)} · ${translatePermissionPart(action)}`
+function formatPermissionLabel(
+  module: string,
+  action: string,
+  t: (path: string, fallback?: string) => string
+) {
+  return `${translatePermissionPart(module, t)} · ${translatePermissionPart(action, t)}`
 }
 
 export function EditProfileModal({
@@ -69,6 +74,8 @@ export function EditProfileModal({
   onClose,
   onUpdated,
 }: EditProfileModalProps) {
+  const { t } = useTranslation()
+
   const [profileId, setProfileId] = useState("")
   const [profileCode, setProfileCode] = useState("")
   const [name, setName] = useState("")
@@ -135,13 +142,13 @@ export function EditProfileModal({
     setError(null)
 
     if (!profileId) {
-      setError("Perfil não selecionado.")
+      setError(t("profiles.profileNotSelected"))
       setLoading(false)
       return
     }
 
     if (!name.trim()) {
-      setError("Informe o nome do perfil.")
+      setError(t("profiles.nameRequired"))
       setLoading(false)
       return
     }
@@ -161,7 +168,7 @@ export function EditProfileModal({
       onUpdated()
       onClose()
     } catch {
-      setError("Não foi possível atualizar o perfil.")
+      setError(t("profiles.updateError"))
     } finally {
       setLoading(false)
     }
@@ -173,7 +180,7 @@ export function EditProfileModal({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-              Editar perfil
+              {t("profiles.edit")}
             </span>
 
             <h2 className="text-xl font-bold mt-1">
@@ -181,7 +188,7 @@ export function EditProfileModal({
             </h2>
 
             <p className="text-muted text-sm mt-1">
-              Atualize os dados, a prioridade, o estado e as permissões do perfil selecionado.
+              {t("profiles.editDescription")}
             </p>
           </div>
 
@@ -189,7 +196,7 @@ export function EditProfileModal({
             type="button"
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-background border border-border flex items-center justify-center hover:border-danger hover:text-danger transition shrink-0"
-            title="Fechar"
+            title={t("common.close")}
           >
             <X size={17} />
           </button>
@@ -202,17 +209,17 @@ export function EditProfileModal({
 
               <div>
                 <p className="text-sm font-semibold">
-                  Identificação do perfil
+                  {t("profiles.identification")}
                 </p>
 
                 <p className="text-xs text-muted">
-                  O código técnico fica bloqueado para preservar os vínculos RBAC.
+                  {t("profiles.technicalCodeLocked")}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Código técnico">
+              <Field label={t("profiles.technicalCode")}>
                 <input
                   className="field-input opacity-70 cursor-not-allowed"
                   value={profileCode}
@@ -220,10 +227,10 @@ export function EditProfileModal({
                 />
               </Field>
 
-              <Field label="Nome do perfil">
+              <Field label={t("profiles.name")}>
                 <input
                   className="field-input"
-                  placeholder="Nome do perfil"
+                  placeholder={t("profiles.name")}
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   required
@@ -232,23 +239,22 @@ export function EditProfileModal({
             </div>
 
             <p className="text-[11px] text-muted mt-2">
-              Para alterar o código técnico, crie um novo perfil e migre os vínculos
-              de forma controlada.
+              {t("profiles.technicalCodeChangeHint")}
             </p>
           </section>
 
           <section className="surface-muted rounded-2xl p-3">
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
-              <Field label="Descrição">
+              <Field label={t("common.description")}>
                 <textarea
                   className="field-input min-h-24 resize-none"
-                  placeholder="Descrição"
+                  placeholder={t("common.description")}
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </Field>
 
-              <Field label="Prioridade">
+              <Field label={t("common.priority")}>
                 <input
                   className="field-input"
                   type="number"
@@ -261,13 +267,13 @@ export function EditProfileModal({
           </section>
 
           <SelectionPanel
-            title="Permissões vinculadas"
-            description="Selecione as permissões herdadas por este perfil."
-            emptyLabel="Nenhuma permissão ativa encontrada."
+            title={t("profiles.permissions")}
+            description={t("profiles.permissionsDescription")}
+            emptyLabel={t("profiles.noActivePermissions")}
             items={permissionOptions.map((permission) => ({
               id: permission.id,
               code: permission.code,
-              label: formatPermissionLabel(permission.module, permission.action),
+              label: formatPermissionLabel(permission.module, permission.action, t),
             }))}
             selectedIds={permissionIds}
             onToggle={togglePermission}
@@ -275,15 +281,15 @@ export function EditProfileModal({
 
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ToggleField
-              label="Perfil ativo"
-              description="Permite uso imediato no sistema."
+              label={t("profiles.active")}
+              description={t("profiles.activeDescription")}
               active={active}
               onToggle={() => setActive((value) => !value)}
             />
 
             <ToggleField
-              label="Perfil de sistema"
-              description="Protegido para regras estruturais."
+              label={t("profiles.systemProfile")}
+              description={t("profiles.systemProfileDescription")}
               active={systemProfile}
               onToggle={() => setSystemProfile((value) => !value)}
             />
@@ -292,14 +298,14 @@ export function EditProfileModal({
           {systemProfile && (
             <Notice
               type="warning"
-              message="Este perfil está marcado como sistema. Alterações podem impactar regras internas, permissões e vínculos de usuários."
+              message={t("profiles.systemProfileWarning")}
             />
           )}
 
           {!active && (
             <Notice
               type="info"
-              message="Este perfil ficará inativo e não deverá ser usado em novos vínculos até ser reativado."
+              message={t("profiles.inactiveProfileInfo")}
             />
           )}
 
@@ -315,7 +321,7 @@ export function EditProfileModal({
               onClick={onClose}
               className="w-full sm:w-auto bg-background border border-border text-muted font-semibold px-5 py-2.5 rounded-full hover:border-danger hover:text-danger transition text-sm"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
 
             <button
@@ -323,7 +329,7 @@ export function EditProfileModal({
               disabled={loading || !profileId}
               className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? "A guardar..." : "Guardar alterações"}
+              {loading ? t("profiles.saving") : t("profiles.saveChanges")}
             </button>
           </div>
         </form>
