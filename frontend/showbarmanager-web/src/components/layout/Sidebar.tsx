@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import type { ComponentType, ReactNode } from "react"
+import packageJson from "../../../package.json"
 import {
   Activity,
   Building2,
@@ -35,7 +36,8 @@ interface SidebarItem {
   permissions?: string[]
 }
 
-const appVersion = import.meta.env.VITE_APP_VERSION || "0.0.0"
+const appVersion =
+  import.meta.env.VITE_APP_VERSION || packageJson.version || "0.0.0"
 
 const mainMenu: SidebarItem[] = [
   {

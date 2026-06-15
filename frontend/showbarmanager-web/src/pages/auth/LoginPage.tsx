@@ -10,14 +10,17 @@ import {
   UserCircle,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { isLanguageCode } from "../../i18n"
 import { useTranslation } from "../../hooks/useTranslation"
 import { AuthService } from "../../services/auth.service"
 import { useAuthStore } from "../../store/auth.store"
+import { useLanguageStore } from "../../store/language.store"
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const setAuth = useAuthStore((state) => state.setAuth)
+  const setLanguage = useLanguageStore((state) => state.setLanguage)
 
   const [email, setEmail] = useState("admin@demo.pt")
   const [password, setPassword] = useState("123456")
@@ -37,6 +40,16 @@ export function LoginPage() {
       })
 
       setAuth(data)
+
+      const loginLanguage =
+        data.resolvedLanguageCode ||
+        data.languageCode ||
+        data.tenantLanguageCode
+
+      if (isLanguageCode(loginLanguage)) {
+        setLanguage(loginLanguage)
+      }
+
       navigate("/dashboard")
     } catch {
       setError(t("auth.invalidCredentials"))
@@ -67,9 +80,20 @@ export function LoginPage() {
           </div>
 
           <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-            <FeatureCard title="Multiambiente" description="Ambientes isolados" />
-            <FeatureCard title="Segurança" description="JWT + RBAC" />
-            <FeatureCard title="Governança" description="Perfis e permissões" />
+            <FeatureCard
+              title={t("dashboard.multiEnvironment")}
+              description={t("settings.tenantsDescription")}
+            />
+
+            <FeatureCard
+              title={t("dashboard.security")}
+              description="JWT + RBAC"
+            />
+
+            <FeatureCard
+              title={t("settings.governance")}
+              description={t("settings.profilesDescription")}
+            />
           </div>
 
           <div className="relative mt-6 text-xs text-muted">
@@ -150,7 +174,11 @@ export function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
                     className="w-10 h-10 flex items-center justify-center text-muted hover:text-primary transition"
-                    title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    title={
+                      showPassword
+                        ? t("common.hidePassword")
+                        : t("common.showPassword")
+                    }
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -175,11 +203,11 @@ export function LoginPage() {
 
             <div className="surface-muted rounded-2xl px-4 py-3">
               <p className="text-[11px] uppercase tracking-wide text-muted">
-                Ambiente
+                {t("dashboard.environment")}
               </p>
 
               <p className="text-sm font-semibold mt-1 text-primary">
-                Produção empresarial local
+                {t("dashboard.localEnterpriseProduction")}
               </p>
             </div>
 

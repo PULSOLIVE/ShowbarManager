@@ -26,19 +26,16 @@ export function DashboardPage() {
     queryFn: HealthService.check,
   })
 
-  const {
-    data: stats,
-    isLoading: statsLoading,
-  } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: DashboardService.getStats,
   })
 
   const apiStatus = healthLoading
-    ? t("dashboard.checking")
+    ? t("dashboard.checking", "Verificando")
     : healthError
-      ? t("dashboard.offline")
-      : t("dashboard.online")
+      ? t("dashboard.offline", "Offline")
+      : t("dashboard.online", "Online")
 
   const apiStatusType = healthLoading
     ? "warning"
@@ -53,28 +50,34 @@ export function DashboardPage() {
           <div>
             <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
               <Gauge size={16} />
-              {t("dashboard.executiveOverview")}
+              {t("dashboard.executiveOverview", "Visão geral empresarial")}
             </span>
 
             <h2 className="text-2xl xl:text-3xl font-bold mt-1">
-              {t("dashboard.operationalPanel")}
+              {t("dashboard.operationalPanel", "Painel operacional")}
             </h2>
 
             <p className="text-muted max-w-4xl mt-2 text-sm leading-relaxed">
-              {t("dashboard.operationalDescription")}
+              {t(
+                "dashboard.operationalDescription",
+                "Monitoramento executivo do ecossistema ShowbarManager ERP: infraestrutura, ambientes, usuários, autenticação, disponibilidade e operação SaaS multiambiente."
+              )}
             </p>
           </div>
 
           <div className="surface-muted rounded-2xl px-4 py-3 min-w-[240px]">
             <span className="text-[11px] text-muted uppercase tracking-wide">
-              {t("dashboard.environment")}
+              {t("dashboard.environment", "Ambiente")}
             </span>
 
             <div className="flex items-center gap-3 mt-2">
               <div className="w-2.5 h-2.5 rounded-full bg-success" />
 
               <strong className="text-success text-sm leading-tight">
-                {t("dashboard.localEnterpriseProduction")}
+                {t(
+                  "dashboard.localEnterpriseProduction",
+                  "Produção empresarial local"
+                )}
               </strong>
             </div>
           </div>
@@ -83,33 +86,48 @@ export function DashboardPage() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
         <MetricCard
-          title={t("dashboard.apiStatus")}
+          title={t("dashboard.apiStatus", "Status da API")}
           value={apiStatus}
-          description={healthData || t("dashboard.monitoringBackend")}
+          description={
+            healthData ||
+            t(
+              "dashboard.monitoringBackend",
+              "Monitorando a disponibilidade do backend"
+            )
+          }
           icon={Wifi}
           status={apiStatusType}
         />
 
         <MetricCard
-          title={t("dashboard.environments")}
+          title={t("dashboard.environments", "Ambientes")}
           value={statsLoading ? "..." : String(stats?.totalTenants || 0)}
-          description={`${stats?.activeTenants || 0} ${t("dashboard.activeEnvironments")}`}
+          description={`${stats?.activeTenants || 0} ${t(
+            "dashboard.activeEnvironments",
+            "ambientes ativos"
+          )}`}
           icon={Building2}
           status="neutral"
         />
 
         <MetricCard
-          title={t("dashboard.users")}
+          title={t("dashboard.users", "Usuários")}
           value={statsLoading ? "..." : String(stats?.totalUsers || 0)}
-          description={`${stats?.activeUsers || 0} ${t("dashboard.activeUsers")}`}
+          description={`${stats?.activeUsers || 0} ${t(
+            "dashboard.activeUsers",
+            "usuários ativos"
+          )}`}
           icon={Users}
           status="neutral"
         />
 
         <MetricCard
-          title={t("dashboard.security")}
+          title={t("dashboard.security", "Segurança")}
           value="JWT + RBAC"
-          description={t("dashboard.securityDescription")}
+          description={t(
+            "dashboard.securityDescription",
+            "Autenticação protegida com Bearer Token e permissões"
+          )}
           icon={ShieldCheck}
           status="neutral"
         />
@@ -121,11 +139,11 @@ export function DashboardPage() {
             <div>
               <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
                 <Activity size={16} />
-                {t("dashboard.operationalSummary")}
+                {t("dashboard.operationalSummary", "Resumo operacional")}
               </span>
 
               <h3 className="text-xl font-bold mt-1">
-                {t("dashboard.saasInfrastructure")}
+                {t("dashboard.saasInfrastructure", "Infraestrutura SaaS")}
               </h3>
             </div>
 
@@ -136,27 +154,27 @@ export function DashboardPage() {
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             <StatusBox
-              title={t("dashboard.enterpriseBackend")}
+              title={t("dashboard.enterpriseBackend", "Backend empresarial")}
               value="Spring Boot + JWT"
-              status={t("dashboard.online")}
+              status={t("dashboard.online", "Online")}
             />
 
             <StatusBox
-              title={t("dashboard.database")}
+              title={t("dashboard.database", "Banco de dados")}
               value="PostgreSQL 16"
-              status={t("dashboard.operational")}
+              status={t("dashboard.operational", "Operacional")}
             />
 
             <StatusBox
-              title={t("dashboard.cacheStorage")}
+              title={t("dashboard.cacheStorage", "Cache e armazenamento")}
               value="Redis + MinIO"
-              status={t("dashboard.synchronized")}
+              status={t("dashboard.synchronized", "Sincronizado")}
             />
 
             <StatusBox
-              title={t("dashboard.enterpriseFrontend")}
+              title={t("dashboard.enterpriseFrontend", "Frontend empresarial")}
               value="React + TypeScript"
-              status={t("dashboard.active")}
+              status={t("dashboard.active", "Ativo")}
             />
           </div>
         </div>
@@ -166,11 +184,11 @@ export function DashboardPage() {
             <div>
               <span className="inline-flex items-center gap-2 text-sm text-primary font-semibold">
                 <Crown size={16} />
-                {t("dashboard.system")}
+                {t("dashboard.system", "Sistema")}
               </span>
 
               <h3 className="text-xl font-bold mt-1">
-                {t("dashboard.erpCore")}
+                {t("dashboard.erpCore", "Núcleo ERP")}
               </h3>
             </div>
 
@@ -180,10 +198,22 @@ export function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-1 gap-3">
-            <SmallBox title={t("dashboard.multiEnvironment")} value={t("common.enabled")} />
-            <SmallBox title={t("dashboard.security")} value="JWT + RBAC" />
-            <SmallBox title={t("dashboard.architecture")} value={t("dashboard.enterpriseSaas")} />
-            <SmallBox title={t("dashboard.visualExperience")} value={t("dashboard.premiumErp")} />
+            <SmallBox
+              title={t("dashboard.multiEnvironment", "Multiambiente")}
+              value={t("common.enabled", "Ativado")}
+            />
+            <SmallBox
+              title={t("dashboard.security", "Segurança")}
+              value="JWT + RBAC"
+            />
+            <SmallBox
+              title={t("dashboard.architecture", "Arquitetura")}
+              value={t("dashboard.enterpriseSaas", "SaaS empresarial")}
+            />
+            <SmallBox
+              title={t("dashboard.visualExperience", "Experiência visual")}
+              value={t("dashboard.premiumErp", "ERP premium")}
+            />
           </div>
         </div>
       </section>
@@ -203,13 +233,9 @@ function StatusBox({
   return (
     <div className="surface-muted rounded-2xl p-3 flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-xs text-muted">
-          {title}
-        </p>
+        <p className="text-xs text-muted">{title}</p>
 
-        <strong className="text-sm block mt-1 truncate">
-          {value}
-        </strong>
+        <strong className="text-sm block mt-1 truncate">{value}</strong>
       </div>
 
       <span className="text-success font-semibold text-xs shrink-0">
@@ -219,22 +245,12 @@ function StatusBox({
   )
 }
 
-function SmallBox({
-  title,
-  value,
-}: {
-  title: string
-  value: string
-}) {
+function SmallBox({ title, value }: { title: string; value: string }) {
   return (
     <div className="surface-muted rounded-2xl p-3">
-      <p className="text-[11px] uppercase tracking-wide text-muted">
-        {title}
-      </p>
+      <p className="text-[11px] uppercase tracking-wide text-muted">{title}</p>
 
-      <strong className="text-sm text-primary block mt-1">
-        {value}
-      </strong>
+      <strong className="text-sm text-primary block mt-1">{value}</strong>
     </div>
   )
 }

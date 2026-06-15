@@ -11,8 +11,8 @@ export interface LoginResponse {
   name: string
   email: string
   roles: string[]
-  effectivePermissions?: string[]
   permissions?: string[]
+  effectivePermissions?: string[]
   masterUser: boolean
   developerUser: boolean
   languageCode?: string | null

@@ -12,13 +12,14 @@ import {
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useLocation, useNavigate } from "react-router-dom"
-import { isLanguageCode } from "../../i18n"
+import { availableLanguages, isLanguageCode } from "../../i18n"
 import { useTranslation } from "../../hooks/useTranslation"
 import { InternationalizationService } from "../../services/internationalization.service"
 import { useAuthStore } from "../../store/auth.store"
 import { useLanguageStore } from "../../store/language.store"
 import { useThemeStore } from "../../store/theme.store"
 import type { Internationalization } from "../../types/internationalization.types"
+import type { LanguageCode } from "../../i18n"
 
 const pageTitleKeys: Record<string, string> = {
   "/dashboard": "menu.dashboard",
@@ -41,21 +42,44 @@ const pageTitleKeys: Record<string, string> = {
   "/settings/policies": "menu.policies",
 }
 
-function buildLanguageOptions(items: Internationalization[]) {
-  const map = new Map<string, Internationalization>()
+interface LanguageOption {
+  label: string
+  value: LanguageCode
+  flag: string
+  priority: number
+}
 
-  items
-    .filter((item) => item.active)
-    .forEach((item) => {
-      if (!map.has(item.languageCode)) {
-        map.set(item.languageCode, item)
+function normalizeLanguageCode(value: string | null | undefined) {
+  return value?.replace("_", "-")
+}
+
+function buildLanguageOptions(items: Internationalization[]): LanguageOption[] {
+  const activeItems = items.filter((item) => item.active)
+  const activeMap = new Map<string, Internationalization>()
+
+  activeItems.forEach((item) => {
+    const normalizedCode = normalizeLanguageCode(item.languageCode)
+
+    if (normalizedCode && !activeMap.has(normalizedCode)) {
+      activeMap.set(normalizedCode, item)
+    }
+  })
+
+  return availableLanguages
+    .map((language, index) => {
+      const item = activeMap.get(language.value)
+
+      return {
+        label: item?.languageName || language.label,
+        value: language.value,
+        flag: item?.flagEmoji || language.flag,
+        priority: item?.priority ?? index + 1,
       }
     })
-
-  return Array.from(map.values()).sort((a, b) => {
-    if (a.priority !== b.priority) return a.priority - b.priority
-    return a.languageName.localeCompare(b.languageName)
-  })
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority - b.priority
+      return a.label.localeCompare(b.label)
+    })
 }
 
 function getLanguageShortLabel(value: string) {
@@ -106,9 +130,9 @@ export function Topbar() {
     return buildLanguageOptions(activeInternationalizations)
   }, [activeInternationalizations])
 
-  const currentLanguage = languageOptions.find(
-    (item) => item.languageCode === language
-  )
+  const currentLanguage =
+    languageOptions.find((item) => item.value === language) ||
+    languageOptions.find((item) => item.value === "pt-PT")
 
   const pageTitle = t(
     pageTitleKeys[location.pathname] || "app.name",
@@ -127,8 +151,10 @@ export function Topbar() {
   }
 
   function handleLanguageChange(languageCode: string) {
-    if (isLanguageCode(languageCode)) {
-      setLanguage(languageCode)
+    const normalizedCode = normalizeLanguageCode(languageCode)
+
+    if (isLanguageCode(normalizedCode)) {
+      setLanguage(normalizedCode)
       setLanguageOpen(false)
       return
     }
@@ -168,7 +194,7 @@ export function Topbar() {
             <Languages size={16} />
 
             <span className="text-sm leading-none">
-              {currentLanguage?.flagEmoji || "🌐"}
+              {currentLanguage?.flag || "🌐"}
             </span>
 
             <span className="text-xs font-semibold">
@@ -195,32 +221,30 @@ export function Topbar() {
                   languageOptions.map((item) => (
                     <button
                       type="button"
-                      key={item.languageCode}
-                      onClick={() => handleLanguageChange(item.languageCode)}
+                      key={item.value}
+                      onClick={() => handleLanguageChange(item.value)}
                       className={[
                         "w-full text-left rounded-xl px-3 py-2 text-sm transition flex items-center justify-between gap-3",
-                        item.languageCode === language
+                        item.value === language
                           ? "bg-primary text-white font-semibold"
                           : "text-muted hover:text-text hover:bg-background",
                       ].join(" ")}
                     >
                       <span className="flex items-center gap-2 min-w-0">
-                        <span>{item.flagEmoji || "🌐"}</span>
+                        <span>{item.flag || "🌐"}</span>
 
-                        <span className="truncate">
-                          {item.languageName}
-                        </span>
+                        <span className="truncate">{item.label}</span>
                       </span>
 
                       <span
                         className={[
                           "text-[11px] font-semibold shrink-0",
-                          item.languageCode === language
+                          item.value === language
                             ? "text-white/80"
                             : "text-primary",
                         ].join(" ")}
                       >
-                        {getLanguageShortLabel(item.languageCode)}
+                        {getLanguageShortLabel(item.value)}
                       </span>
                     </button>
                   ))
@@ -276,7 +300,7 @@ export function Topbar() {
 
             <div className="leading-tight min-w-0 text-left">
               <p className="text-sm font-medium truncate">
-                {user?.name || "Usuário"}
+                {user?.name || t("users.commonUser")}
               </p>
 
               <p className="text-[11px] text-muted truncate">
@@ -304,7 +328,7 @@ export function Topbar() {
 
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold truncate">
-                    {user?.name || "Usuário"}
+                    {user?.name || t("users.commonUser")}
                   </span>
 
                   <span className="block text-xs text-muted truncate mt-0.5">

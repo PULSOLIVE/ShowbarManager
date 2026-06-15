@@ -1,14 +1,12 @@
-import {
-  defaultLanguage,
-  getDictionary,
-  isLanguageCode,
-} from "../i18n"
+import { defaultLanguage, getDictionary, isLanguageCode } from "../i18n"
 import { useLanguageStore } from "../store/language.store"
 import type { Dictionary, LanguageCode } from "../i18n"
 
 type TranslationPath = string
 
 function getNestedValue(dictionary: Dictionary, path: TranslationPath) {
+  if (!path) return undefined
+
   return path.split(".").reduce<unknown>((current, key) => {
     if (current && typeof current === "object" && key in current) {
       return (current as Record<string, unknown>)[key]
@@ -30,18 +28,19 @@ export function useTranslation() {
 
   function t(path: TranslationPath, fallback?: string) {
     const value =
-      getNestedValue(dictionary, path) ||
+      getNestedValue(dictionary, path) ??
       getNestedValue(fallbackDictionary, path)
 
     if (typeof value === "string") {
       return value
     }
 
-    return fallback || path
+    return fallback ?? path
   }
 
   return {
     t,
     language: safeLanguage,
+    dictionary,
   }
 }

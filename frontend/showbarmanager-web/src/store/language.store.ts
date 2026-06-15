@@ -6,6 +6,35 @@ import {
 } from "../i18n"
 import type { LanguageCode } from "../i18n"
 
+const STORAGE_KEY = "showbar_language"
+
+function readStoredLanguage(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function saveStoredLanguage(language: LanguageCode) {
+  try {
+    localStorage.setItem(STORAGE_KEY, language)
+  } catch {
+    // Mantém o estado em memória caso o navegador bloqueie o localStorage.
+  }
+}
+
+function getInitialLanguage(): LanguageCode {
+  const storedLanguage = readStoredLanguage()
+
+  if (isLanguageCode(storedLanguage)) {
+    return storedLanguage
+  }
+
+  saveStoredLanguage(defaultLanguage)
+  return defaultLanguage
+}
+
 interface LanguageState {
   language: LanguageCode
   availableLanguages: typeof availableLanguages
@@ -14,28 +43,22 @@ interface LanguageState {
 }
 
 export const useLanguageStore = create<LanguageState>((set) => ({
-  language: defaultLanguage,
+  language: getInitialLanguage(),
   availableLanguages,
 
   setLanguage: (language) => {
-    const safeLanguage: LanguageCode =
-      typeof language === "string" && isLanguageCode(language)
-        ? language
-        : defaultLanguage
+    const safeLanguage: LanguageCode = isLanguageCode(language)
+      ? language
+      : defaultLanguage
 
-    localStorage.setItem("showbar_language", safeLanguage)
+    saveStoredLanguage(safeLanguage)
     set({ language: safeLanguage })
   },
 
   restoreLanguage: () => {
-    const storedLanguage = localStorage.getItem("showbar_language")
+    const safeLanguage = getInitialLanguage()
 
-    const safeLanguage: LanguageCode =
-      typeof storedLanguage === "string" && isLanguageCode(storedLanguage)
-        ? storedLanguage
-        : defaultLanguage
-
-    localStorage.setItem("showbar_language", safeLanguage)
+    saveStoredLanguage(safeLanguage)
     set({ language: safeLanguage })
   },
 }))
