@@ -37,6 +37,7 @@ build/
 uploads/
 storage/
 *.sql
+!backend/showbarmanager-api/src/main/resources/db/migration/*.sql
 *.dump
 
 # OS
