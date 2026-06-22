@@ -5,12 +5,14 @@ import com.showbarmanager.api.modules.settings.branding.dto.BrandingSettingsResp
 import com.showbarmanager.api.modules.settings.branding.dto.UpdateBrandingSettingsRequest;
 import com.showbarmanager.api.responses.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/settings/branding")
@@ -72,6 +74,7 @@ public class BrandingController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
+                .cacheControl(CacheControl.noCache())
                 .body(brandingService.getAssetContent(assetKey));
     }
 
@@ -106,5 +109,35 @@ public class BrandingController {
                 "Asset eliminado com sucesso",
                 null
         );
+    }
+}
+
+@RestController
+@RequestMapping("/api/v1/public/branding")
+class PublicBrandingController {
+
+    private final BrandingService brandingService;
+
+    PublicBrandingController(BrandingService brandingService) {
+        this.brandingService = brandingService;
+    }
+
+    @GetMapping("/assets")
+    public ApiResponse<List<BrandingAssetResponse>> listPublicAssets() {
+        return new ApiResponse<>(
+                true,
+                "Assets públicos de branding listados com sucesso",
+                brandingService.listPublicAssets()
+        );
+    }
+
+    @GetMapping("/assets/{assetKey}/file")
+    public ResponseEntity<byte[]> getPublicAssetFile(@PathVariable String assetKey) {
+        String contentType = brandingService.getPublicAssetContentType(assetKey);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .cacheControl(CacheControl.maxAge(10, TimeUnit.MINUTES).cachePublic())
+                .body(brandingService.getPublicAssetContent(assetKey));
     }
 }

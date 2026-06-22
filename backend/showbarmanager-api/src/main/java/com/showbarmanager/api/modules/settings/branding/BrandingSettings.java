@@ -23,6 +23,9 @@ public class BrandingSettings {
     @Column(name = "dark_secondary_color", nullable = false, length = 20)
     private String darkSecondaryColor;
 
+    @Column(name = "dark_accent_color", nullable = false, length = 20)
+    private String darkAccentColor;
+
     @Column(name = "dark_background_color", nullable = false, length = 20)
     private String darkBackgroundColor;
 
@@ -58,6 +61,9 @@ public class BrandingSettings {
 
     @Column(name = "light_secondary_color", nullable = false, length = 20)
     private String lightSecondaryColor;
+
+    @Column(name = "light_accent_color", nullable = false, length = 20)
+    private String lightAccentColor;
 
     @Column(name = "light_background_color", nullable = false, length = 20)
     private String lightBackgroundColor;
@@ -101,6 +107,7 @@ public class BrandingSettings {
     @PrePersist
     public void prePersist() {
         if (id == null) id = UUID.randomUUID();
+        if (active == null) active = true;
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
@@ -124,6 +131,9 @@ public class BrandingSettings {
 
     public String getDarkSecondaryColor() { return darkSecondaryColor; }
     public void setDarkSecondaryColor(String darkSecondaryColor) { this.darkSecondaryColor = darkSecondaryColor; }
+
+    public String getDarkAccentColor() { return darkAccentColor; }
+    public void setDarkAccentColor(String darkAccentColor) { this.darkAccentColor = darkAccentColor; }
 
     public String getDarkBackgroundColor() { return darkBackgroundColor; }
     public void setDarkBackgroundColor(String darkBackgroundColor) { this.darkBackgroundColor = darkBackgroundColor; }
@@ -160,6 +170,9 @@ public class BrandingSettings {
 
     public String getLightSecondaryColor() { return lightSecondaryColor; }
     public void setLightSecondaryColor(String lightSecondaryColor) { this.lightSecondaryColor = lightSecondaryColor; }
+
+    public String getLightAccentColor() { return lightAccentColor; }
+    public void setLightAccentColor(String lightAccentColor) { this.lightAccentColor = lightAccentColor; }
 
     public String getLightBackgroundColor() { return lightBackgroundColor; }
     public void setLightBackgroundColor(String lightBackgroundColor) { this.lightBackgroundColor = lightBackgroundColor; }

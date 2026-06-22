@@ -2,6 +2,8 @@ package com.showbarmanager.api.exceptions;
 
 import com.showbarmanager.api.responses.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,11 +17,15 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException exception,
             HttpServletRequest request
     ) {
+        logger.warn("Business error uri={} message={}", request.getRequestURI(), exception.getMessage());
+
         return buildResponse(
                 exception.getMessage(),
                 "BUSINESS_ERROR",
@@ -34,6 +40,8 @@ public class GlobalExceptionHandler {
             ResourceNotFoundException exception,
             HttpServletRequest request
     ) {
+        logger.warn("Resource not found uri={} message={}", request.getRequestURI(), exception.getMessage());
+
         return buildResponse(
                 exception.getMessage(),
                 "RESOURCE_NOT_FOUND",
@@ -124,12 +132,20 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
+        logger.error(
+                "Erro interno inesperado uri={} method={} message={}",
+                request.getRequestURI(),
+                request.getMethod(),
+                exception.getMessage(),
+                exception
+        );
+
         return buildResponse(
                 "Erro interno inesperado.",
                 "INTERNAL_SERVER_ERROR",
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 request,
-                List.of(exception.getMessage())
+                List.of(exception.getClass().getName(), String.valueOf(exception.getMessage()))
         );
     }
 

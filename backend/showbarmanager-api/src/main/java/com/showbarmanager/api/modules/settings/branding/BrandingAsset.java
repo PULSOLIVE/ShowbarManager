@@ -1,6 +1,14 @@
 package com.showbarmanager.api.modules.settings.branding;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -38,9 +46,21 @@ public class BrandingAsset {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) id = UUID.randomUUID();
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+
+        if (active == null) {
+            active = true;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (createdAt == null) {
+            createdAt = now;
+        }
+
+        updatedAt = now;
     }
 
     @PreUpdate
@@ -48,27 +68,67 @@ public class BrandingAsset {
         updatedAt = LocalDateTime.now();
     }
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public UUID getId() {
+        return id;
+    }
 
-    public String getAssetKey() { return assetKey; }
-    public void setAssetKey(String assetKey) { this.assetKey = assetKey; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-    public String getFileName() { return fileName; }
-    public void setFileName(String fileName) { this.fileName = fileName; }
+    public String getAssetKey() {
+        return assetKey;
+    }
 
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
+    public void setAssetKey(String assetKey) {
+        this.assetKey = assetKey;
+    }
 
-    public Long getFileSize() { return fileSize; }
-    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
+    public String getFileName() {
+        return fileName;
+    }
 
-    public byte[] getContent() { return content; }
-    public void setContent(byte[] content) { this.content = content; }
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 
-    public Boolean getActive() { return active; }
-    public void setActive(Boolean active) { this.active = active; }
+    public String getContentType() {
+        return contentType;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public byte[] getContent() {
+        return content;
+    }
+
+    public void setContent(byte[] content) {
+        this.content = content;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

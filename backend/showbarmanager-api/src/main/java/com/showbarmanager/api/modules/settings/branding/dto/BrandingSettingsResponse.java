@@ -10,6 +10,7 @@ public class BrandingSettingsResponse {
 
     private String darkPrimaryColor;
     private String darkSecondaryColor;
+    private String darkAccentColor;
     private String darkBackgroundColor;
     private String darkCardColor;
     private String darkCardSoftColor;
@@ -23,6 +24,7 @@ public class BrandingSettingsResponse {
 
     private String lightPrimaryColor;
     private String lightSecondaryColor;
+    private String lightAccentColor;
     private String lightBackgroundColor;
     private String lightCardColor;
     private String lightCardSoftColor;
@@ -49,6 +51,9 @@ public class BrandingSettingsResponse {
 
     public String getDarkSecondaryColor() { return darkSecondaryColor; }
     public void setDarkSecondaryColor(String darkSecondaryColor) { this.darkSecondaryColor = darkSecondaryColor; }
+
+    public String getDarkAccentColor() { return darkAccentColor; }
+    public void setDarkAccentColor(String darkAccentColor) { this.darkAccentColor = darkAccentColor; }
 
     public String getDarkBackgroundColor() { return darkBackgroundColor; }
     public void setDarkBackgroundColor(String darkBackgroundColor) { this.darkBackgroundColor = darkBackgroundColor; }
@@ -85,6 +90,9 @@ public class BrandingSettingsResponse {
 
     public String getLightSecondaryColor() { return lightSecondaryColor; }
     public void setLightSecondaryColor(String lightSecondaryColor) { this.lightSecondaryColor = lightSecondaryColor; }
+
+    public String getLightAccentColor() { return lightAccentColor; }
+    public void setLightAccentColor(String lightAccentColor) { this.lightAccentColor = lightAccentColor; }
 
     public String getLightBackgroundColor() { return lightBackgroundColor; }
     public void setLightBackgroundColor(String lightBackgroundColor) { this.lightBackgroundColor = lightBackgroundColor; }

@@ -50,6 +50,8 @@ public class SecurityConfig {
                                 "/error",
                                 "/api/v1/health",
                                 "/api/v1/auth/**",
+                                "/api/v1/public/branding/assets",
+                                "/api/v1/public/branding/assets/*/file",
                                 "/actuator/health",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

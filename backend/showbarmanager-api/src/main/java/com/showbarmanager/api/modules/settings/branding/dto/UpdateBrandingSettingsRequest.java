@@ -1,37 +1,42 @@
 package com.showbarmanager.api.modules.settings.branding.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class UpdateBrandingSettingsRequest {
 
     @NotBlank
+    @Size(max = 160)
     private String publicName;
 
-    @NotBlank private String darkPrimaryColor;
-    @NotBlank private String darkSecondaryColor;
-    @NotBlank private String darkBackgroundColor;
-    @NotBlank private String darkCardColor;
-    @NotBlank private String darkCardSoftColor;
-    @NotBlank private String darkSurfaceColor;
-    @NotBlank private String darkTextColor;
-    @NotBlank private String darkMutedColor;
-    @NotBlank private String darkBorderColor;
-    @NotBlank private String darkSuccessColor;
-    @NotBlank private String darkWarningColor;
-    @NotBlank private String darkDangerColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkPrimaryColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkSecondaryColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkAccentColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkBackgroundColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkCardColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkCardSoftColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkSurfaceColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkTextColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkMutedColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkBorderColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkSuccessColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkWarningColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String darkDangerColor;
 
-    @NotBlank private String lightPrimaryColor;
-    @NotBlank private String lightSecondaryColor;
-    @NotBlank private String lightBackgroundColor;
-    @NotBlank private String lightCardColor;
-    @NotBlank private String lightCardSoftColor;
-    @NotBlank private String lightSurfaceColor;
-    @NotBlank private String lightTextColor;
-    @NotBlank private String lightMutedColor;
-    @NotBlank private String lightBorderColor;
-    @NotBlank private String lightSuccessColor;
-    @NotBlank private String lightWarningColor;
-    @NotBlank private String lightDangerColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightPrimaryColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightSecondaryColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightAccentColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightBackgroundColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightCardColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightCardSoftColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightSurfaceColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightTextColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightMutedColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightBorderColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightSuccessColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightWarningColor;
+    @NotBlank @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") private String lightDangerColor;
 
     private Boolean active;
 
@@ -43,6 +48,9 @@ public class UpdateBrandingSettingsRequest {
 
     public String getDarkSecondaryColor() { return darkSecondaryColor; }
     public void setDarkSecondaryColor(String darkSecondaryColor) { this.darkSecondaryColor = darkSecondaryColor; }
+
+    public String getDarkAccentColor() { return darkAccentColor; }
+    public void setDarkAccentColor(String darkAccentColor) { this.darkAccentColor = darkAccentColor; }
 
     public String getDarkBackgroundColor() { return darkBackgroundColor; }
     public void setDarkBackgroundColor(String darkBackgroundColor) { this.darkBackgroundColor = darkBackgroundColor; }
@@ -79,6 +87,9 @@ public class UpdateBrandingSettingsRequest {
 
     public String getLightSecondaryColor() { return lightSecondaryColor; }
     public void setLightSecondaryColor(String lightSecondaryColor) { this.lightSecondaryColor = lightSecondaryColor; }
+
+    public String getLightAccentColor() { return lightAccentColor; }
+    public void setLightAccentColor(String lightAccentColor) { this.lightAccentColor = lightAccentColor; }
 
     public String getLightBackgroundColor() { return lightBackgroundColor; }
     public void setLightBackgroundColor(String lightBackgroundColor) { this.lightBackgroundColor = lightBackgroundColor; }

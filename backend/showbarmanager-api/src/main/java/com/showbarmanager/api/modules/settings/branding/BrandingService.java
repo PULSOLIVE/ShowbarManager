@@ -9,13 +9,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class BrandingService {
 
     private static final String DEFAULT_SETTING_KEY = "DEFAULT";
     private static final long MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+    private static final Set<String> ALLOWED_ASSET_KEYS = Set.of(
+            "sidebarLogoUrl",
+            "sidebarCollapsedLogoUrl",
+            "darkLogoUrl",
+            "lightLogoUrl",
+            "reportLogoUrl",
+            "mobileLogoUrl",
+            "faviconUrl",
+            "darkSidebarLogoUrl",
+            "darkSidebarCollapsedLogoUrl",
+            "darkReportLogoUrl",
+            "darkMobileLogoUrl",
+            "darkFaviconUrl",
+            "darkLoginLogoUrl",
+            "lightSidebarLogoUrl",
+            "lightSidebarCollapsedLogoUrl",
+            "lightReportLogoUrl",
+            "lightMobileLogoUrl",
+            "lightFaviconUrl",
+            "lightLoginLogoUrl"
+    );
 
     private final BrandingSettingsRepository settingsRepository;
     private final BrandingAssetRepository assetRepository;
@@ -77,11 +102,20 @@ public class BrandingService {
     public List<BrandingAssetResponse> listAssets() {
         return assetRepository.findAll()
                 .stream()
-                .map(this::toAssetResponse)
+                .map(asset -> toAssetResponse(asset, false))
+                .toList();
+    }
+
+    public List<BrandingAssetResponse> listPublicAssets() {
+        return assetRepository.findAllByActiveTrue()
+                .stream()
+                .map(asset -> toAssetResponse(asset, true))
                 .toList();
     }
 
     public BrandingAssetResponse uploadAsset(String assetKey, MultipartFile file) {
+        validateAssetKey(assetKey);
+
         if (file == null || file.isEmpty()) {
             throw new BusinessException("Nenhum ficheiro enviado.");
         }
@@ -90,7 +124,7 @@ public class BrandingService {
             throw new BusinessException("O ficheiro deve ter no máximo 2 MB.");
         }
 
-        String contentType = file.getContentType();
+        String contentType = normalizeContentType(file.getContentType());
 
         if (!isAllowedContentType(contentType)) {
             throw new BusinessException("Formato inválido. Use PNG, SVG, WEBP ou ICO.");
@@ -102,52 +136,70 @@ public class BrandingService {
 
         try {
             asset.setAssetKey(assetKey);
-            asset.setFileName(file.getOriginalFilename() != null ? file.getOriginalFilename() : assetKey);
+            asset.setFileName(safeFileName(file.getOriginalFilename(), assetKey));
             asset.setContentType(contentType);
             asset.setFileSize(file.getSize());
             asset.setContent(file.getBytes());
             asset.setActive(true);
 
-            return toAssetResponse(assetRepository.save(asset));
+            return toAssetResponse(assetRepository.save(asset), false);
         } catch (IOException exception) {
             throw new BusinessException("Não foi possível processar o ficheiro enviado.");
         }
     }
 
     public byte[] getAssetContent(String assetKey) {
-        BrandingAsset asset = assetRepository
-                .findByAssetKeyAndActiveTrue(assetKey)
-                .orElseThrow(() -> new ResourceNotFoundException("Asset de branding não encontrado."));
-
-        return asset.getContent();
+        return getActiveAsset(assetKey).getContent();
     }
 
     public String getAssetContentType(String assetKey) {
-        BrandingAsset asset = assetRepository
-                .findByAssetKeyAndActiveTrue(assetKey)
-                .orElseThrow(() -> new ResourceNotFoundException("Asset de branding não encontrado."));
+        return getActiveAsset(assetKey).getContentType();
+    }
 
-        return asset.getContentType();
+    public byte[] getPublicAssetContent(String assetKey) {
+        return getActiveAsset(assetKey).getContent();
+    }
+
+    public String getPublicAssetContentType(String assetKey) {
+        return getActiveAsset(assetKey).getContentType();
     }
 
     public BrandingAssetResponse activateAsset(String assetKey) {
+        validateAssetKey(assetKey);
+
         BrandingAsset asset = findAsset(assetKey);
         asset.setActive(true);
-        return toAssetResponse(assetRepository.save(asset));
+
+        return toAssetResponse(assetRepository.save(asset), false);
     }
 
     public BrandingAssetResponse deactivateAsset(String assetKey) {
+        validateAssetKey(assetKey);
+
         BrandingAsset asset = findAsset(assetKey);
         asset.setActive(false);
-        return toAssetResponse(assetRepository.save(asset));
+
+        return toAssetResponse(assetRepository.save(asset), false);
     }
 
     public void deleteAsset(String assetKey) {
+        validateAssetKey(assetKey);
+
         BrandingAsset asset = findAsset(assetKey);
         assetRepository.delete(asset);
     }
 
+    private BrandingAsset getActiveAsset(String assetKey) {
+        validateAssetKey(assetKey);
+
+        return assetRepository
+                .findByAssetKeyAndActiveTrue(assetKey)
+                .orElseThrow(() -> new ResourceNotFoundException("Asset de branding não encontrado."));
+    }
+
     private BrandingAsset findAsset(String assetKey) {
+        validateAssetKey(assetKey);
+
         return assetRepository.findByAssetKey(assetKey)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset de branding não encontrado."));
     }
@@ -189,6 +241,12 @@ public class BrandingService {
         return settingsRepository.save(settings);
     }
 
+    private void validateAssetKey(String assetKey) {
+        if (assetKey == null || !ALLOWED_ASSET_KEYS.contains(assetKey)) {
+            throw new BusinessException("Tipo de asset de branding inválido.");
+        }
+    }
+
     private boolean isAllowedContentType(String contentType) {
         return contentType != null && List.of(
                 "image/png",
@@ -197,6 +255,22 @@ public class BrandingService {
                 "image/x-icon",
                 "image/vnd.microsoft.icon"
         ).contains(contentType);
+    }
+
+    private String normalizeContentType(String contentType) {
+        return contentType == null ? null : contentType.trim().toLowerCase();
+    }
+
+    private String safeFileName(String originalFileName, String fallback) {
+        String fileName = originalFileName == null || originalFileName.isBlank()
+                ? fallback
+                : originalFileName.trim();
+
+        return fileName
+                .replace("\\", "")
+                .replace("/", "")
+                .replace("..", "")
+                .replace("\u0000", "");
     }
 
     private String normalize(String value) {
@@ -242,15 +316,20 @@ public class BrandingService {
         return response;
     }
 
-    private BrandingAssetResponse toAssetResponse(BrandingAsset asset) {
+    private BrandingAssetResponse toAssetResponse(BrandingAsset asset, boolean publicUrl) {
         BrandingAssetResponse response = new BrandingAssetResponse();
+        String encodedAssetKey = URLEncoder.encode(asset.getAssetKey(), StandardCharsets.UTF_8);
+
+        String baseUrl = publicUrl
+                ? "/api/v1/public/branding/assets/"
+                : "/api/v1/settings/branding/assets/";
 
         response.setId(asset.getId());
         response.setAssetKey(asset.getAssetKey());
         response.setFileName(asset.getFileName());
         response.setContentType(asset.getContentType());
         response.setFileSize(asset.getFileSize());
-        response.setFileUrl("/api/v1/settings/branding/assets/" + asset.getAssetKey() + "/file");
+        response.setFileUrl(baseUrl + encodedAssetKey + "/file");
         response.setActive(asset.getActive());
         response.setCreatedAt(asset.getCreatedAt());
         response.setUpdatedAt(asset.getUpdatedAt());
