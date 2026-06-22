@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AdminLayout } from "../layouts/admin/AdminLayout"
+import { ForgotPasswordPage } from "../pages/auth/ForgotPasswordPage"
 import { LoginPage } from "../pages/auth/LoginPage"
+import { ResetPasswordPage } from "../pages/auth/ResetPasswordPage"
 import { DashboardPage } from "../pages/dashboard/DashboardPage"
 import { SettingsAuditPage } from "../pages/settings/SettingsAuditPage"
 import { SettingsBrandingPage } from "../pages/settings/SettingsBrandingPage"
@@ -26,6 +28,8 @@ export function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<AdminLayout />}>

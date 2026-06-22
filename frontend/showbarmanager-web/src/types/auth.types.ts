@@ -20,6 +20,33 @@ export interface LoginResponse {
   resolvedLanguageCode?: string | null
 }
 
+export type PasswordResetChannel = "email" | "sms"
+
+export interface ForgotPasswordRequest {
+  identifier: string
+  channel: PasswordResetChannel
+}
+
+export interface ForgotPasswordResponse {
+  resetToken?: string | null
+  expiresInMinutes?: number | null
+  maskedDestination?: string | null
+}
+
+export interface ResetPasswordRequest {
+  identifier: string
+  channel: PasswordResetChannel
+  code: string
+  newPassword: string
+  confirmPassword: string
+  resetToken?: string | null
+}
+
+export interface ResetPasswordResponse {
+  success: boolean
+  message?: string
+}
+
 export interface ApiResponse<T> {
   success: boolean
   message: string

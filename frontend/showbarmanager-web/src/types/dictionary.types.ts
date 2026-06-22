@@ -109,6 +109,19 @@ export interface Dictionary {
     forgotPassword: string
     resetPassword: string
     changePassword: string
+    welcomeBack: string
+    emailPlaceholder: string
+    passwordPlaceholder: string
+    loginSuccess: string
+    secureAccess: string
+    endpointSecurity: string
+    endpointSecurityDescription: string
+    protectedData: string
+    protectedDataDescription: string
+    highAvailability: string
+    highAvailabilityDescription: string
+    allRightsReserved: string
+    developmentBy: string
   }
 
   status: {
@@ -624,12 +637,17 @@ export interface Dictionary {
     theme: string
     favicon: string
     whiteLabel: string
+    assets: string
     restore: string
     saving: string
     saveBranding: string
     saveError: string
     savedSuccess: string
     publicBrand: string
+    publicBrandDetail: string
+    assetsDetail: string
+    primaryColorDetail: string
+    whiteLabelDetail: string
     primaryColor: string
     secondaryColor: string
     publicName: string
@@ -661,8 +679,65 @@ export interface Dictionary {
     maxSize250: string
     maxSize500: string
     maxSize800: string
+    maxSize2mb: string
+    logoManager: string
+    logoManagerDarkInfo: string
+    logoManagerLightInfo: string
+    darkLogoManagement: string
+    lightLogoManagement: string
+    brandDataDescription: string
+    loginLogo: string
+    loginLogoDescription: string
+    loadError: string
+    restoreConfirm: string
+    restoredSuccess: string
+    assetUploadedSuccess: string
+    assetUploadError: string
+    fileTooLarge: string
+    uploading: string
+    assetActivatedSuccess: string
+    assetActivateError: string
+    assetDeactivatedSuccess: string
+    assetDeactivateError: string
+    deleteConfirm: string
+    assetDeletedSuccess: string
+    assetDeleteError: string
+    paletteManager: string
+    paletteDefaultInfo: string
+    paletteCustomInfo: string
+    paletteDefault: string
+    paletteCustom: string
+    paletteRestored: string
+    darkPalette: string
+    lightPalette: string
+    darkBackgroundColor: string
+    darkCardColor: string
+    darkCardSoftColor: string
+    darkSurfaceColor: string
+    darkTextColor: string
+    darkMutedColor: string
+    darkBorderColor: string
+    darkPrimaryColor: string
+    darkSecondaryColor: string
+    darkAccentColor: string
+    darkSuccessColor: string
+    darkWarningColor: string
+    darkDangerColor: string
+    lightBackgroundColor: string
+    lightCardColor: string
+    lightCardSoftColor: string
+    lightSurfaceColor: string
+    lightTextColor: string
+    lightMutedColor: string
+    lightBorderColor: string
+    lightPrimaryColor: string
+    lightSecondaryColor: string
+    lightAccentColor: string
+    lightSuccessColor: string
+    lightWarningColor: string
+    lightDangerColor: string
   }
-
+  
   countries: {
     title: string
     subtitle: string

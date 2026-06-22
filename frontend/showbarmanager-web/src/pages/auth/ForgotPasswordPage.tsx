@@ -1,15 +1,20 @@
 import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
-import { ArrowRight, Eye, EyeOff, LockKeyhole, UserCircle } from "lucide-react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Mail,
+  MessageSquareText,
+  ShieldCheck,
+  Smartphone,
+} from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
-import { isLanguageCode } from "../../i18n"
-import { useTranslation } from "../../hooks/useTranslation"
 import { AuthService } from "../../services/auth.service"
 import { BrandingService } from "../../services/branding.service"
-import { useAuthStore } from "../../store/auth.store"
-import { useLanguageStore } from "../../store/language.store"
 import { useThemeStore } from "../../store/theme.store"
+import { useTranslation } from "../../hooks/useTranslation"
 import type { BrandingAssetKey } from "../../types/branding.types"
+import type { PasswordResetChannel } from "../../types/auth.types"
 
 type LoginAssetMap = Partial<Record<BrandingAssetKey, string | null>>
 type ThemeMode = "dark" | "light"
@@ -28,7 +33,6 @@ const loginAssetKeys: BrandingAssetKey[] = [
 ]
 
 const emptyAssets: LoginAssetMap = {}
-const loggedBeforeKey = "showbarmanager.loggedBefore"
 
 function getCurrentThemeMode(): ThemeMode {
   if (typeof document === "undefined") return "dark"
@@ -49,26 +53,43 @@ function updateFavicon(url: string) {
   favicon.href = url
 }
 
-function hasLoggedBefore() {
-  if (typeof window === "undefined") return false
-  return window.localStorage.getItem(loggedBeforeKey) === "true"
+function getErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "response" in error) {
+    const axiosError = error as {
+      response?: {
+        data?: {
+          message?: string
+          error?: string
+          detail?: string
+        }
+      }
+      message?: string
+    }
+
+    return (
+      axiosError.response?.data?.message ||
+      axiosError.response?.data?.error ||
+      axiosError.response?.data?.detail ||
+      axiosError.message ||
+      "Não foi possível enviar o código."
+    )
+  }
+
+  if (error instanceof Error) return error.message
+
+  return "Não foi possível enviar o código."
 }
 
-export function LoginPage() {
+export function ForgotPasswordPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const setLanguage = useLanguageStore((state) => state.setLanguage)
   const theme = useThemeStore((state) => state.theme)
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(getCurrentThemeMode)
-  const [alreadyLoggedBefore, setAlreadyLoggedBefore] = useState(hasLoggedBefore)
-  const [email, setEmail] = useState("admin@demo.pt")
-  const [password, setPassword] = useState("123456")
-  const [showPassword, setShowPassword] = useState(false)
+  const [identifier, setIdentifier] = useState("")
+  const [channel, setChannel] = useState<PasswordResetChannel>("email")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [assets, setAssets] = useState<LoginAssetMap>(emptyAssets)
 
   useEffect(() => {
@@ -90,7 +111,7 @@ export function LoginPage() {
     let mounted = true
     const objectUrls: string[] = []
 
-    async function loadLoginAssets() {
+    async function loadAssets() {
       try {
         const brandingAssets = await BrandingService.listPublicAssets()
 
@@ -122,7 +143,7 @@ export function LoginPage() {
       }
     }
 
-    loadLoginAssets()
+    loadAssets()
 
     return () => {
       mounted = false
@@ -130,7 +151,7 @@ export function LoginPage() {
     }
   }, [])
 
-  const loginLogoUrl = useMemo(() => {
+  const logoUrl = useMemo(() => {
     if (themeMode === "light") {
       return (
         assets.lightLoginLogoUrl ||
@@ -170,34 +191,31 @@ export function LoginPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setLoading(true)
-    setError(null)
-    setSuccess(null)
+
+    if (!identifier.trim()) {
+      setError("Informe o seu e-mail ou telemóvel.")
+      return
+    }
 
     try {
-      const data = await AuthService.login({
-        email: email.trim().toLowerCase(),
-        password,
+      setLoading(true)
+      setError(null)
+
+      const response = await AuthService.forgotPassword({
+        identifier: identifier.trim(),
+        channel,
       })
 
-      setAuth(data)
-
-      const loginLanguage =
-        data.resolvedLanguageCode ||
-        data.languageCode ||
-        data.tenantLanguageCode
-
-      if (isLanguageCode(loginLanguage)) {
-        setLanguage(loginLanguage)
-      }
-
-      window.localStorage.setItem(loggedBeforeKey, "true")
-      setAlreadyLoggedBefore(true)
-
-      setSuccess(t("auth.loginSuccess", "Acesso validado com sucesso."))
-      navigate("/dashboard")
-    } catch {
-      setError(t("auth.invalidCredentials"))
+      navigate("/reset-password", {
+        state: {
+          identifier: identifier.trim(),
+          channel,
+          resetToken: response.resetToken ?? null,
+          maskedDestination: response.maskedDestination ?? null,
+        },
+      })
+    } catch (requestError) {
+      setError(getErrorMessage(requestError))
     } finally {
       setLoading(false)
     }
@@ -222,19 +240,19 @@ export function LoginPage() {
       <main className="relative z-10 w-full flex-1 min-h-0 flex items-center justify-center">
         <section
           className={[
-            "w-full max-w-[430px] rounded-[32px] px-7 py-5 sm:px-8 backdrop-blur-2xl flex",
+            "w-full max-w-[430px] rounded-[32px] px-7 py-6 sm:px-8 backdrop-blur-2xl",
             themeMode === "light"
               ? "bg-white/82 shadow-[0_28px_90px_rgba(15,23,42,0.18)]"
               : "bg-[#07111F]/78 shadow-[0_30px_100px_rgba(0,0,0,0.58)]",
           ].join(" ")}
         >
           <form onSubmit={handleSubmit} className="w-full flex flex-col">
-            <div className="text-center h-[130px] flex items-center justify-center">
-              {loginLogoUrl ? (
+            <div className="text-center h-[120px] flex items-center justify-center">
+              {logoUrl ? (
                 <img
-                  src={loginLogoUrl}
-                  alt={t("app.name")}
-                  className="mx-auto max-h-[120px] max-w-[300px] object-contain"
+                  src={logoUrl}
+                  alt="Showbar Manager"
+                  className="mx-auto max-h-[112px] max-w-[260px] object-contain"
                 />
               ) : (
                 <div className="mx-auto w-20 h-20 rounded-3xl bg-primary text-white flex items-center justify-center font-black text-xl shadow-neon">
@@ -244,82 +262,79 @@ export function LoginPage() {
             </div>
 
             <div className="text-center mt-1">
+              <div className="mx-auto w-11 h-11 rounded-2xl bg-primarySoft flex items-center justify-center mb-3">
+                <ShieldCheck size={21} className="text-primary" />
+              </div>
+
               <h1 className="text-2xl font-bold">
-                {alreadyLoggedBefore
-                  ? t("auth.welcomeBack", "Bem-vindo de volta!")
-                  : t("auth.welcome", "Seja bem-vindo!")}
+                {t("auth.forgotPasswordTitle", "Redefinir senha")}
               </h1>
 
-              <p className="text-sm text-muted mt-1.5">
-                {t("auth.loginSubtitle", "Entre com as suas credenciais para continuar.")}
+              <p className="text-sm text-muted mt-2">
+                {t(
+                  "auth.forgotPasswordSubtitle",
+                  "Informe o seu e-mail ou telemóvel e escolha como deseja receber o código de validação."
+                )}
               </p>
             </div>
 
-            <div className="space-y-3 mt-5">
-              <label className="block">
-                <span className="block text-xs font-semibold mb-1.5">
-                  {t("auth.email")}
-                </span>
+            <div className="grid grid-cols-2 gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setChannel("email")}
+                className={[
+                  "rounded-2xl border px-3 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition",
+                  channel === "email"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card border-border text-muted hover:text-primary hover:border-primary",
+                ].join(" ")}
+              >
+                <Mail size={16} />
+                E-mail
+              </button>
 
-                <div className="flex items-center field-input px-0 py-0 focus-within:border-primary">
-                  <div className="w-11 flex items-center justify-center text-muted">
-                    <UserCircle size={18} />
-                  </div>
-
-                  <input
-                    className="w-full bg-transparent py-3 pr-4 outline-none text-sm"
-                    placeholder={t("auth.emailPlaceholder", "seu.email@empresa.com")}
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                  />
-                </div>
-              </label>
-
-              <label className="block">
-                <span className="block text-xs font-semibold mb-1.5">
-                  {t("auth.password")}
-                </span>
-
-                <div className="flex items-center field-input px-0 py-0 focus-within:border-primary">
-                  <div className="w-11 flex items-center justify-center text-muted">
-                    <LockKeyhole size={18} />
-                  </div>
-
-                  <input
-                    className="w-full bg-transparent py-3 pr-2 outline-none text-sm"
-                    placeholder={t("auth.passwordPlaceholder", "Digite sua senha")}
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((value) => !value)}
-                    className="w-11 h-11 flex items-center justify-center text-muted hover:text-primary transition"
-                    title={
-                      showPassword
-                        ? t("common.hidePassword")
-                        : t("common.showPassword")
-                    }
-                  >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                  </button>
-                </div>
-
-                <div className="text-right mt-2">
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs font-semibold text-primary hover:underline"
-                  >
-                    {t("auth.forgotPassword", "Esqueceu a senha?")}
-                  </Link>
-                </div>
-              </label>
+              <button
+                type="button"
+                onClick={() => setChannel("sms")}
+                className={[
+                  "rounded-2xl border px-3 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition",
+                  channel === "sms"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card border-border text-muted hover:text-primary hover:border-primary",
+                ].join(" ")}
+              >
+                <Smartphone size={16} />
+                SMS
+              </button>
             </div>
+
+            <label className="block mt-5">
+              <span className="block text-xs font-semibold mb-1.5">
+                {channel === "email" ? "E-mail" : "Telemóvel"}
+              </span>
+
+              <div className="flex items-center field-input px-0 py-0 focus-within:border-primary">
+                <div className="w-11 flex items-center justify-center text-muted">
+                  {channel === "email" ? (
+                    <Mail size={18} />
+                  ) : (
+                    <MessageSquareText size={18} />
+                  )}
+                </div>
+
+                <input
+                  className="w-full bg-transparent py-3 pr-4 outline-none text-sm"
+                  placeholder={
+                    channel === "email"
+                      ? "seu.email@empresa.com"
+                      : "+351 900 000 000"
+                  }
+                  value={identifier}
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  required
+                />
+              </div>
+            </label>
 
             {error && (
               <div className="bg-danger/10 border border-danger/30 text-danger rounded-2xl px-4 py-3 text-sm mt-4">
@@ -327,20 +342,22 @@ export function LoginPage() {
               </div>
             )}
 
-            {success && (
-              <div className="bg-success/10 border border-success/30 text-success rounded-2xl px-4 py-3 text-sm mt-4">
-                {success}
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-white font-semibold min-h-[52px] rounded-2xl hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-5"
+              className="w-full bg-primary text-white font-semibold h-[52px] rounded-2xl hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
             >
-              {loading ? t("auth.loggingIn") : t("auth.loginButton")}
+              {loading ? "A enviar código..." : "Enviar código"}
               {!loading && <ArrowRight size={18} />}
             </button>
+
+            <Link
+              to="/login"
+              className="mt-4 text-xs font-semibold text-primary hover:underline inline-flex items-center justify-center gap-1"
+            >
+              <ArrowLeft size={14} />
+              Voltar para o login
+            </Link>
           </form>
         </section>
       </main>
@@ -352,7 +369,7 @@ export function LoginPage() {
         ].join(" ")}
       >
         <p>
-          © 2026 ShowbarManager.{" "}
+          © 2026 Showbar Manager.{" "}
           {t("auth.allRightsReserved", "Todos os direitos reservados.")}{" "}
           {t("auth.developmentBy", "Desenvolvimento")}{" "}
           <a

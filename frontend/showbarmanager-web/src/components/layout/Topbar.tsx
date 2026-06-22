@@ -9,17 +9,19 @@ import {
   Sun,
   UserCircle,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useLocation, useNavigate } from "react-router-dom"
 import { availableLanguages, isLanguageCode } from "../../i18n"
 import { useTranslation } from "../../hooks/useTranslation"
+import { BrandingService } from "../../services/branding.service"
 import { InternationalizationService } from "../../services/internationalization.service"
 import { useAuthStore } from "../../store/auth.store"
 import { useLanguageStore } from "../../store/language.store"
 import { useThemeStore } from "../../store/theme.store"
 import type { Internationalization } from "../../types/internationalization.types"
 import type { LanguageCode } from "../../i18n"
+import type { BrandingAssetKey } from "../../types/branding.types"
 
 const pageTitleKeys: Record<string, string> = {
   "/dashboard": "menu.dashboard",
@@ -48,6 +50,19 @@ interface LanguageOption {
   flag: string
   priority: number
 }
+
+type BrandingLogoMap = Partial<Record<BrandingAssetKey, string | null>>
+
+const topbarBrandingKeys: BrandingAssetKey[] = [
+  "darkFaviconUrl",
+  "lightFaviconUrl",
+  "faviconUrl",
+  "darkLogoUrl",
+  "lightLogoUrl",
+  "darkSidebarLogoUrl",
+  "lightSidebarLogoUrl",
+  "sidebarLogoUrl",
+]
 
 function normalizeLanguageCode(value: string | null | undefined) {
   return value?.replace("_", "-")
@@ -107,6 +122,20 @@ function getLanguageShortLabel(value: string) {
   return value.slice(0, 2).toUpperCase()
 }
 
+function updateFavicon(url: string) {
+  let favicon =
+    document.querySelector<HTMLLinkElement>("link[rel='icon']") ||
+    document.querySelector<HTMLLinkElement>("link[rel='shortcut icon']")
+
+  if (!favicon) {
+    favicon = document.createElement("link")
+    favicon.rel = "icon"
+    document.head.appendChild(favicon)
+  }
+
+  favicon.href = url
+}
+
 export function Topbar() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -118,13 +147,92 @@ export function Topbar() {
   const setLanguage = useLanguageStore((state) => state.setLanguage)
   const theme = useThemeStore((state) => state.theme)
   const toggleTheme = useThemeStore((state) => state.toggleTheme)
+
   const [languageOpen, setLanguageOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [brandingLogos, setBrandingLogos] = useState<BrandingLogoMap>({})
 
   const { data: activeInternationalizations = [] } = useQuery({
     queryKey: ["topbar-active-languages"],
     queryFn: InternationalizationService.listActive,
   })
+
+  const { data: brandingSettings } = useQuery({
+    queryKey: ["topbar-branding-settings"],
+    queryFn: BrandingService.getSettings,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  })
+
+  const { data: brandingAssets = [] } = useQuery({
+    queryKey: ["topbar-branding-assets"],
+    queryFn: BrandingService.listAssets,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  })
+
+  useEffect(() => {
+    let mounted = true
+    const objectUrls: string[] = []
+
+    async function loadTopbarBranding() {
+      try {
+        const activeKeys = brandingAssets
+          .filter((asset) => asset.active)
+          .map((asset) => asset.assetKey)
+
+        async function loadLogo(key: BrandingAssetKey) {
+          if (!activeKeys.includes(key)) return null
+
+          try {
+            const url = await BrandingService.getAssetObjectUrl(key)
+            objectUrls.push(url)
+            return url
+          } catch {
+            return null
+          }
+        }
+
+        const entries = await Promise.all(
+          topbarBrandingKeys.map(async (key) => {
+            const url = await loadLogo(key)
+            return [key, url] as const
+          })
+        )
+
+        if (!mounted) return
+
+        setBrandingLogos(Object.fromEntries(entries) as BrandingLogoMap)
+      } catch {
+        if (!mounted) return
+        setBrandingLogos({})
+      }
+    }
+
+    loadTopbarBranding()
+
+    return () => {
+      mounted = false
+      objectUrls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [brandingAssets])
+
+  useEffect(() => {
+    const faviconUrl =
+      theme === "light"
+        ? brandingLogos.lightFaviconUrl ||
+          brandingLogos.faviconUrl ||
+          brandingLogos.darkFaviconUrl
+        : brandingLogos.darkFaviconUrl ||
+          brandingLogos.faviconUrl ||
+          brandingLogos.lightFaviconUrl
+
+    if (faviconUrl) {
+      updateFavicon(faviconUrl)
+    }
+  }, [brandingLogos, theme])
 
   const languageOptions = useMemo(() => {
     return buildLanguageOptions(activeInternationalizations)
@@ -138,6 +246,10 @@ export function Topbar() {
     pageTitleKeys[location.pathname] || "app.name",
     "ShowbarManager"
   )
+
+  const whiteLabelName =
+    brandingSettings?.publicName?.trim() ||
+    t("topbar.system", "ShowbarManager Empresarial")
 
   function handleLogout() {
     const confirmed = window.confirm(t("topbar.logoutConfirm"))
@@ -176,7 +288,7 @@ export function Topbar() {
         </h1>
 
         <p className="hidden sm:block text-xs text-muted truncate">
-          {t("topbar.system")}
+          {whiteLabelName}
         </p>
       </div>
 
