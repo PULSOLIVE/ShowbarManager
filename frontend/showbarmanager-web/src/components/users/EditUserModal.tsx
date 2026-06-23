@@ -7,6 +7,7 @@ import { InternationalizationService } from "../../services/internationalization
 import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
 import { UserService } from "../../services/user.service"
+import { PhoneNumberInput } from "../common/PhoneNumberInput"
 import type { Internationalization } from "../../types/internationalization.types"
 import type { UpdateUserRequest, User } from "../../types/user.types"
 
@@ -106,6 +107,7 @@ function EditUserModalContent({
 
   const [name, setName] = useState(user.name)
   const [email, setEmail] = useState(user.email)
+  const [phone, setPhone] = useState(user.phone ?? "")
   const [role, setRole] = useState(
     user.roles.length > 0 ? user.roles[0] : "OPERATOR"
   )
@@ -177,6 +179,7 @@ function EditUserModalContent({
   useEffect(() => {
     setName(user.name)
     setEmail(user.email)
+    setPhone(user.phone ?? "")
     setRole(user.roles.length > 0 ? user.roles[0] : "OPERATOR")
     setLanguage(getUserLanguage(user))
     setProfileIds(user.profileIds ?? [])
@@ -211,6 +214,7 @@ function EditUserModalContent({
       const payload: UpdateUserPayload = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
+        phone: phone.trim() || null,
         role,
         active,
         language: language || null,
@@ -277,6 +281,15 @@ function EditUserModalContent({
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
+              />
+            </Field>
+            <Field label={t("common.phone", "Telefone")}>
+              <input
+                className="field-input"
+                placeholder={t("users.phonePlaceholder", "+55 11 99999-9999")}
+                type="tel"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
               />
             </Field>
           </div>

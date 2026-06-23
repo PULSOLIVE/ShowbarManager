@@ -33,7 +33,19 @@ const loginAssetKeys: BrandingAssetKey[] = [
 ]
 
 const emptyAssets: LoginAssetMap = {}
+const passwordResetSessionKey = "showbarmanager.passwordReset"
 
+
+function savePasswordResetSession(state: {
+  identifier: string
+  channel: PasswordResetChannel
+  resetToken: string | null
+  maskedDestination: string | null
+}) {
+  if (typeof window === "undefined") return
+
+  window.sessionStorage.setItem(passwordResetSessionKey, JSON.stringify(state))
+}
 function getCurrentThemeMode(): ThemeMode {
   if (typeof document === "undefined") return "dark"
   return document.documentElement.dataset.theme === "light" ? "light" : "dark"
@@ -206,13 +218,17 @@ export function ForgotPasswordPage() {
         channel,
       })
 
+      const resetState = {
+        identifier: identifier.trim(),
+        channel,
+        resetToken: response.resetToken ?? null,
+        maskedDestination: response.maskedDestination ?? null,
+      }
+
+      savePasswordResetSession(resetState)
+
       navigate("/reset-password", {
-        state: {
-          identifier: identifier.trim(),
-          channel,
-          resetToken: response.resetToken ?? null,
-          maskedDestination: response.maskedDestination ?? null,
-        },
+        state: resetState,
       })
     } catch (requestError) {
       setError(getErrorMessage(requestError))
@@ -224,7 +240,7 @@ export function ForgotPasswordPage() {
   return (
     <div
       className={[
-        "h-dvh overflow-hidden text-text relative flex flex-col px-4 py-3",
+        "h-dvh overflow-hidden text-text relative flex flex-col px-4 py-2 sm:py-3",
         themeMode === "light" ? "bg-[#F4EFE5]" : "bg-[#020B1C]",
       ].join(" ")}
     >
@@ -237,32 +253,32 @@ export function ForgotPasswordPage() {
         ].join(" ")}
       />
 
-      <main className="relative z-10 w-full flex-1 min-h-0 flex items-center justify-center">
+      <main className="relative z-10 w-full flex-1 min-h-0 flex items-center justify-center overflow-y-auto py-2 app-scrollbar">
         <section
           className={[
-            "w-full max-w-[430px] rounded-[32px] px-7 py-6 sm:px-8 backdrop-blur-2xl",
+            "w-full max-w-[410px] rounded-[28px] px-6 py-4 sm:px-7 sm:py-5 backdrop-blur-2xl",
             themeMode === "light"
               ? "bg-white/82 shadow-[0_28px_90px_rgba(15,23,42,0.18)]"
               : "bg-[#07111F]/78 shadow-[0_30px_100px_rgba(0,0,0,0.58)]",
           ].join(" ")}
         >
           <form onSubmit={handleSubmit} className="w-full flex flex-col">
-            <div className="text-center h-[120px] flex items-center justify-center">
+            <div className="text-center h-[68px] flex items-center justify-center">
               {logoUrl ? (
                 <img
                   src={logoUrl}
                   alt="Showbar Manager"
-                  className="mx-auto max-h-[112px] max-w-[260px] object-contain"
+                  className="mx-auto max-h-[62px] max-w-[210px] object-contain"
                 />
               ) : (
-                <div className="mx-auto w-20 h-20 rounded-3xl bg-primary text-white flex items-center justify-center font-black text-xl shadow-neon">
+                <div className="mx-auto w-14 h-14 rounded-3xl bg-primary text-white flex items-center justify-center font-black text-base shadow-neon">
                   SM
                 </div>
               )}
             </div>
 
-            <div className="text-center mt-1">
-              <div className="mx-auto w-11 h-11 rounded-2xl bg-primarySoft flex items-center justify-center mb-3">
+            <div className="text-center">
+              <div className="mx-auto w-10 h-10 rounded-2xl bg-primarySoft flex items-center justify-center mb-3">
                 <ShieldCheck size={21} className="text-primary" />
               </div>
 
@@ -278,12 +294,12 @@ export function ForgotPasswordPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-6">
+            <div className="grid grid-cols-2 gap-2 mt-5">
               <button
                 type="button"
                 onClick={() => setChannel("email")}
                 className={[
-                  "rounded-2xl border px-3 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition",
+                  "rounded-2xl border px-3 py-2.5 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-2 transition",
                   channel === "email"
                     ? "bg-primary text-white border-primary"
                     : "bg-card border-border text-muted hover:text-primary hover:border-primary",
@@ -297,7 +313,7 @@ export function ForgotPasswordPage() {
                 type="button"
                 onClick={() => setChannel("sms")}
                 className={[
-                  "rounded-2xl border px-3 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition",
+                  "rounded-2xl border px-3 py-2.5 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-2 transition",
                   channel === "sms"
                     ? "bg-primary text-white border-primary"
                     : "bg-card border-border text-muted hover:text-primary hover:border-primary",
@@ -308,7 +324,7 @@ export function ForgotPasswordPage() {
               </button>
             </div>
 
-            <label className="block mt-5">
+            <label className="block mt-4">
               <span className="block text-xs font-semibold mb-1.5">
                 {channel === "email" ? "E-mail" : "Telemóvel"}
               </span>
@@ -345,7 +361,7 @@ export function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-white font-semibold h-[52px] rounded-2xl hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="w-full bg-primary text-white font-semibold h-[50px] rounded-2xl hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-5"
             >
               {loading ? "A enviar código..." : "Enviar código"}
               {!loading && <ArrowRight size={18} />}
@@ -353,7 +369,7 @@ export function ForgotPasswordPage() {
 
             <Link
               to="/login"
-              className="mt-4 text-xs font-semibold text-primary hover:underline inline-flex items-center justify-center gap-1"
+              className="mt-3 w-full min-h-[42px] text-xs font-semibold text-primary hover:underline inline-flex items-center justify-center gap-1 rounded-2xl"
             >
               <ArrowLeft size={14} />
               Voltar para o login

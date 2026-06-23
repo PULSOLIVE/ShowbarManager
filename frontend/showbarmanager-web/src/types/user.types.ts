@@ -3,6 +3,7 @@ export interface User {
   tenantId: string | null
   name: string
   email: string
+  phone?: string | null
   active: boolean
   masterUser: boolean
   developerUser: boolean
@@ -21,6 +22,7 @@ export interface CreateUserRequest {
   tenantId: string
   name: string
   email: string
+  phone?: string | null
   password: string
   role: string
   profileIds?: string[]
@@ -31,6 +33,7 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   name: string
   email: string
+  phone?: string | null
   role: string
   active: boolean
   profileIds?: string[]

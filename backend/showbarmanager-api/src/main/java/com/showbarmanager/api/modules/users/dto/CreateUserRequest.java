@@ -20,6 +20,8 @@ public class CreateUserRequest {
     @NotBlank
     private String email;
 
+    private String phone;
+
     @NotBlank
     private String password;
 
@@ -35,6 +37,7 @@ public class CreateUserRequest {
     public UUID getTenantId() { return tenantId; }
     public String getName() { return name; }
     public @Email @NotBlank String getEmail() { return email; }
+    public String getPhone() { return phone; }
     public @NotBlank String getPassword() { return password; }
     public @NotBlank String getRole() { return role; }
     public String getLanguage() { return language; }
@@ -44,6 +47,7 @@ public class CreateUserRequest {
     public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
     public void setName(String name) { this.name = name; }
     public void setEmail(@Email @NotBlank String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
     public void setPassword(@NotBlank String password) { this.password = password; }
     public void setRole(@NotBlank String role) { this.role = role; }
     public void setLanguage(String language) { this.language = language; }

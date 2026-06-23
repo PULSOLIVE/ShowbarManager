@@ -50,9 +50,14 @@ public class UserService {
     @Transactional
     public UserResponse create(CreateUserRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
+        String normalizedPhone = normalizePhone(request.getPhone());
 
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException("Já existe um usuário com este e-mail.");
+        }
+
+        if (normalizedPhone != null && userRepository.existsByPhone(normalizedPhone)) {
+            throw new BusinessException("Já existe um usuário com este telefone.");
         }
 
         Tenant tenant = tenantRepository.findById(request.getTenantId())
@@ -65,6 +70,7 @@ public class UserService {
         user.setTenant(tenant);
         user.setName(request.getName().trim());
         user.setEmail(normalizedEmail);
+        user.setPhone(normalizedPhone);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setLanguage(normalizeLanguage(request.getLanguage()));
         user.setRoles(new HashSet<>(Set.of(role)));
@@ -99,10 +105,19 @@ public class UserService {
         User user = findUserById(id);
 
         String normalizedEmail = request.getEmail().trim().toLowerCase();
+        String normalizedPhone = normalizePhone(request.getPhone());
         boolean emailChanged = !user.getEmail().equalsIgnoreCase(normalizedEmail);
 
         if (emailChanged && userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException("Já existe outro usuário com este e-mail.");
+        }
+
+        if (normalizedPhone != null) {
+            User phoneOwner = userRepository.findByPhone(normalizedPhone).orElse(null);
+
+            if (phoneOwner != null && !phoneOwner.getId().equals(user.getId())) {
+                throw new BusinessException("Já existe outro usuário com este telefone.");
+            }
         }
 
         Role role = roleRepository.findByName(request.getRole())
@@ -110,6 +125,7 @@ public class UserService {
 
         user.setName(request.getName().trim());
         user.setEmail(normalizedEmail);
+        user.setPhone(normalizedPhone);
         user.setLanguage(normalizeLanguage(request.getLanguage()));
         user.setRoles(new HashSet<>(Set.of(role)));
         user.setProfiles(resolveProfiles(request.getProfileIds()));
@@ -134,6 +150,18 @@ public class UserService {
         User user = findUserById(id);
 
         userRepository.delete(user);
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null || phone.isBlank()) {
+            return null;
+        }
+
+        return phone.trim()
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("(", "")
+                .replace(")", "");
     }
 
     private String normalizeLanguage(String language) {
@@ -216,6 +244,7 @@ public class UserService {
         response.setTenantId(user.getTenant() != null ? user.getTenant().getId() : null);
         response.setName(user.getName());
         response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
         response.setLanguage(user.getLanguage());
         response.setActive(user.getActive());
         response.setMasterUser(user.getMasterUser());

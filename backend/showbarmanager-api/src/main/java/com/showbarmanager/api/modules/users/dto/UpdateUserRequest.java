@@ -9,14 +9,16 @@ import java.util.UUID;
 
 public class UpdateUserRequest {
 
-    @NotBlank(message = "O nome é obrigatório.")
+    @NotBlank(message = "O nome e obrigatorio.")
     private String name;
 
-    @NotBlank(message = "O e-mail é obrigatório.")
-    @Email(message = "Informe um e-mail válido.")
+    @NotBlank(message = "O e-mail e obrigatorio.")
+    @Email(message = "Informe um e-mail valido.")
     private String email;
 
-    @NotBlank(message = "O perfil é obrigatório.")
+    private String phone;
+
+    @NotBlank(message = "O perfil e obrigatorio.")
     private String role;
 
     private String language;
@@ -29,6 +31,7 @@ public class UpdateUserRequest {
 
     public String getName() { return name; }
     public String getEmail() { return email; }
+    public String getPhone() { return phone; }
     public String getRole() { return role; }
     public String getLanguage() { return language; }
     public Boolean getActive() { return active; }
@@ -37,6 +40,7 @@ public class UpdateUserRequest {
 
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
     public void setRole(String role) { this.role = role; }
     public void setLanguage(String language) { this.language = language; }
     public void setActive(Boolean active) { this.active = active; }

@@ -7,6 +7,7 @@ import { InternationalizationService } from "../../services/internationalization
 import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
 import { UserService } from "../../services/user.service"
+import { PhoneNumberInput } from "../common/PhoneNumberInput"
 import type { Internationalization } from "../../types/internationalization.types"
 import type { CreateUserRequest } from "../../types/user.types"
 
@@ -70,6 +71,7 @@ export function CreateUserModal({
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("123456")
   const [role, setRole] = useState("")
   const [language, setLanguage] = useState("")
@@ -140,6 +142,7 @@ export function CreateUserModal({
 
     setName("")
     setEmail("")
+    setPhone("")
     setPassword("123456")
     setRole("")
     setLanguage("")
@@ -205,6 +208,7 @@ export function CreateUserModal({
         tenantId,
         name: name.trim(),
         email: email.trim().toLowerCase(),
+        phone: phone.trim() || null,
         password,
         role,
         language: language || null,
@@ -270,6 +274,15 @@ export function CreateUserModal({
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
+              />
+            </Field>
+            <Field label={t("common.phone", "Telefone")}>
+              <input
+                className="field-input"
+                placeholder={t("users.phonePlaceholder", "+55 11 99999-9999")}
+                type="tel"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
               />
             </Field>
           </div>

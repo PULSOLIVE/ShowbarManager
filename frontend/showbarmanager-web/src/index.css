@@ -304,3 +304,17 @@ select option {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+
+.showbar-phone-select-field {
+  min-height: 42px;
+  padding: 0;
+}
+
+.showbar-phone-select-button {
+  min-width: 98px;
+}
+
+.showbar-phone-select-dropdown {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+}
