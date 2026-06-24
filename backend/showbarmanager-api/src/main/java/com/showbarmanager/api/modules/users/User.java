@@ -30,6 +30,12 @@ public class User {
     @Column(length = 40, unique = true)
     private String phone;
 
+    @Column(name = "phone_country_code", length = 2)
+    private String phoneCountryCode;
+
+    @Column(name = "phone_dial_code", length = 8)
+    private String phoneDialCode;
+
     @Column(nullable = false, length = 255)
     private String password;
 
@@ -105,6 +111,8 @@ public class User {
     public String getName() { return name; }
     public String getEmail() { return email; }
     public String getPhone() { return phone; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public String getPhoneDialCode() { return phoneDialCode; }
     public String getPassword() { return password; }
     public String getLanguage() { return language; }
     public Boolean getActive() { return active; }
@@ -121,6 +129,8 @@ public class User {
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPhone(String phone) { this.phone = phone; }
+    public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
+    public void setPhoneDialCode(String phoneDialCode) { this.phoneDialCode = phoneDialCode; }
     public void setPassword(String password) { this.password = password; }
     public void setLanguage(String language) { this.language = language; }
     public void setActive(Boolean active) { this.active = active; }

@@ -338,6 +338,16 @@ const frFR = {
       "Utilisateur créé, mais impossible d’actualiser la liste.",
     updatedRefreshError:
       "Utilisateur mis à jour, mais impossible d’actualiser la liste.",
+    activateUserConfirm: "Voulez-vous activer cet utilisateur ?",
+    deactivateUserConfirm: "Voulez-vous désactiver cet utilisateur ?",
+    deleteUserConfirm: "Voulez-vous supprimer cet utilisateur ?",
+    userActivatedSuccess: "Utilisateur activé avec succès.",
+    userDeactivatedSuccess: "Utilisateur désactivé avec succès.",
+    userUpdatedSuccess: "Utilisateur mis à jour avec succès.",
+    userDeletedSuccess: "Utilisateur supprimé avec succès.",
+    phoneCountry: "Pays du téléphone",
+    phoneDialCode: "Indicatif international",
+    searchCountryOrDialCode: "Rechercher un pays ou un indicatif",
     newAccess: "Nouvel accès",
     editAccess: "Modifier l’accès",
     createDescription:

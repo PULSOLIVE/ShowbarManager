@@ -1,26 +1,66 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import type { ComponentType } from "react"
 import { ChevronDown, Search } from "lucide-react"
+import * as FlagIcons from "country-flag-icons/react/3x2"
 import { defaultCountries, parseCountry } from "react-international-phone"
+import { useTranslation } from "../../hooks/useTranslation"
 import type { ParsedCountry } from "react-international-phone"
 
 interface PhoneNumberInputProps {
   value: string
   onChange: (value: string) => void
+  countryCode?: string | null
+  dialCode?: string | null
+  onCountryCodeChange?: (value: string | null) => void
+  onDialCodeChange?: (value: string | null) => void
   placeholder?: string
+}
+
+type FlagComponent = ComponentType<{ className?: string; title?: string }>
+
+const flags = FlagIcons as Record<string, FlagComponent | undefined>
+
+const countryNameOverrides: Record<string, string> = {
+  ao: "Angola",
+  br: "Brasil",
+  de: "Alemanha",
+  es: "Espanha",
+  fr: "França",
+  gb: "Reino Unido",
+  it: "Itália",
+  mz: "Moçambique",
+  pt: "Portugal",
+  us: "Estados Unidos",
+}
+
+function getCountryName(country: ParsedCountry) {
+  const override = countryNameOverrides[country.iso2]
+
+  if (override) {
+    return override
+  }
+
+  try {
+    return new Intl.DisplayNames(["pt"], { type: "region" }).of(country.iso2.toUpperCase()) || country.name
+  } catch {
+    return country.name
+  }
 }
 
 const countries = defaultCountries
   .map((country) => parseCountry(country))
-  .sort((a, b) => a.name.localeCompare(b.name))
-
-function getFlag(iso2: string) {
-  return iso2
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
-}
+  .sort((a, b) => getCountryName(a).localeCompare(getCountryName(b)))
 
 function normalizeDigits(value: string) {
   return value.replace(/\D/g, "")
+}
+
+function normalizeCountryCode(countryCode?: string | null) {
+  return countryCode?.trim().toLowerCase() || ""
+}
+
+function normalizeDialCode(dialCode?: string | null) {
+  return normalizeDigits(dialCode || "")
 }
 
 function findCountryByPhone(phone: string) {
@@ -29,6 +69,25 @@ function findCountryByPhone(phone: string) {
   return countries
     .filter((country) => digits.startsWith(country.dialCode))
     .sort((a, b) => b.dialCode.length - a.dialCode.length)[0]
+}
+
+function findCountryByMetadata(countryCode?: string | null, dialCode?: string | null) {
+  const normalizedCountryCode = normalizeCountryCode(countryCode)
+  const normalizedDialCode = normalizeDialCode(dialCode)
+
+  if (normalizedCountryCode) {
+    const countryByCode = countries.find((country) => country.iso2 === normalizedCountryCode)
+
+    if (countryByCode) {
+      return countryByCode
+    }
+  }
+
+  if (normalizedDialCode) {
+    return countries.find((country) => country.dialCode === normalizedDialCode)
+  }
+
+  return undefined
 }
 
 function getLocalNumber(phone: string, country: ParsedCountry) {
@@ -44,13 +103,30 @@ function getLocalNumber(phone: string, country: ParsedCountry) {
 export function PhoneNumberInput({
   value,
   onChange,
+  countryCode,
+  dialCode,
+  onCountryCodeChange,
+  onDialCodeChange,
   placeholder = "+351 927 703 306",
 }: PhoneNumberInputProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [selectedIso2, setSelectedIso2] = useState("pt")
-  const selectedCountry = findCountryByPhone(value) || countries.find((country) => country.iso2 === selectedIso2) || countries[0]
+
+  const selectedCountry =
+    findCountryByMetadata(countryCode, dialCode) ||
+    findCountryByPhone(value) ||
+    countries.find((country) => country.iso2 === selectedIso2) ||
+    countries[0]
+
   const localNumber = getLocalNumber(value, selectedCountry)
+
+  useEffect(() => {
+    setSelectedIso2(selectedCountry.iso2)
+    onCountryCodeChange?.(selectedCountry.iso2.toUpperCase())
+    onDialCodeChange?.(`+${selectedCountry.dialCode}`)
+  }, [onCountryCodeChange, onDialCodeChange, selectedCountry.dialCode, selectedCountry.iso2])
 
   const filteredCountries = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -61,7 +137,7 @@ export function PhoneNumberInput({
 
     return countries.filter((country) => {
       return (
-        country.name.toLowerCase().includes(term) ||
+        getCountryName(country).toLowerCase().includes(term) ||
         country.iso2.toLowerCase().includes(term) ||
         (digitsTerm.length > 0 && country.dialCode.includes(digitsTerm))
       )
@@ -70,6 +146,8 @@ export function PhoneNumberInput({
 
   function selectCountry(country: ParsedCountry) {
     setSelectedIso2(country.iso2)
+    onCountryCodeChange?.(country.iso2.toUpperCase())
+    onDialCodeChange?.(`+${country.dialCode}`)
     onChange(localNumber ? `+${country.dialCode}${localNumber}` : "")
     setSearch("")
     setOpen(false)
@@ -77,6 +155,8 @@ export function PhoneNumberInput({
 
   function handleNumberChange(nextValue: string) {
     const digits = normalizeDigits(nextValue)
+    onCountryCodeChange?.(selectedCountry.iso2.toUpperCase())
+    onDialCodeChange?.(`+${selectedCountry.dialCode}`)
     onChange(digits ? `+${selectedCountry.dialCode}${digits}` : "")
   }
 
@@ -85,10 +165,10 @@ export function PhoneNumberInput({
       <div className="field-input showbar-phone-select-field px-0 py-0 flex items-center focus-within:border-primary">
         <button
           type="button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => setOpen((current) => !current)}
           className="showbar-phone-select-button h-[40px] px-3 flex items-center gap-2 border-r border-border text-sm text-text hover:text-primary transition"
         >
-          <span className="text-base leading-none">{getFlag(selectedCountry.iso2)}</span>
+          <CountryFlag countryCode={selectedCountry.iso2} label={getCountryName(selectedCountry)} />
           <span className="font-semibold">+{selectedCountry.dialCode}</span>
           <ChevronDown size={14} className={open ? "rotate-180 transition" : "transition"} />
         </button>
@@ -109,7 +189,7 @@ export function PhoneNumberInput({
             <Search size={15} className="text-muted shrink-0" />
             <input
               className="w-full bg-transparent outline-none text-sm"
-              placeholder="Buscar pais ou DDI"
+              placeholder={t("users.searchCountryOrDialCode")}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               autoFocus
@@ -129,8 +209,8 @@ export function PhoneNumberInput({
                     : "text-text hover:bg-cardSoft",
                 ].join(" ")}
               >
-                <span className="text-base w-6 text-center">{getFlag(country.iso2)}</span>
-                <span className="flex-1 truncate">{country.name}</span>
+                <CountryFlag countryCode={country.iso2} label={getCountryName(country)} />
+                <span className="flex-1 truncate">{getCountryName(country)}</span>
                 <span className="text-muted">+{country.dialCode}</span>
               </button>
             ))}
@@ -138,5 +218,26 @@ export function PhoneNumberInput({
         </div>
       )}
     </div>
+  )
+}
+
+function CountryFlag({ countryCode, label }: { countryCode: string; label: string }) {
+  const code = countryCode.toUpperCase()
+  const Flag = flags[code]
+
+  if (!Flag) {
+    return (
+      <span
+        className="inline-flex h-4 w-6 shrink-0 rounded-[4px] bg-primarySoft"
+        aria-label={label}
+        title={label}
+      />
+    )
+  }
+
+  return (
+    <span className="inline-flex h-4 w-6 shrink-0 overflow-hidden rounded-[4px]" aria-label={label} title={label}>
+      <Flag className="h-full w-full object-cover" title={label} />
+    </span>
   )
 }

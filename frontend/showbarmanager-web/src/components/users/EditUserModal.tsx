@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { ShieldCheck, X } from "lucide-react"
 import { useTranslation } from "../../hooks/useTranslation"
+import { useToast } from "../common/toast.context"
 import { InternationalizationService } from "../../services/internationalization.service"
 import { PermissionService } from "../../services/permission.service"
 import { ProfileService } from "../../services/profile.service"
@@ -104,10 +105,13 @@ function EditUserModalContent({
   onUpdated,
 }: EditUserModalContentProps) {
   const { t } = useTranslation()
+  const toast = useToast()
 
   const [name, setName] = useState(user.name)
   const [email, setEmail] = useState(user.email)
   const [phone, setPhone] = useState(user.phone ?? "")
+  const [phoneCountryCode, setPhoneCountryCode] = useState<string | null>(user.phoneCountryCode ?? null)
+  const [phoneDialCode, setPhoneDialCode] = useState<string | null>(user.phoneDialCode ?? null)
   const [role, setRole] = useState(
     user.roles.length > 0 ? user.roles[0] : "OPERATOR"
   )
@@ -180,6 +184,8 @@ function EditUserModalContent({
     setName(user.name)
     setEmail(user.email)
     setPhone(user.phone ?? "")
+    setPhoneCountryCode(user.phoneCountryCode ?? null)
+    setPhoneDialCode(user.phoneDialCode ?? null)
     setRole(user.roles.length > 0 ? user.roles[0] : "OPERATOR")
     setLanguage(getUserLanguage(user))
     setProfileIds(user.profileIds ?? [])
@@ -215,6 +221,8 @@ function EditUserModalContent({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: phone.trim() || null,
+        phoneCountryCode: phone.trim() ? phoneCountryCode : null,
+        phoneDialCode: phone.trim() ? phoneDialCode : null,
         role,
         active,
         language: language || null,
@@ -224,6 +232,7 @@ function EditUserModalContent({
 
       await UserService.update(user.id, payload)
 
+      toast.success(t("users.userUpdatedSuccess"))
       onUpdated()
       onClose()
     } catch {
@@ -284,12 +293,10 @@ function EditUserModalContent({
               />
             </Field>
             <Field label={t("common.phone", "Telefone")}>
-              <input
-                className="field-input"
+              <PhoneNumberInput
                 placeholder={t("users.phonePlaceholder", "+55 11 99999-9999")}
-                type="tel"
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                onChange={setPhone}
               />
             </Field>
           </div>
@@ -394,13 +401,23 @@ function EditUserModalContent({
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-          >
-            {loading ? t("users.savingChanges") : t("users.saveChanges")}
-          </button>
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-full border border-border bg-background text-sm font-semibold hover:border-primary hover:text-primary transition"
+            >
+              {t("common.cancel", "Cancelar")}
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-primary text-white font-semibold rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+            >
+              {loading ? t("users.savingChanges") : t("users.saveChanges")}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -333,6 +333,16 @@ const ptBR = {
       "Usuário criado, mas não foi possível atualizar a lista.",
     updatedRefreshError:
       "Usuário atualizado, mas não foi possível atualizar a lista.",
+    activateUserConfirm: "Deseja ativar este usuário?",
+    deactivateUserConfirm: "Deseja desativar este usuário?",
+    deleteUserConfirm: "Deseja excluir este usuário?",
+    userActivatedSuccess: "Usuário ativado com sucesso.",
+    userDeactivatedSuccess: "Usuário desativado com sucesso.",
+    userUpdatedSuccess: "Usuário atualizado com sucesso.",
+    userDeletedSuccess: "Usuário excluído com sucesso.",
+    phoneCountry: "País do telefone",
+    phoneDialCode: "DDI",
+    searchCountryOrDialCode: "Buscar país ou DDI",
     newAccess: "Novo acesso",
     editAccess: "Editar acesso",
     createDescription:

@@ -22,6 +22,10 @@ public class CreateUserRequest {
 
     private String phone;
 
+    private String phoneCountryCode;
+
+    private String phoneDialCode;
+
     @NotBlank
     private String password;
 
@@ -38,6 +42,8 @@ public class CreateUserRequest {
     public String getName() { return name; }
     public @Email @NotBlank String getEmail() { return email; }
     public String getPhone() { return phone; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public String getPhoneDialCode() { return phoneDialCode; }
     public @NotBlank String getPassword() { return password; }
     public @NotBlank String getRole() { return role; }
     public String getLanguage() { return language; }
@@ -48,6 +54,8 @@ public class CreateUserRequest {
     public void setName(String name) { this.name = name; }
     public void setEmail(@Email @NotBlank String email) { this.email = email; }
     public void setPhone(String phone) { this.phone = phone; }
+    public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
+    public void setPhoneDialCode(String phoneDialCode) { this.phoneDialCode = phoneDialCode; }
     public void setPassword(@NotBlank String password) { this.password = password; }
     public void setRole(@NotBlank String role) { this.role = role; }
     public void setLanguage(String language) { this.language = language; }

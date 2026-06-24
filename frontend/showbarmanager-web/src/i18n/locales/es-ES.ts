@@ -333,6 +333,16 @@ const esES = {
       "Usuario creado, pero no se ha podido actualizar la lista.",
     updatedRefreshError:
       "Usuario actualizado, pero no se ha podido actualizar la lista.",
+    activateUserConfirm: "¿Desea activar este usuario?",
+    deactivateUserConfirm: "¿Desea desactivar este usuario?",
+    deleteUserConfirm: "¿Desea eliminar este usuario?",
+    userActivatedSuccess: "Usuario activado correctamente.",
+    userDeactivatedSuccess: "Usuario desactivado correctamente.",
+    userUpdatedSuccess: "Usuario actualizado correctamente.",
+    userDeletedSuccess: "Usuario eliminado correctamente.",
+    phoneCountry: "País del teléfono",
+    phoneDialCode: "Prefijo internacional",
+    searchCountryOrDialCode: "Buscar país o prefijo",
     newAccess: "Nuevo acceso",
     editAccess: "Editar acceso",
     createDescription:

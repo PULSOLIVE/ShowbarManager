@@ -4,6 +4,8 @@ export interface User {
   name: string
   email: string
   phone?: string | null
+  phoneCountryCode?: string | null
+  phoneDialCode?: string | null
   active: boolean
   masterUser: boolean
   developerUser: boolean
@@ -23,6 +25,8 @@ export interface CreateUserRequest {
   name: string
   email: string
   phone?: string | null
+  phoneCountryCode?: string | null
+  phoneDialCode?: string | null
   password: string
   role: string
   profileIds?: string[]
@@ -34,6 +38,8 @@ export interface UpdateUserRequest {
   name: string
   email: string
   phone?: string | null
+  phoneCountryCode?: string | null
+  phoneDialCode?: string | null
   role: string
   active: boolean
   profileIds?: string[]

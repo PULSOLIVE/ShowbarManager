@@ -311,6 +311,16 @@ export interface Dictionary {
     searchPlaceholder: string
     createdRefreshError: string
     updatedRefreshError: string
+    activateUserConfirm: string
+    deactivateUserConfirm: string
+    deleteUserConfirm: string
+    userActivatedSuccess: string
+    userDeactivatedSuccess: string
+    userUpdatedSuccess: string
+    userDeletedSuccess: string
+    phoneCountry: string
+    phoneDialCode: string
+    searchCountryOrDialCode: string
     newAccess: string
     editAccess: string
     createDescription: string

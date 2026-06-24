@@ -72,6 +72,8 @@ export function CreateUserModal({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [phoneCountryCode, setPhoneCountryCode] = useState<string | null>("PT")
+  const [phoneDialCode, setPhoneDialCode] = useState<string | null>("+351")
   const [password, setPassword] = useState("123456")
   const [role, setRole] = useState("")
   const [language, setLanguage] = useState("")
@@ -143,6 +145,8 @@ export function CreateUserModal({
     setName("")
     setEmail("")
     setPhone("")
+    setPhoneCountryCode("PT")
+    setPhoneDialCode("+351")
     setPassword("123456")
     setRole("")
     setLanguage("")
@@ -209,6 +213,8 @@ export function CreateUserModal({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: phone.trim() || null,
+        phoneCountryCode: phone.trim() ? phoneCountryCode : null,
+        phoneDialCode: phone.trim() ? phoneDialCode : null,
         password,
         role,
         language: language || null,
@@ -277,12 +283,10 @@ export function CreateUserModal({
               />
             </Field>
             <Field label={t("common.phone", "Telefone")}>
-              <input
-                className="field-input"
+              <PhoneNumberInput
                 placeholder={t("users.phonePlaceholder", "+55 11 99999-9999")}
-                type="tel"
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                onChange={setPhone}
               />
             </Field>
           </div>
@@ -386,13 +390,23 @@ export function CreateUserModal({
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading || !role}
-            className="w-full bg-primary text-white font-semibold py-2.5 rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-          >
-            {loading ? t("users.creating") : t("users.create")}
-          </button>
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-full border border-border bg-background text-sm font-semibold hover:border-primary hover:text-primary transition"
+            >
+              {t("common.cancel", "Cancelar")}
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading || !role}
+              className="px-4 py-2 bg-primary text-white font-semibold rounded-full hover:shadow-neon transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+            >
+              {loading ? t("users.creating") : t("users.create")}
+            </button>
+          </div>
         </form>
       </div>
     </div>

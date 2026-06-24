@@ -20,7 +20,6 @@ import { SettingsSessionsPage } from "../pages/settings/SettingsSessionsPage"
 import { SettingsTenantsPage } from "../pages/settings/SettingsTenantsPage"
 import { SettingsUsersPage } from "../pages/settings/SettingsUsersPage"
 import { TenantsPage } from "../pages/tenants/TenantsPage"
-import { UsersPage } from "../pages/users/UsersPage"
 import { ProtectedRoute } from "./ProtectedRoute"
 
 export function AppRoutes() {
@@ -38,7 +37,7 @@ export function AppRoutes() {
             <Route path="dashboard" element={<DashboardPage />} />
 
             <Route path="tenants" element={<TenantsPage />} />
-            <Route path="users" element={<UsersPage />} />
+            <Route path="users" element={<Navigate to="/settings/users" replace />} />
 
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/users" element={<SettingsUsersPage />} />

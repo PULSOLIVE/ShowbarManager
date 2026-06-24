@@ -333,6 +333,16 @@ const enUS = {
       "User created, but the list could not be refreshed.",
     updatedRefreshError:
       "User updated, but the list could not be refreshed.",
+    activateUserConfirm: "Do you want to activate this user?",
+    deactivateUserConfirm: "Do you want to deactivate this user?",
+    deleteUserConfirm: "Do you want to delete this user?",
+    userActivatedSuccess: "User activated successfully.",
+    userDeactivatedSuccess: "User deactivated successfully.",
+    userUpdatedSuccess: "User updated successfully.",
+    userDeletedSuccess: "User deleted successfully.",
+    phoneCountry: "Phone country",
+    phoneDialCode: "Dial code",
+    searchCountryOrDialCode: "Search country or dial code",
     newAccess: "New access",
     editAccess: "Edit access",
     createDescription:

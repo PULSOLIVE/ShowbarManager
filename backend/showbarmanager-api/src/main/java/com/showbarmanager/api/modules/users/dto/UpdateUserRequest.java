@@ -18,6 +18,10 @@ public class UpdateUserRequest {
 
     private String phone;
 
+    private String phoneCountryCode;
+
+    private String phoneDialCode;
+
     @NotBlank(message = "O perfil e obrigatorio.")
     private String role;
 
@@ -32,6 +36,8 @@ public class UpdateUserRequest {
     public String getName() { return name; }
     public String getEmail() { return email; }
     public String getPhone() { return phone; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public String getPhoneDialCode() { return phoneDialCode; }
     public String getRole() { return role; }
     public String getLanguage() { return language; }
     public Boolean getActive() { return active; }
@@ -41,6 +47,8 @@ public class UpdateUserRequest {
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPhone(String phone) { this.phone = phone; }
+    public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
+    public void setPhoneDialCode(String phoneDialCode) { this.phoneDialCode = phoneDialCode; }
     public void setRole(String role) { this.role = role; }
     public void setLanguage(String language) { this.language = language; }
     public void setActive(Boolean active) { this.active = active; }

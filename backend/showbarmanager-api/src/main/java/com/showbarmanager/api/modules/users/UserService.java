@@ -24,6 +24,19 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
+    private static final String[][] PHONE_COUNTRY_DIAL_CODES = {
+            {"351", "PT"},
+            {"55", "BR"},
+            {"34", "ES"},
+            {"33", "FR"},
+            {"49", "DE"},
+            {"39", "IT"},
+            {"44", "GB"},
+            {"244", "AO"},
+            {"258", "MZ"},
+            {"1", "US"}
+    };
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
@@ -51,6 +64,8 @@ public class UserService {
     public UserResponse create(CreateUserRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
         String normalizedPhone = normalizePhone(request.getPhone());
+        String normalizedPhoneCountryCode = normalizePhoneCountryCode(request.getPhoneCountryCode(), normalizedPhone);
+        String normalizedPhoneDialCode = normalizePhoneDialCode(request.getPhoneDialCode(), normalizedPhoneCountryCode, normalizedPhone);
 
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException("Já existe um usuário com este e-mail.");
@@ -71,6 +86,8 @@ public class UserService {
         user.setName(request.getName().trim());
         user.setEmail(normalizedEmail);
         user.setPhone(normalizedPhone);
+        user.setPhoneCountryCode(normalizedPhoneCountryCode);
+        user.setPhoneDialCode(normalizedPhoneDialCode);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setLanguage(normalizeLanguage(request.getLanguage()));
         user.setRoles(new HashSet<>(Set.of(role)));
@@ -106,6 +123,8 @@ public class UserService {
 
         String normalizedEmail = request.getEmail().trim().toLowerCase();
         String normalizedPhone = normalizePhone(request.getPhone());
+        String normalizedPhoneCountryCode = normalizePhoneCountryCode(request.getPhoneCountryCode(), normalizedPhone);
+        String normalizedPhoneDialCode = normalizePhoneDialCode(request.getPhoneDialCode(), normalizedPhoneCountryCode, normalizedPhone);
         boolean emailChanged = !user.getEmail().equalsIgnoreCase(normalizedEmail);
 
         if (emailChanged && userRepository.existsByEmail(normalizedEmail)) {
@@ -126,6 +145,8 @@ public class UserService {
         user.setName(request.getName().trim());
         user.setEmail(normalizedEmail);
         user.setPhone(normalizedPhone);
+        user.setPhoneCountryCode(normalizedPhoneCountryCode);
+        user.setPhoneDialCode(normalizedPhoneDialCode);
         user.setLanguage(normalizeLanguage(request.getLanguage()));
         user.setRoles(new HashSet<>(Set.of(role)));
         user.setProfiles(resolveProfiles(request.getProfileIds()));
@@ -162,6 +183,96 @@ public class UserService {
                 .replace("-", "")
                 .replace("(", "")
                 .replace(")", "");
+    }
+
+    private String normalizePhoneCountryCode(String phoneCountryCode, String normalizedPhone) {
+        if (normalizedPhone == null) {
+            return null;
+        }
+
+        if (phoneCountryCode != null && !phoneCountryCode.isBlank()) {
+            String normalizedCountryCode = phoneCountryCode.trim().toUpperCase();
+
+            if (normalizedCountryCode.length() == 2) {
+                return normalizedCountryCode;
+            }
+        }
+
+        String inferredCountryCode = inferPhoneCountryCode(normalizedPhone);
+
+        return inferredCountryCode != null ? inferredCountryCode : "PT";
+    }
+
+    private String normalizePhoneDialCode(String phoneDialCode, String phoneCountryCode, String normalizedPhone) {
+        if (normalizedPhone == null) {
+            return null;
+        }
+
+        if (phoneDialCode != null && !phoneDialCode.isBlank()) {
+            String normalizedDialCode = "+" + phoneDialCode.trim().replace("+", "").replace(" ", "");
+
+            return normalizedDialCode.length() <= 8 ? normalizedDialCode : normalizedDialCode.substring(0, 8);
+        }
+
+        String countryDialCode = findDialCodeByCountryCode(phoneCountryCode);
+
+        if (countryDialCode != null) {
+            return "+" + countryDialCode;
+        }
+
+        String inferredDialCode = inferPhoneDialCode(normalizedPhone);
+
+        return inferredDialCode != null ? "+" + inferredDialCode : "+351";
+    }
+
+    private String inferPhoneCountryCode(String normalizedPhone) {
+        String digits = normalizedPhone.replaceAll("\\D", "");
+
+        for (String[] item : PHONE_COUNTRY_DIAL_CODES) {
+            if (digits.startsWith(item[0])) {
+                return item[1];
+            }
+        }
+
+        return null;
+    }
+
+    private String inferPhoneDialCode(String normalizedPhone) {
+        String digits = normalizedPhone.replaceAll("\\D", "");
+
+        for (String[] item : PHONE_COUNTRY_DIAL_CODES) {
+            if (digits.startsWith(item[0])) {
+                return item[0];
+            }
+        }
+
+        return null;
+    }
+
+    private String findDialCodeByCountryCode(String phoneCountryCode) {
+        if (phoneCountryCode == null || phoneCountryCode.isBlank()) {
+            return null;
+        }
+
+        for (String[] item : PHONE_COUNTRY_DIAL_CODES) {
+            if (item[1].equalsIgnoreCase(phoneCountryCode)) {
+                return item[0];
+            }
+        }
+
+        return null;
+    }
+
+    private String resolvePhoneCountryCode(User user) {
+        String normalizedCountryCode = normalizePhoneCountryCode(user.getPhoneCountryCode(), user.getPhone());
+
+        return normalizedCountryCode;
+    }
+
+    private String resolvePhoneDialCode(User user) {
+        String normalizedCountryCode = resolvePhoneCountryCode(user);
+
+        return normalizePhoneDialCode(user.getPhoneDialCode(), normalizedCountryCode, user.getPhone());
     }
 
     private String normalizeLanguage(String language) {
@@ -245,6 +356,8 @@ public class UserService {
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setPhone(user.getPhone());
+        response.setPhoneCountryCode(resolvePhoneCountryCode(user));
+        response.setPhoneDialCode(resolvePhoneDialCode(user));
         response.setLanguage(user.getLanguage());
         response.setActive(user.getActive());
         response.setMasterUser(user.getMasterUser());
