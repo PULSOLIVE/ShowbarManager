@@ -11,6 +11,24 @@ spring:
     password: showbar123
     driver-class-name: org.postgresql.Driver
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -36,6 +54,12 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  mail:
+    from: no-reply@showbarmanager.local
+  sms:
+    provider: mock
+    mock:
+      url: http://localhost:3001/sms
   security:
     jwt:
       secret: "showbarmanager-local-development-secret-key-very-secure-2026"

@@ -2,6 +2,7 @@ package com.showbarmanager.api.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,44 +34,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(customAuthenticationEntryPoint)
-                .accessDeniedHandler(customAccessDeniedHandler)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/v1/health",
-                    "/api/v1/auth/**",
-                    "/actuator/health",
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs",
-                    "/v3/api-docs/**",
-                    "/v3/docs-api",
-                    "/v3/docs-api/**"
-                ).permitAll()
-                .requestMatchers(
-                    "/api/v1/tenants",
-                    "/api/v1/tenants/**"
-                ).hasAnyAuthority(
-                    "ROLE_ADMIN_MASTER",
-                    "ROLE_DEVELOPER_MASTER",
-                    "ROLE_TENANT_ADMIN"
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .requestMatchers(
-                    "/api/v1/users",
-                    "/api/v1/users/**"
-                ).hasAnyAuthority(
-                    "ROLE_ADMIN_MASTER",
-                    "ROLE_DEVELOPER_MASTER",
-                    "ROLE_TENANT_ADMIN"
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        .requestMatchers(
+                                "/error",
+                                "/api/v1/health",
+                                "/api/v1/auth/**",
+                                "/api/v1/public/branding/assets",
+                                "/api/v1/public/branding/assets/*/file",
+                                "/actuator/health",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/docs-api",
+                                "/v3/docs-api/**"
+                        ).permitAll()
+
+                        .requestMatchers("/api/v1/**").authenticated()
+
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

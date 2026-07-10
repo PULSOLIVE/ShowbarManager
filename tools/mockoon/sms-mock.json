@@ -1,0 +1,78 @@
+{
+  "uuid": "7d30f07a-2d49-4f7a-9e8b-2c17b0ad3001",
+  "lastMigration": 33,
+  "name": "Showbar Manager SMS Mock",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3001,
+  "hostname": "0.0.0.0",
+  "routes": [
+    {
+      "uuid": "8bf9a80f-9fd8-4a2d-b38c-3e9c46e03001",
+      "type": "http",
+      "documentation": "Recebe SMS mockado do fluxo de recuperacao de senha.",
+      "method": "post",
+      "endpoint": "sms",
+      "responses": [
+        {
+          "uuid": "bf24a80e-53fa-442a-aa62-b4c2d4b13001",
+          "body": "{\n  \"success\": true,\n  \"message\": \"SMS mock recebido\",\n  \"telefone\": \"{{body 'telefone'}}\",\n  \"codigoOtp\": \"{{body 'codigoOtp'}}\",\n  \"timestamp\": \"{{body 'timestamp'}}\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "SMS recebido",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "enabled": true,
+      "responseMode": null,
+      "streamingMode": null
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Authorization, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [],
+  "proxyResHeaders": [],
+  "data": [],
+  "callbacks": []
+}
