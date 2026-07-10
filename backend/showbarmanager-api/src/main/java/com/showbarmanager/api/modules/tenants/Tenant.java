@@ -1,6 +1,7 @@
 package com.showbarmanager.api.modules.tenants;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -45,7 +46,26 @@ public class Tenant {
     public void prePersist() {
         this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
-        this.active = true;
+
+        if (this.active == null) {
+            this.active = true;
+        }
+
+        if (this.country == null || this.country.isBlank()) {
+            this.country = "PT";
+        }
+
+        if (this.currency == null || this.currency.isBlank()) {
+            this.currency = "EUR";
+        }
+
+        if (this.language == null || this.language.isBlank()) {
+            this.language = "pt-PT";
+        }
+
+        if (this.timezone == null || this.timezone.isBlank()) {
+            this.timezone = "Europe/Lisbon";
+        }
     }
 
     @PreUpdate

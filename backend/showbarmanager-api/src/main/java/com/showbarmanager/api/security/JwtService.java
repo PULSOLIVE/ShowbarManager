@@ -24,10 +24,16 @@ public class JwtService {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + expiration);
 
+        String tenantLanguage = user.getTenant() != null ? user.getTenant().getLanguage() : null;
+        String resolvedLanguage = resolveLanguage(user.getLanguage(), tenantLanguage);
+
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("userId", user.getId() != null ? user.getId().toString() : null)
                 .claim("tenantId", user.getTenant() != null ? user.getTenant().getId().toString() : null)
+                .claim("language", user.getLanguage())
+                .claim("tenantLanguage", tenantLanguage)
+                .claim("resolvedLanguage", resolvedLanguage)
                 .claim("masterUser", user.getMasterUser())
                 .claim("developerUser", user.getDeveloperUser())
                 .issuedAt(now)
@@ -44,6 +50,12 @@ public class JwtService {
         String username = extractUsername(token);
 
         return username.equals(user.getEmail()) && !isTokenExpired(token);
+    }
+
+    public boolean isTokenValid(String token, String username) {
+        String extractedUsername = extractUsername(token);
+
+        return extractedUsername.equals(username) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -64,5 +76,17 @@ public class JwtService {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
 
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    private String resolveLanguage(String userLanguage, String tenantLanguage) {
+        if (userLanguage != null && !userLanguage.isBlank()) {
+            return userLanguage.trim();
+        }
+
+        if (tenantLanguage != null && !tenantLanguage.isBlank()) {
+            return tenantLanguage.trim();
+        }
+
+        return "pt-PT";
     }
 }

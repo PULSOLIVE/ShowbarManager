@@ -1,0 +1,108 @@
+﻿CREATE TABLE branding_settings (
+    id UUID PRIMARY KEY,
+    public_name VARCHAR(120) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    dark_background_color VARCHAR(20),
+    dark_card_color VARCHAR(20),
+    dark_card_soft_color VARCHAR(20),
+    dark_surface_color VARCHAR(20),
+    dark_text_color VARCHAR(20),
+    dark_muted_color VARCHAR(20),
+    dark_border_color VARCHAR(20),
+    dark_primary_color VARCHAR(20),
+    dark_accent_color VARCHAR(20),
+    dark_success_color VARCHAR(20),
+    dark_warning_color VARCHAR(20),
+    dark_danger_color VARCHAR(20),
+
+    light_background_color VARCHAR(20),
+    light_card_color VARCHAR(20),
+    light_card_soft_color VARCHAR(20),
+    light_surface_color VARCHAR(20),
+    light_text_color VARCHAR(20),
+    light_muted_color VARCHAR(20),
+    light_border_color VARCHAR(20),
+    light_primary_color VARCHAR(20),
+    light_accent_color VARCHAR(20),
+    light_success_color VARCHAR(20),
+    light_warning_color VARCHAR(20),
+    light_danger_color VARCHAR(20),
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE branding_assets (
+    id UUID PRIMARY KEY,
+    asset_key VARCHAR(80) NOT NULL UNIQUE,
+    file_name VARCHAR(255) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    file_data BYTEA NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO branding_settings (
+    id,
+    public_name,
+    active,
+
+    dark_background_color,
+    dark_card_color,
+    dark_card_soft_color,
+    dark_surface_color,
+    dark_text_color,
+    dark_muted_color,
+    dark_border_color,
+    dark_primary_color,
+    dark_accent_color,
+    dark_success_color,
+    dark_warning_color,
+    dark_danger_color,
+
+    light_background_color,
+    light_card_color,
+    light_card_soft_color,
+    light_surface_color,
+    light_text_color,
+    light_muted_color,
+    light_border_color,
+    light_primary_color,
+    light_accent_color,
+    light_success_color,
+    light_warning_color,
+    light_danger_color
+) VALUES (
+    gen_random_uuid(),
+    'ShowbarManager',
+    TRUE,
+
+    '#07111F',
+    '#0D1728',
+    '#111D31',
+    '#14223A',
+    '#E5EDF7',
+    '#8EA0B8',
+    '#203047',
+    '#3B82F6',
+    '#38BDF8',
+    '#22C55E',
+    '#F59E0B',
+    '#EF4444',
+
+    '#EDF5FF',
+    '#FFFFFF',
+    '#F7FBFF',
+    '#E6F0FF',
+    '#081526',
+    '#5D7189',
+    '#C4D7ED',
+    '#2563EB',
+    '#0284C7',
+    '#16A34A',
+    '#D97706',
+    '#DC2626'
+);

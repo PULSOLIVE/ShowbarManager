@@ -1,6 +1,11 @@
 package com.showbarmanager.api.modules.tenants;
 
+import com.showbarmanager.api.modules.tenants.dto.CreateTenantRequest;
+import com.showbarmanager.api.modules.tenants.dto.TenantResponse;
+import com.showbarmanager.api.modules.tenants.dto.UpdateTenantRequest;
 import com.showbarmanager.api.responses.ApiResponse;
+import com.showbarmanager.api.security.RequirePermission;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,18 +22,20 @@ public class TenantController {
     }
 
     @PostMapping
-    public ApiResponse<Tenant> create(@RequestBody Tenant tenant) {
-        Tenant createdTenant = tenantService.create(tenant);
-
+    @RequirePermission("TENANTS_CREATE")
+    public ApiResponse<TenantResponse> create(
+            @Valid @RequestBody CreateTenantRequest request
+    ) {
         return new ApiResponse<>(
                 true,
                 "Tenant criado com sucesso",
-                createdTenant
+                tenantService.create(request)
         );
     }
 
     @GetMapping
-    public ApiResponse<List<Tenant>> findAll() {
+    @RequirePermission("TENANTS_VIEW")
+    public ApiResponse<List<TenantResponse>> findAll() {
         return new ApiResponse<>(
                 true,
                 "Tenants listados com sucesso",
@@ -37,11 +44,37 @@ public class TenantController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<Tenant> findById(@PathVariable UUID id) {
+    @RequirePermission("TENANTS_VIEW")
+    public ApiResponse<TenantResponse> findById(@PathVariable UUID id) {
         return new ApiResponse<>(
                 true,
                 "Tenant encontrado com sucesso",
                 tenantService.findById(id)
+        );
+    }
+
+    @PutMapping("/{id}")
+    @RequirePermission("TENANTS_UPDATE")
+    public ApiResponse<TenantResponse> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateTenantRequest request
+    ) {
+        return new ApiResponse<>(
+                true,
+                "Tenant atualizado com sucesso",
+                tenantService.update(id, request)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    @RequirePermission("TENANTS_DELETE")
+    public ApiResponse<Void> delete(@PathVariable UUID id) {
+        tenantService.delete(id);
+
+        return new ApiResponse<>(
+                true,
+                "Tenant excluído com sucesso",
+                null
         );
     }
 }
